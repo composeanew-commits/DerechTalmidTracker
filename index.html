@@ -38,6 +38,7 @@
   .panel + .panel{margin-top:14px;}
   .setup-title{font-family:var(--serif);font-size:22px;margin:0 0 4px;}
   .setup-desc{font-size:13px;color:var(--ink-soft);margin:0 0 18px;line-height:1.6;}
+  .err{display:block;margin-top:12px;padding:10px 12px;background:#fdecea;color:#b3261e;border-radius:8px;font-size:13px;line-height:1.5;}
 
   label{display:block;font-size:12px;color:var(--ink-soft);margin:12px 0 5px;}
   label:first-child{margin-top:0;}
@@ -166,15 +167,15 @@
   <!-- SETUP VIEW -->
   <div id="setupView" class="panel">
     <p class="setup-title">Connect your data</p>
-    <p class="setup-desc">Enter your Supabase project so attendance, classes, and interview notes sync across every device.</p>
+    <p class="setup-desc">This app is pre-configured to connect automatically. If you're seeing this screen, the automatic connection failed &mdash; check the error message below, then try again once your internet connection is stable.</p>
     <label for="sbUrl">Supabase URL</label>
     <input type="text" id="sbUrl" placeholder="https://xxxxx.supabase.co" />
     <label for="sbKey">Supabase anon / publishable key</label>
     <input type="password" id="sbKey" placeholder="eyJ... or sb_publishable_..." />
     <div class="row" style="margin-top:16px;">
       <button class="primary" id="connectBtn">Connect</button>
-      <span id="setupErr" class="err hidden"></span>
     </div>
+    <span id="setupErr" class="err hidden"></span>
   </div>
 
   <!-- MAIN APP -->
@@ -258,6 +259,12 @@
 (function(){
   "use strict";
 
+  // Pre-filled Supabase project (baked in so no setup step is needed on any device)
+  const BUILT_IN_SUPABASE = {
+    url: "https://fdzqakfwalpytzqpoitg.supabase.co",
+    key: "sb_publishable_NblMIQhiVSdPjIHHVgxZIg_Wm8tDoOL"
+  };
+
   const $ = id => document.getElementById(id);
   const state = { config:null, data:null, activeClass:null, activeInterviewStudent:null };
 
@@ -314,11 +321,16 @@
 
   // ---------------- boot ----------------
   async function boot(){
-    const saved = loadLocal("sb-config");
-    if(saved){
-      $("sbUrl").value = saved.url; $("sbKey").value = saved.key;
-      try{ await connect(saved); showMain(); }
-      catch(e){ showSetupError(e.message); }
+    const saved = loadLocal("sb-config") || BUILT_IN_SUPABASE;
+    $("sbUrl").value = saved.url; $("sbKey").value = saved.key;
+    $("connectBtn").textContent = "Retry connection";
+    setConn(false, "connecting\u2026");
+    try{
+      await connect(saved);
+      showMain();
+    }catch(e){
+      showSetupError(e.message);
+      setConn(false, "not connected");
     }
   }
 
@@ -370,16 +382,4 @@
     });
   });
 
-  // ---------------- file export (works in artifact viewer and standalone) ----------------
-  async function saveFile(filename, mime, content){
-    try{
-      if(window.claude && window.claude.use){
-        const downloads = await window.claude.use("downloads");
-        if(downloads){ await downloads.save({filename, data: content}); return; }
-      }
-    }catch(e){ /* fall through to browser download */ }
-    const blob = content instanceof Blob ? content : new Blob([content], {type: mime});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.rem
+  // ---------------- file export (works in ar
