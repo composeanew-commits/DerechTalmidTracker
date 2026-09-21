@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Talmid Tracker" />
+<title>Derech Talmid Tracker</title>
+<style>
+  :root{
+    --paper:#F7F4EC; --card:#FFFFFF; --ink:#241D4A; --ink-soft:#6B6558; --line:#E4DFCF;
+    --brand:#342B71; --brand-soft:#EDEBFA; --red:#A23B32; --red-bg:#F7E6E3;
+    --amber:#B8791E; --amber-bg:#FBEFDD; --green:#47714B; --green-bg:#E7F0E6;
+    --gray:#8B8779; --gray-bg:#EFEDE4;
+    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  #app{max-width:1040px;margin:0 auto;padding:20px 16px 90px;}
+  .hidden{display:none !important;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;
+    position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);z-index:10;padding:6px 0;}
+  .topbar h1{font-family:var(--serif);font-weight:400;font-size:24px;margin:0;color:var(--ink);}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+  .dot.off{background:var(--gray);}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
+  .tab{flex:none;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:13px;cursor:pointer;white-space:nowrap;}
+  .tab.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;}
+  .panel + .panel{margin-top:14px;}
+  .setup-title{font-family:var(--serif);font-size:22px;margin:0 0 4px;}
+  .setup-desc{font-size:13px;color:var(--ink-soft);margin:0 0 18px;line-height:1.6;}
+  .err{display:block;margin-top:12px;padding:10px 12px;background:#fdecea;color:#b3261e;border-radius:8px;font-size:13px;line-height:1.5;}
+
+  label{display:block;font-size:12px;color:var(--ink-soft);margin:12px 0 5px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=password], input[type=date], select, textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:15px;
+    font-family:var(--sans);color:var(--ink);background:#FEFDFB;}
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--brand-soft);border-color:var(--brand);}
+  textarea{resize:vertical;min-height:70px;}
+
+  button{font-family:var(--sans);font-size:14px;cursor:pointer;border-radius:8px;padding:9px 14px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);}
+  button:hover{border-color:var(--ink-soft);}
+  button.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  button.primary:hover{background:#291F5E;}
+  button.danger{border-color:var(--red);color:var(--red);}
+  button.ghost{border-color:transparent;background:transparent;padding:6px 8px;color:var(--ink-soft);}
+  button.ghost:hover{color:var(--ink);}
+  button:disabled{opacity:.5;cursor:default;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .row-end{justify-content:flex-end;}
+  .err{color:var(--red);font-size:13px;margin-top:10px;}
+  .hint{color:var(--ink-soft);font-size:12px;margin-top:6px;line-height:1.5;}
+
+  /* class chips */
+  .class-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .class-chip{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;cursor:pointer;color:var(--ink-soft);}
+  .class-chip.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .class-chip .n{opacity:.7;font-size:11px;margin-left:4px;}
+
+  /* grid of students */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;
+    cursor:pointer;transition:border-color .12s ease,transform .12s ease;position:relative;}
+  .card:hover{border-color:var(--ink-soft);transform:translateY(-1px);}
+  .photo{width:60px;height:60px;border-radius:50%;margin:0 auto 8px;object-fit:cover;background:var(--brand-soft);
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:18px;color:var(--brand);
+    border:3px solid var(--card);box-shadow:0 0 0 3px var(--ring,var(--gray));overflow:hidden;}
+  .photo img{width:100%;height:100%;object-fit:cover;}
+  .photo.red{--ring:var(--red);} .photo.yellow{--ring:var(--amber);} .photo.green{--ring:var(--green);}
+  .name{font-family:var(--serif);font-size:14px;color:var(--ink);margin-bottom:3px;}
+  .status-label{font-size:10px;padding:2px 8px;border-radius:999px;display:inline-block;}
+  .status-label.red{background:var(--red-bg);color:var(--red);}
+  .status-label.yellow{background:var(--amber-bg);color:var(--amber);}
+  .status-label.green{background:var(--green-bg);color:var(--green);}
+  .status-label.unknown{background:var(--gray-bg);color:var(--gray);}
+  .empty{padding:50px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+
+  /* attendance rows */
+  .att-row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);}
+  .att-row:last-child{border-bottom:none;}
+  .att-photo{width:38px;height:38px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;flex:none;overflow:hidden;}
+  .att-photo img{width:100%;height:100%;object-fit:cover;}
+  .att-name{flex:1;font-size:14px;}
+  .seg{display:flex;gap:4px;}
+  .seg button{padding:7px 10px;font-size:12px;border-radius:7px;}
+  .seg button.p.active{background:var(--green);border-color:var(--green);color:#fff;}
+  .seg button.l.active{background:var(--amber);border-color:var(--amber);color:#fff;}
+  .seg button.a.active{background:var(--red);border-color:var(--red);color:#fff;}
+
+  .hist-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer;}
+  .hist-item:last-child{border-bottom:none;}
+  .hist-item:hover{color:var(--brand);}
+  .hist-counts{color:var(--ink-soft);font-size:12px;}
+
+  /* interviews */
+  .student-picker{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
+  .student-pill{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap;}
+  .student-pill.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .entry{border-bottom:1px solid var(--line);padding:12px 0;}
+  .entry:last-child{border-bottom:none;}
+  .entry-date{font-size:12px;color:var(--ink-soft);margin-bottom:4px;display:flex;justify-content:space-between;}
+  .entry-notes{font-size:14px;white-space:pre-wrap;line-height:1.5;}
+
+  /* drawer */
+  .overlay{position:fixed;inset:0;background:rgba(36,29,74,.35);display:flex;justify-content:flex-end;z-index:50;}
+  .drawer{width:min(440px,94vw);height:100%;background:var(--card);padding:22px 20px;overflow-y:auto;box-shadow:-8px 0 24px rgba(0,0,0,.08);
+    padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));}
+  .drawer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .drawer .photo{width:78px;height:78px;font-size:24px;margin:0 0 12px;}
+  .drawer .name{font-size:19px;text-align:left;margin-bottom:2px;}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .kv .k{color:var(--ink-soft);} .kv .v{color:var(--ink);text-align:right;}
+  .thumb-input{margin-top:6px;}
+  .rate-bar{height:6px;border-radius:3px;background:var(--gray-bg);overflow:hidden;margin-top:4px;}
+  .rate-bar > div{height:100%;background:var(--green);}
+
+  /* overview */
+  .drawer-wide{width:min(920px,96vw);}
+  .ov-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .ov-toolbar input[type=text]{max-width:220px;}
+  .ov-toolbar select{max-width:170px;}
+  table.ov-table{width:100%;border-collapse:collapse;font-size:13px;}
+  table.ov-table th{text-align:left;font-size:11px;color:var(--ink-soft);font-weight:500;padding:8px 8px;border-bottom:1px solid var(--line);}
+  table.ov-table td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.ov-table tr{cursor:pointer;}
+  table.ov-table tr:hover td{background:var(--paper);}
+  .ov-photo{width:30px;height:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:11px;overflow:hidden;flex:none;}
+  .ov-photo img{width:100%;height:100%;object-fit:cover;}
+  .ov-name-cell{display:flex;align-items:center;gap:8px;}
+  .ov-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .ov-dot.red{background:var(--red);} .ov-dot.yellow{background:var(--amber);} .ov-dot.green{background:var(--green);} .ov-dot.unknown{background:var(--gray);}
+  .link-btn{background:none;border:none;color:var(--brand);padding:0;font-size:13px;cursor:pointer;text-decoration:underline;}
+
+  .card-sub{font-size:11px;color:var(--ink-soft);margin-bottom:8px;line-height:1.4;}
+  .card-flag{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--amber);
+    border:2px solid var(--card);}
+  .quick-call{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:var(--brand-soft);
+    color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;line-height:1;}
+  .ov-flag{color:var(--amber);font-size:11px;}
+
+  /* attention banner */
+  .attn-banner{background:var(--amber-bg);border:1px solid #eddcb0;border-radius:12px;margin-bottom:16px;overflow:hidden;}
+  .attn-toggle{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:none;border:none;
+    cursor:pointer;text-align:left;color:var(--ink);}
+  .attn-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none;}
+  .attn-toggle-text{flex:1;font-size:13px;font-weight:600;}
+  .attn-toggle-sub{font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px;}
+  .attn-chevron{color:var(--ink-soft);font-size:11px;transition:transform .15s ease;}
+  .attn-chevron.open{transform:rotate(180deg);}
+  .attn-list{border-top:1px solid #eddcb0;padding:4px 8px;}
+  .attn-row{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid #eddcb0;cursor:pointer;}
+  .attn-row:last-child{border-bottom:none;}
+  .attn-row:hover{background:rgba(255,255,255,.4);}
+  .attn-row-photo{width:32px;height:32px;border-radius:50%;background:var(--card);color:var(--brand);flex:none;
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:11px;overflow:hidden;}
+  .attn-row-photo img{width:100%;height:100%;object-fit:cover;}
+  .attn-row-main{flex:1;min-width:0;}
+  .attn-row-name{font-size:13px;color:var(--ink);}
+  .attn-row-reason{font-size:11px;color:var(--ink-soft);}
+  .attn-call{width:26px;height:26px;border-radius:50%;background:var(--card);color:var(--brand);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:13px;text-decoration:none;}
+  .attn-more{padding:10px 6px;font-size:12px;color:var(--brand);text-align:center;cursor:pointer;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <h1>Derech Talmid Tracker</h1>
+    <div class="row" style="gap:8px;">
+      <button class="link-btn hidden" id="overviewBtn">Full school overview</button>
+      <div class="pill" id="connPill"><span class="dot off"></span><span id="connText">not connected</span></div>
+      <button class="ghost" id="refreshBtn" title="Sync">&#8635;</button>
+    </div>
+  </div>
+
+  <!-- SETUP VIEW -->
+  <div id="setupView" class="panel">
+    <p class="setup-title">Connect your data</p>
+    <p class="setup-desc">This app is pre-configured to connect automatically. If you're seeing this screen, the automatic connection failed &mdash; check the error message below, then try again once your internet connection is stable.</p>
+    <label for="sbUrl">Supabase URL</label>
+    <input type="text" id="sbUrl" placeholder="https://xxxxx.supabase.co" />
+    <label for="sbKey">Supabase anon / publishable key</label>
+    <input type="password" id="sbKey" placeholder="eyJ... or sb_publishable_..." />
+    <div class="row" style="margin-top:16px;">
+      <button class="primary" id="connectBtn">Connect</button>
+    </div>
+    <span id="setupErr" class="err hidden"></span>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainView" class="hidden">
+    <div class="attn-banner hidden" id="attnBanner">
+      <button class="attn-toggle" id="attnToggle">
+        <span class="attn-dot"></span>
+        <span class="attn-toggle-text" id="attnText">Loading\u2026<span class="attn-toggle-sub" id="attnSub"></span></span>
+        <span class="attn-chevron open" id="attnChevron">&#9662;</span>
+      </button>
+      <div class="attn-list" id="attnList"></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="attendance">Attendance</button>
+      <button class="tab" data-tab="interviews">Check-ins</button>
+      <button class="tab" data-tab="roster">Classes &amp; Students</button>
+    </div>
+
+    <!-- ROSTER TAB -->
+    <div id="tab-roster" class="hidden">
+      <div class="class-strip" id="classStrip"></div>
+      <div class="row" style="margin-bottom:14px;">
+        <input type="text" id="rosterSearch" placeholder="Search students" style="max-width:220px;" />
+        <div style="flex:1"></div>
+        <button id="addClassBtn">+ Class</button>
+        <button class="primary" id="addStudentBtn">+ Student</button>
+      </div>
+      <div class="grid" id="rosterGrid"></div>
+      <div class="empty hidden" id="rosterEmpty">No students yet. Add a class, then add students.</div>
+    </div>
+
+    <!-- ATTENDANCE TAB -->
+    <div id="tab-attendance">
+      <div class="panel">
+        <div class="row">
+          <div style="flex:1;min-width:140px;">
+            <label for="attClass">Class</label>
+            <select id="attClass"></select>
+            <p class="hint" id="attRoomHint"></p>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label for="attDate">Date</label>
+            <input type="date" id="attDate" />
+          </div>
+        </div>
+        <div id="attPhotoWrap" style="margin-top:12px;">
+          <label>Photo of attendance sheet (optional)</label>
+          <input type="file" id="attPhotoInput" accept="image/*" capture="environment" class="thumb-input" />
+          <div id="attPhotoPreview" style="margin-top:8px;"></div>
+        </div>
+        <div id="attRows" style="margin-top:16px;"></div>
+        <div class="row row-end" style="margin-top:14px;">
+          <span id="attSummary" class="hint" style="margin-right:auto;"></span>
+          <button class="primary" id="saveAttendance">Save attendance</button>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="setup-title" style="font-size:16px;">History</p>
+        <div id="attHistory"></div>
+      </div>
+    </div>
+
+    <!-- INTERVIEWS TAB -->
+    <div id="tab-interviews" class="hidden">
+      <div class="student-picker" id="interviewPicker"></div>
+      <div class="panel" id="interviewPanel">
+        <div class="row">
+          <p class="setup-title" style="font-size:16px;margin:0;flex:1;" id="interviewStudentName">Select a student</p>
+          <button class="primary hidden" id="addEntryBtn">+ New entry</button>
+        </div>
+        <div id="entryForm" class="hidden" style="margin-top:12px;">
+          <label for="entryDate">Date</label>
+          <input type="date" id="entryDate" />
+          <label for="entryNotes">Notes</label>
+          <textarea id="entryNotes" placeholder="How is he doing? What did you talk about?"></textarea>
+          <div class="row row-end" style="margin-top:10px;">
+            <button class="ghost" id="cancelEntry">Cancel</button>
+            <button class="primary" id="saveEntry">Save</button>
+          </div>
+        </div>
+        <div id="entryList" style="margin-top:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Safety net: if ANYTHING in this page throws, show it on screen instead of failing silently.
+  window.addEventListener("error", function(e){
+    try{
+      var el = document.getElementById("setupErr");
+      var setup = document.getElementById("setupView");
+      if(setup) setup.classList.remove("hidden");
+      if(el){ el.textContent = "App error: " + (e.message || e); el.classList.remove("hidden"); }
+    }catch(_){}
+  });
+  window.addEventListener("unhandledrejection", function(e){
+    try{
+      var el = document.getElementById("setupErr");
+      var setup = document.getElementById("setupView");
+      if(setup) setup.classList.remove("hidden");
+      var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+      if(el){ el.textContent = "App error: " + msg; el.classList.remove("hidden"); }
+    }catch(_){}
+  });
+(function(){
+  "use strict";
+
+  // Pre-filled Supabase project (baked in so no setup step is needed on any device)
+  const BUILT_IN_SUPABASE = {
+    url: "https://fdzqakfwalpytzqpoitg.supabase.co",
+    key: "sb_publishable_NblMIQhiVSdPjIHHVgxZIg_Wm8tDoOL"
+  };
+
+  const $ = id => document.getElementById(id);
+  const state = { config:null, data:null, activeClass:null, activeInterviewStudent:null };
+
+  const emptyData = () => ({ classes:[], students:[], attendance:[], interviews:[] });
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  const todayStr = () => new Date().toISOString().slice(0,10);
+  const escapeHtml = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const initials = name => (name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
+
+  // ---------------- local persistence (per-device config) ----------------
+  function loadLocal(key){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+  function saveLocal(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+  // ---------------- supabase ----------------
+  function fetchWithTimeout(url, opts, ms){
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=> ctrl.abort(), ms || 12000);
+    return fetch(url, Object.assign({}, opts, { signal: ctrl.signal }))
+      .finally(()=> clearTimeout(timer))
+      .catch(e=>{
+        if(e && e.name === "AbortError") throw new Error("Timed out reaching Supabase \u2014 check your internet connection and try again.");
+        throw e;
+      });
+  }
+  async function sbGet(path){
+    const res = await fetchWithTimeout(`${state.config.url}/rest/v1/${path}`, {
+      headers:{ apikey: state.config.key, Authorization: `Bearer ${state.config.key}` }
+    });
+    if(!res.ok) throw new Error(`${res.status} ${res.statusText} ${await res.text().catch(()=> "")}`.trim());
+    return res.json();
+  }
+  async function sbUpsert(dataBlob){
+    const res = await fetchWithTimeout(`${state.config.url}/rest/v1/derech_data?on_conflict=id`, {
+      method:"POST",
+      headers:{ apikey: state.config.key, Authorization: `Bearer ${state.config.key}`,
+        "Content-Type":"application/json", "Prefer":"resolution=merge-duplicates" },
+      body: JSON.stringify({ id:"main", data: dataBlob, updated_at: new Date().toISOString() })
+    });
+    if(!res.ok) throw new Error(`${res.status} ${res.statusText} ${await res.text().catch(()=> "")}`.trim());
+  }
+  async function persist(){ await sbUpsert(state.data); updateAttentionBanner(); }
+
+  function setConn(on, label){
+    $("connText").textContent = label;
+    $("connPill").querySelector(".dot").classList.toggle("off", !on);
+  }
+
+  async function connect(cfg){
+    state.config = cfg;
+    setConn(false, "connecting\u2026");
+    let rows;
+    try{ rows = await sbGet("derech_data?select=data,updated_at&id=eq.main"); }
+    catch(e){ setConn(false,"not connected"); throw e; }
+    if(rows && rows.length){
+      state.data = Object.assign(emptyData(), rows[0].data || {});
+    } else {
+      state.data = emptyData();
+      await sbUpsert(state.data);
+    }
+    setConn(true, "connected");
+    saveLocal("sb-config", cfg);
+  }
+
+  // ---------------- boot ----------------
+  async function boot(){
+    const saved = loadLocal("sb-config") || BUILT_IN_SUPABASE;
+    $("sbUrl").value = saved.url; $("sbKey").value = saved.key;
+    $("connectBtn").textContent = "Retry connection";
+    setConn(false, "connecting\u2026");
+    try{
+      await connect(saved);
+      showMain();
+    }catch(e){
+      showSetupError(e.message);
+      setConn(false, "not connected");
+    }
+  }
+
+  function showSetupError(msg){
+    const el = $("setupErr");
+    el.textContent = "Couldn't connect \u2014 " + msg;
+    el.classList.remove("hidden");
+  }
+
+  function showMain(){
+    $("setupView").classList.add("hidden");
+    $("mainView").classList.remove("hidden");
+    $("overviewBtn").classList.remove("hidden");
+    if(!state.activeClass && state.data.classes.length) state.activeClass = state.data.classes[0].id;
+    renderRoster();
+    populateAttClassSelect();
+    $("attDate").value = todayStr();
+    renderAttendanceTab();
+    renderInterviewPicker();
+    updateAttentionBanner();
+  }
+
+  $("connectBtn").addEventListener("click", async ()=>{
+    const url = $("sbUrl").value.trim().replace(/\/$/,"");
+    const key = $("sbKey").value.trim();
+    $("setupErr").classList.add("hidden");
+    if(!url || !key){ showSetupError("enter both the URL and the key."); return; }
+    $("connectBtn").disabled = true;
+    try{ await connect({url,key}); showMain(); }
+    catch(e){ showSetupError(e.message); }
+    finally{ $("connectBtn").disabled = false; }
+  });
+
+  $("refreshBtn").addEventListener("click", async ()=>{
+    if(!state.config) return;
+    try{
+      await connect(state.config);
+      renderRoster(); populateAttClassSelect(); renderAttendanceTab(); renderInterviewPicker();
+    }catch(e){ alert("Couldn't refresh: " + e.message); }
+  });
+
+  // ---------------- tabs ----------------
+  document.querySelectorAll(".tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      ["roster","attendance","interviews"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t !== btn.dataset.tab));
+      if(btn.dataset.tab === "attendance") renderAttendanceTab();
+      if(btn.dataset.tab === "interviews") renderInterviewPicker();
+    });
+  });
+
+  // ---------------- file export (works in artifact viewer and standalone) ----------------
+  async function saveFile(filename, mime, content){
+    try{
+      if(window.claude && window.claude.use){
+        const downloads = await window.claude.use("downloads");
+        if(downloads){ await downloads.save({filename, data: content}); return; }
+      }
+    }catch(e){ /* fall through to browser download */ }
+    const blob = content instanceof Blob ? content : new Blob([content], {type: mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+  }
+
+  function csvEscape(v){
+    const s = String(v==null?"":v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }
+
+  // ---------------- image compression ----------------
+  function compressImage(file, maxDim, quality){
+    return new Promise((resolve, reject)=>{
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = e => { img.onload = ()=>{
+        let {width, height} = img;
+        if(width > height && width > maxDim){ height = height*maxDim/width; width = maxDim; }
+        else if(height > maxDim){ width = width*maxDim/height; height = maxDim; }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      }; img.onerror = reject; img.src = e.target.result; };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ================= ROSTER TAB =================
+  function classById(id){ return state.data.classes.find(c=>c.id===id); }
+  function studentsInClass(id){ return state.data.students.filter(s=> id === "__none" ? !s.classId : s.classId === id); }
+
+  function classAttendanceRate(studentId, classId, lastN){
+    const sessions = state.data.attendance.filter(a=>a.classId===classId).sort((a,b)=> b.date.localeCompare(a.date)).slice(0,lastN);
+    if(!sessions.length) return null;
+    let present=0, total=0;
+    sessions.forEach(s=>{
+      const st = s.records[studentId];
+      if(st){ total++; if(st==="present") present++; else if(st==="late") present += 0.5; }
+    });
+    if(total===0) return null;
+    return present/total;
+  }
+
+  function studentStatus(student){
+    const rate = classAttendanceRate(student.id, student.classId, 4);
+    if(rate===null) return "unknown";
+    if(rate >= 0.8) return "green";
+    if(rate >= 0.5) return "yellow";
+    return "red";
+  }
+
+  // ---------------- needs-attention tracking ----------------
+  const CHECKIN_STALE_DAYS = 21; // flag a student if no check-in logged in this many days
+
+  function daysSince(dateStr){
+    if(!dateStr) return null;
+    const d = new Date(dateStr+"T00:00:00");
+    const now = new Date(todayStr()+"T00:00:00");
+    if(isNaN(d.getTime())) return null;
+    return Math.round((now-d)/86400000);
+  }
+
+  function attentionReasons(s){
+    const reasons = [];
+    const status = studentStatus(s);
+    if(status==="red") reasons.push("attendance is low");
+    const li = lastInterviewDate(s.id);
+    const days = li ? daysSince(li) : null;
+    if(!li) reasons.push("no check-in logged yet");
+    else if(days!==null && days>=CHECKIN_STALE_DAYS) reasons.push(`no check-in in ${days} days`);
+    const missing = missingFields(s);
+    if(missing.length) reasons.push("missing " + missing.join(", "));
+    return reasons;
+  }
+
+  function attentionList(){
+    return state.data.students.map(s=>({ student:s, status:studentStatus(s), reasons:attentionReasons(s), days:(lastInterviewDate(s.id)?daysSince(lastInterviewDate(s.id)):null) }))
+      .filter(r=> r.reasons.length>0)
+      .sort((a,b)=>{
+        const aRed = a.status==="red" ? 0 : 1, bRed = b.status==="red" ? 0 : 1;
+        if(aRed!==bRed) return aRed-bRed;
+        const ad = a.days===null ? 9999 : a.days, bd = b.days===null ? 9999 : b.days;
+        if(ad!==bd) return bd-ad;
+        return a.student.name.localeCompare(b.student.name);
+      });
+  }
+
+  function updateAttentionBanner(){
+    const banner = $("attnBanner");
+    if(!banner || !state.data) return;
+    const list = attentionList();
+    if(!list.length){ banner.classList.add("hidden"); return; }
+    banner.classList.remove("hidden");
+    const redCount = list.filter(r=>r.status==="red").length;
+    $("attnText").innerHTML = `${list.length} student${list.length===1?"":"s"} need${list.length===1?"s":""} attention`
+      + `<span class="attn-toggle-sub" id="attnSub">${redCount?redCount+" with low attendance \u00b7 ":""}tap to review, or use Full school overview</span>`;
+    const listEl = $("attnList");
+    listEl.innerHTML = "";
+    list.slice(0,8).forEach(r=>{
+      const row = document.createElement("div");
+      row.className = "attn-row";
+      row.innerHTML = `
+        <div class="attn-row-photo">${r.student.photo?`<img src="${r.student.photo}" alt="">`:initials(r.student.name)}</div>
+        <div class="attn-row-main">
+          <div class="attn-row-name">${escapeHtml(r.student.name)}</div>
+          <div class="attn-row-reason">${escapeHtml(r.reasons.join(" \u00b7 "))}</div>
+        </div>
+        ${r.student.phone?`<a href="tel:${escapeHtml(r.student.phone)}" class="attn-call" onclick="event.stopPropagation()" title="Call">&#9742;</a>`:""}
+      `;
+      row.addEventListener("click", ()=> openStudentDrawer(r.student.id));
+      listEl.appendChild(row);
+    });
+    if(list.length>8){
+      const more = document.createElement("div");
+      more.className = "attn-more";
+      more.textContent = `+ ${list.length-8} more \u2014 open Full school overview`;
+      more.addEventListener("click", openOverview);
+      listEl.appendChild(more);
+    }
+  }
+
+  let attnExpanded = true;
+  $("attnToggle").addEventListener("click", ()=>{
+    attnExpanded = !attnExpanded;
+    $("attnList").classList.toggle("hidden", !attnExpanded);
+    $("attnChevron").classList.toggle("open", attnExpanded);
+  });
+
+  function renderClassStrip(){
+    const strip = $("classStrip");
+    strip.innerHTML = "";
+    const allChip = document.createElement("div");
+    allChip.className = "class-chip" + (state.activeClass===null?" active":"");
+    allChip.textContent = "All students";
+    allChip.addEventListener("click", ()=>{ state.activeClass = null; renderRoster(); });
+    strip.appendChild(allChip);
+    state.data.classes.forEach(c=>{
+      const chip = document.createElement("div");
+      chip.className = "class-chip" + (state.activeClass===c.id ? " active":"");
+      chip.innerHTML = `${escapeHtml(c.name)} <span class="n">${studentsInClass(c.id).length}</span>`;
+      chip.addEventListener("click", ()=>{ state.activeClass = c.id; renderRoster(); });
+      chip.addEventListener("dblclick", ()=> editClass(c.id));
+      strip.appendChild(chip);
+    });
+    const none = studentsInClass("__none");
+    if(none.length){
+      const chip = document.createElement("div");
+      chip.className = "class-chip" + (state.activeClass==="__none" ? " active":"");
+      chip.innerHTML = `No class <span class="n">${none.length}</span>`;
+      chip.addEventListener("click", ()=>{ state.activeClass = "__none"; renderRoster(); });
+      strip.appendChild(chip);
+    }
+  }
+
+  function missingFields(s){
+    const cls = s.classId ? classById(s.classId) : null;
+    const missing = [];
+    if(!s.classId) missing.push("shiur");
+    if(s.classId && (!cls || !cls.room)) missing.push("room");
+    if(!s.phone) missing.push("phone");
+    if(!s.parentPhone) missing.push("parent phone");
+    return missing;
+  }
+
+  function renderRoster(){
+    renderClassStrip();
+    const q = ($("rosterSearch").value||"").toLowerCase();
+    let list = state.activeClass===null ? state.data.students.slice() : studentsInClass(state.activeClass);
+    if(q) list = list.filter(s=> s.name.toLowerCase().includes(q));
+    list.sort((a,b)=> a.name.localeCompare(b.name));
+    const grid = $("rosterGrid");
+    grid.innerHTML = "";
+    $("rosterEmpty").classList.toggle("hidden", list.length!==0);
+    list.forEach(s=>{
+      const status = studentStatus(s);
+      const cls = s.classId ? classById(s.classId) : null;
+      const sub = [cls ? cls.name : "No shiur", cls && cls.room ? "Room "+cls.room : null].filter(Boolean).join(" \u00b7 ");
+      const missing = missingFields(s);
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        ${s.phone ? `<a href="tel:${escapeHtml(s.phone)}" class="quick-call" title="Call ${escapeHtml(s.name)}" onclick="event.stopPropagation()">&#9742;</a>` : ""}
+        ${missing.length ? `<span class="card-flag" title="Missing: ${escapeHtml(missing.join(', '))}"></span>` : ""}
+        <div class="photo ${status}">${s.photo ? `<img src="${s.photo}" alt="">` : initials(s.name)}</div>
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="card-sub">${escapeHtml(sub)}</div>
+        <span class="status-label ${status}">${status==="unknown"?"No data":status==="red"?"Needs attention":status==="yellow"?"Keep an eye on":"Doing great"}</span>
+      `;
+      card.addEventListener("click", ()=> openStudentDrawer(s.id));
+      grid.appendChild(card);
+    });
+  }
+
+  $("rosterSearch").addEventListener("input", renderRoster);
+
+  $("addClassBtn").addEventListener("click", ()=> openClassDrawer(null));
+  function editClass(id){ openClassDrawer(id); }
+
+  function openClassDrawer(classId){
+    const isNew = !classId;
+    const cls = isNew ? {id:uid(), name:"", room:""} : classById(classId);
+    if(!cls) return;
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    overlay.addEventListener("click", e=>{ if(e.target===overlay) overlay.remove(); });
+    overlay.innerHTML = `
+      <div class="drawer">
+        <div class="drawer-head">
+          <p class="setup-title" style="font-size:18px;margin:0;">${isNew?"New class":"Edit class"}</p>
+          <button class="ghost" id="closeDrawer">Close</button>
+        </div>
+        <label for="clsName">Class name</label>
+        <input type="text" id="clsName" value="${escapeHtml(cls.name)}" placeholder="e.g. Shiur Aleph" />
+        <label for="clsRoom">Room</label>
+        <input type="text" id="clsRoom" value="${escapeHtml(cls.room||"")}" placeholder="e.g. Room 210" />
+        <div class="row row-end" style="margin-top:18px;">
+          ${!isNew ? `<button class="danger" id="deleteClass">Delete</button>` : ""}
+          <button class="primary" id="saveClass">${isNew?"Add class":"Save"}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector("#closeDrawer").addEventListener("click", ()=> overlay.remove());
+    overlay.querySelector("#saveClass").addEventListener("click", async ()=>{
+      const name = overlay.querySelector("#clsName").value.trim();
+      if(!name){ alert("Please enter a class name."); return; }
+      cls.name = name;
+      cls.room = overlay.querySelector("#clsRoom").value.trim();
+      if(isNew) state.data.classes.push(cls);
+      await persist();
+      overlay.remove();
+      renderRoster(); populateAttClassSelect();
+    });
+    const delBtn = overlay.querySelector("#deleteClass");
+    if(delBtn) delBtn.addEventListener("click", async ()=>{
+      if(!confirm(`Delete class "${cls.name}"? Students will become unassigned.`)) return;
+      state.data.students.forEach(s=>{ if(s.classId===cls.id) s.classId=null; });
+      state.data.classes = state.data.classes.filter(x=>x.id!==cls.id);
+      if(state.activeClass===cls.id) state.activeClass=null;
+      await persist();
+      overlay.remove();
+      renderRoster(); populateAttClassSelect();
+    });
+  }
+
+  $("addStudentBtn").addEventListener("click", ()=> openStudentDrawer(null));
+
+  function openStudentDrawer(studentId){
+    const isNew = !studentId;
+    const student = isNew ? {id:uid(), name:"", classId: (state.activeClass && state.activeClass!=="__none") ? state.activeClass : null, photo:"", phone:"", parentPhone:""} : state.data.students.find(s=>s.id===studentId);
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    overlay.addEventListener("click", e=>{ if(e.target===overlay) overlay.remove(); });
+
+    const rate = !isNew ? classAttendanceRate(student.id, student.classId, 8) : null;
+    const classOptions = state.data.classes.map(c=>`<option value="${c.id}" ${student.classId===c.id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
+
+    overlay.innerHTML = `
+      <div class="drawer">
+        <div class="drawer-head">
+          <div>
+            <div class="photo">${student.photo?`<img src="${student.photo}" alt="">`:initials(student.name||"?")}</div>
+          </div>
+          <button class="ghost" id="closeDrawer">Close</button>
+        </div>
+        <label for="stName">Name</label>
+        <input type="text" id="stName" value="${escapeHtml(student.name)}" placeholder="Full name" />
+        <label for="stClass">Class</label>
+        <select id="stClass"><option value="">No class</option>${classOptions}</select>
+        ${!isNew && student.classId && classById(student.classId) && classById(student.classId).room ? `
+        <div class="kv"><span class="k">Room</span><span class="v">${escapeHtml(classById(student.classId).room)}</span></div>` : ""}
+        <label for="stPhone">Student phone <span style="color:var(--ink-soft);">(optional)</span></label>
+        <input type="text" id="stPhone" value="${escapeHtml(student.phone||"")}" />
+        <label for="stParentPhone">Parent phone <span style="color:var(--ink-soft);">(optional)</span></label>
+        <input type="text" id="stParentPhone" value="${escapeHtml(student.parentPhone||"")}" />
+        ${!isNew && (student.phone || student.parentPhone) ? `
+        <div class="row" style="margin-top:8px;gap:8px;">
+          ${student.parentPhone ? `<a href="tel:${escapeHtml(student.parentPhone)}" class="link-btn">Call parent</a>` : ""}
+          ${student.phone ? `<a href="tel:${escapeHtml(student.phone)}" class="link-btn">Call student</a>` : ""}
+        </div>` : ""}
+        <label>Photo</label>
+        <input type="file" id="stPhotoInput" accept="image/*" capture="environment" class="thumb-input" />
+        ${!isNew ? `
+        <div class="kv"><span class="k">Attendance (last 8)</span><span class="v">${rate===null?"no data":Math.round(rate*100)+"%"}</span></div>
+        <div class="rate-bar"><div style="width:${rate===null?0:Math.round(rate*100)}%"></div></div>
+        <div class="kv"><span class="k">Last check-in</span><span class="v">${(()=>{ const li=lastInterviewDate(student.id); if(!li) return "never"; const d=daysSince(li); return escapeHtml(li)+" ("+d+"d ago)"; })()}</span></div>
+        ${attentionReasons(student).length ? `<div class="kv"><span class="k">Flags</span><span class="v" style="color:var(--amber);">${escapeHtml(attentionReasons(student).join(", "))}</span></div>` : ""}
+        ` : ""}
+        <div class="row row-end" style="margin-top:18px;">
+          ${!isNew ? `<button class="danger" id="deleteStudent">Delete</button>` : ""}
+          <button class="primary" id="saveStudent">${isNew?"Add student":"Save"}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector("#closeDrawer").addEventListener("click", ()=> overlay.remove());
+
+    overlay.querySelector("#stPhotoInput").addEventListener("change", async e=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      student.photo = await compressImage(file, 300, 0.8);
+      overlay.querySelector(".photo").innerHTML = `<img src="${student.photo}" alt="">`;
+    });
+
+    overlay.querySelector("#saveStudent").addEventListener("click", async ()=>{
+      const name = overlay.querySelector("#stName").value.trim();
+      if(!name){ alert("Please enter a name."); return; }
+      student.name = name;
+      student.classId = overlay.querySelector("#stClass").value || null;
+      student.phone = overlay.querySelector("#stPhone").value.trim();
+      student.parentPhone = overlay.querySelector("#stParentPhone").value.trim();
+      if(isNew) state.data.students.push(student);
+      await persist();
+      overlay.remove();
+      renderRoster(); renderInterviewPicker();
+      if(!$("mainView").classList.contains("hidden") && document.getElementById("ovTable")) renderOverviewRows();
+    });
+
+    const delBtn = overlay.querySelector("#deleteStudent");
+    if(delBtn) delBtn.addEventListener("click", async ()=>{
+      if(!confirm(`Delete ${student.name}? This removes their attendance and interview history too.`)) return;
+      state.data.students = state.data.students.filter(s=>s.id!==student.id);
+      state.data.attendance.forEach(a=>{ delete a.records[student.id]; });
+      state.data.interviews = state.data.interviews.filter(i=>i.studentId!==student.id);
+      await persist();
+      overlay.remove();
+      renderRoster(); renderInterviewPicker();
+    });
+  }
+
+  // ================= ATTENDANCE TAB =================
+  function populateAttClassSelect(){
+    const sel = $("attClass");
+    const prev = sel.value;
+    sel.innerHTML = state.data.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+    if(prev && state.data.classes.some(c=>c.id===prev)) sel.value = prev;
+  }
+  $("attClass").addEventListener("change", renderAttendanceTab);
+  $("attDate").addEventListener("change", renderAttendanceTab);
+
+  function findAttendanceRecord(classId, date){
+    return state.data.attendance.find(a=> a.classId===classId && a.date===date);
+  }
+
+  let currentAttRecord = null;
+
+  function renderAttendanceTab(){
+    if(!state.data.classes.length){
+      $("attRows").innerHTML = '<p class="hint">Add a class first, under "Classes &amp; Students".</p>';
+      $("attHistory").innerHTML = "";
+      $("attSummary").textContent = "";
+      return;
+    }
+    const classId = $("attClass").value || state.data.classes[0].id;
+    $("attClass").value = classId;
+    const activeCls = classById(classId);
+    $("attRoomHint").textContent = activeCls && activeCls.room ? `Room ${activeCls.room}` : "";
+    const date = $("attDate").value || todayStr();
+    const existing = findAttendanceRecord(classId, date);
+    currentAttRecord = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(), classId, date, records:{}, photo:""};
+
+    const roster = studentsInClass(classId).sort((a,b)=>a.name.localeCompare(b.name));
+    const rows = $("attRows");
+    rows.innerHTML = "";
+    if(!roster.length){
+      rows.innerHTML = '<p class="hint">No students in this class yet.</p>';
+    }
+    roster.forEach(s=>{
+      const status = currentAttRecord.records[s.id] || "";
+      const row = document.createElement("div");
+      row.className = "att-row";
+      row.innerHTML = `
+        <div class="att-photo">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
+        <div class="att-name">${escapeHtml(s.name)}</div>
+        <div class="seg">
+          <button class="p ${status==='present'?'active':''}" data-s="present">P</button>
+          <button class="l ${status==='late'?'active':''}" data-s="late">L</button>
+          <button class="a ${status==='absent'?'active':''}" data-s="absent">A</button>
+        </div>
+      `;
+      row.querySelectorAll(".seg button").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const val = btn.dataset.s;
+          currentAttRecord.records[s.id] = currentAttRecord.records[s.id]===val ? "" : val;
+          if(!currentAttRecord.records[s.id]) delete currentAttRecord.records[s.id];
+          renderAttRowState(row, currentAttRecord.records[s.id]);
+          updateAttSummary(roster.length);
+        });
+      });
+      rows.appendChild(row);
+    });
+    updateAttSummary(roster.length);
+
+    $("attPhotoPreview").innerHTML = currentAttRecord.photo ? `<img src="${currentAttRecord.photo}" style="max-width:160px;border-radius:8px;border:1px solid var(--line);">` : "";
+
+    renderAttHistory(classId);
+  }
+
+  function renderAttRowState(row, status){
+    row.querySelectorAll(".seg button").forEach(b=> b.classList.toggle("active", b.dataset.s===status));
+  }
+
+  function updateAttSummary(total){
+    const vals = Object.values(currentAttRecord.records);
+    const present = vals.filter(v=>v==="present").length;
+    const late = vals.filter(v=>v==="late").length;
+    const absent = vals.filter(v=>v==="absent").length;
+    $("attSummary").textContent = `${present} present \u00b7 ${late} late \u00b7 ${absent} absent \u00b7 ${total-vals.length} unmarked`;
+  }
+
+  $("attPhotoInput").addEventListener("change", async e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    currentAttRecord.photo = await compressImage(file, 1000, 0.6);
+    $("attPhotoPreview").innerHTML = `<img src="${currentAttRecord.photo}" style="max-width:160px;border-radius:8px;border:1px solid var(--line);">`;
+  });
+
+  $("saveAttendance").addEventListener("click", async ()=>{
+    const idx = state.data.attendance.findIndex(a=> a.classId===currentAttRecord.classId && a.date===currentAttRecord.date);
+    if(idx>=0) state.data.attendance[idx] = currentAttRecord;
+    else state.data.attendance.push(currentAttRecord);
+    $("saveAttendance").disabled = true;
+    try{ await persist(); renderRoster(); renderAttHistory(currentAttRecord.classId); }
+    catch(e){ alert("Couldn't save: " + e.message); }
+    finally{ $("saveAttendance").disabled = false; }
+  });
+
+  function renderAttHistory(classId){
+    const sessions = state.data.attendance.filter(a=>a.classId===classId).sort((a,b)=> b.date.localeCompare(a.date));
+    const el = $("attHistory");
+    if(!sessions.length){ el.innerHTML = '<p class="hint">No sessions recorded yet.</p>'; return; }
+    el.innerHTML = "";
+    sessions.forEach(s=>{
+      const vals = Object.values(s.records);
+      const present = vals.filter(v=>v==="present").length;
+      const absent = vals.filter(v=>v==="absent").length;
+      const late = vals.filter(v=>v==="late").length;
+      const row = document.createElement("div");
+      row.className = "hist-item";
+      row.innerHTML = `<span>${s.date}</span><span class="hist-counts">${present}P \u00b7 ${late}L \u00b7 ${absent}A</span>`;
+      row.addEventListener("click", ()=>{ $("attDate").value = s.date; renderAttendanceTab(); });
+      el.appendChild(row);
+    });
+  }
+
+  // ================= INTERVIEWS TAB =================
+  function renderInterviewPicker(){
+    const wrap = $("interviewPicker");
+    wrap.innerHTML = "";
+    const list = state.data.students.slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if(state.activeInterviewStudent && !list.some(s=>s.id===state.activeInterviewStudent)) state.activeInterviewStudent = null;
+    list.forEach(s=>{
+      const pill = document.createElement("div");
+      pill.className = "student-pill" + (state.activeInterviewStudent===s.id ? " active":"");
+      pill.textContent = s.name;
+      pill.addEventListener("click", ()=>{ state.activeInterviewStudent = s.id; renderInterviewPanel(); renderInterviewPicker(); });
+      wrap.appendChild(pill);
+    });
+    renderInterviewPanel();
+  }
+
+  function renderInterviewPanel(){
+    const sid = state.activeInterviewStudent;
+    const student = sid ? state.data.students.find(s=>s.id===sid) : null;
+    $("interviewStudentName").textContent = student ? student.name : "Select a student";
+    $("addEntryBtn").classList.toggle("hidden", !student);
+    $("entryForm").classList.add("hidden");
+    const list = $("entryList");
+    list.innerHTML = "";
+    if(!student){ list.innerHTML = '<p class="hint">Pick a student above to view or add interview notes.</p>'; return; }
+    const entries = state.data.interviews.filter(i=>i.studentId===sid).sort((a,b)=> b.date.localeCompare(a.date));
+    if(!entries.length){ list.innerHTML = '<p class="hint">No entries yet.</p>'; return; }
+    entries.forEach(entry=>{
+      const div = document.createElement("div");
+      div.className = "entry";
+      div.innerHTML = `<div class="entry-date"><span>${entry.date}</span><span><a href="#" data-del="${entry.id}" style="color:var(--red);font-size:12px;text-decoration:none;">delete</a></span></div>
+        <div class="entry-notes">${escapeHtml(entry.notes)}</div>`;
+      div.querySelector("[data-del]").addEventListener("click", async e=>{
+        e.preventDefault();
+        if(!confirm("Delete this entry?")) return;
+        state.data.interviews = state.data.interviews.filter(i=>i.id!==entry.id);
+        await persist(); renderInterviewPanel();
+      });
+      list.appendChild(div);
+    });
+  }
+
+  $("addEntryBtn").addEventListener("click", ()=>{
+    $("entryDate").value = todayStr();
+    $("entryNotes").value = "";
+    $("entryForm").classList.remove("hidden");
+  });
+  $("cancelEntry").addEventListener("click", ()=> $("entryForm").classList.add("hidden"));
+  $("saveEntry").addEventListener("click", async ()=>{
+    const notes = $("entryNotes").value.trim();
+    if(!notes) { alert("Add some notes first."); return; }
+    state.data.interviews.push({ id:uid(), studentId: state.activeInterviewStudent, date: $("entryDate").value || todayStr(), notes });
+    $("saveEntry").disabled = true;
+    try{ await persist(); $("entryForm").classList.add("hidden"); renderInterviewPanel(); }
+    catch(e){ alert("Couldn't save: " + e.message); }
+    finally{ $("saveEntry").disabled = false; }
+  });
+
+  // ================= FULL SCHOOL OVERVIEW =================
+  let ovOverlay = null;
+  let ovFilter = { text:"", status:"all" };
+
+  function lastInterviewDate(studentId){
+    const entries = state.data.interviews.filter(i=>i.studentId===studentId).sort((a,b)=> b.date.localeCompare(a.date));
+    return entries.length ? entries[0].date : "";
+  }
+
+  function openOverview(){
+    ovOverlay = document.createElement("div");
+    ovOverlay.className = "overlay";
+    ovOverlay.addEventListener("click", e=>{ if(e.target===ovOverlay){ ovOverlay.remove(); ovOverlay=null; } });
+    ovOverlay.innerHTML = `
+      <div class="drawer drawer-wide">
+        <div class="drawer-head">
+          <p class="setup-title" style="font-size:20px;margin:0;">Full school overview</p>
+          <button class="ghost" id="closeOverview">Close</button>
+        </div>
+        <div class="ov-toolbar">
+          <input type="text" id="ovSearch" placeholder="Search name" />
+          <select id="ovStatusFilter">
+            <option value="all">All statuses</option>
+            <option value="attention">\u26a0 Needs attention (any reason)</option>
+            <option value="red">Low attendance</option>
+            <option value="yellow">Keep an eye on</option>
+            <option value="green">Doing great</option>
+            <option value="unknown">No attendance data yet</option>
+            <option value="missing">Missing contact info</option>
+            <option value="stale">No recent check-in</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="primary" id="exportCsvBtn">Download as CSV</button>
+        </div>
+        <p class="hint" id="ovMissingSummary"></p>
+        <div style="overflow-x:auto;">
+          <table class="ov-table" id="ovTable">
+            <thead><tr><th></th><th>Name</th><th>Shiur</th><th>Room</th><th>Phone</th><th>Parent phone</th><th>Attendance</th><th>Last check-in</th><th></th></tr></thead>
+            <tbody id="ovTbody"></tbody>
+          </table>
+        </div>
+        <p class="hint" id="ovEmpty" class="hidden"></p>
+      </div>
+    `;
+    document.body.appendChild(ovOverlay);
+    ovOverlay.querySelector("#closeOverview").addEventListener("click", ()=>{ ovOverlay.remove(); ovOverlay=null; });
+    ovOverlay.querySelector("#ovSearch").addEventListener("input", e=>{ ovFilter.text = e.target.value.toLowerCase(); renderOverviewRows(); });
+    ovOverlay.querySelector("#ovStatusFilter").addEventListener("change", e=>{ ovFilter.status = e.target.value; renderOverviewRows(); });
+    ovOverlay.querySelector("#exportCsvBtn").addEventListener("click", exportOverviewCsv);
+    renderOverviewRows();
+  }
+
+  function overviewRows(){
+    return state.data.students.map(s=>{
+      const cls = s.classId ? classById(s.classId) : null;
+      const status = studentStatus(s);
+      const rate = s.classId ? classAttendanceRate(s.id, s.classId, 8) : null;
+      const lastInterview = lastInterviewDate(s.id);
+      const checkinDays = lastInterview ? daysSince(lastInterview) : null;
+      const stale = !lastInterview || (checkinDays!==null && checkinDays>=CHECKIN_STALE_DAYS);
+      return { student:s, cls, status, rate, lastInterview, checkinDays, stale, missing: missingFields(s), reasons: attentionReasons(s) };
+    }).filter(r=>{
+      if(ovFilter.text && !r.student.name.toLowerCase().includes(ovFilter.text)) return false;
+      if(ovFilter.status === "missing") return r.missing.length > 0;
+      if(ovFilter.status === "stale") return r.stale;
+      if(ovFilter.status === "attention") return r.reasons.length > 0;
+      if(ovFilter.status !== "all") return r.status === ovFilter.status;
+      return true;
+    }).sort((a,b)=> STATUS_ORDER_OV[a.status]-STATUS_ORDER_OV[b.status] || a.student.name.localeCompare(b.student.name));
+  }
+  const STATUS_ORDER_OV = { red:0, yellow:1, unknown:2, green:3 };
+
+  function renderOverviewRows(){
+    if(!ovOverlay) return;
+    const rows = overviewRows();
+    const tbody = ovOverlay.querySelector("#ovTbody");
+    tbody.innerHTML = "";
+    rows.forEach(r=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="ov-dot ${r.status}"></span></td>
+        <td><div class="ov-name-cell"><div class="ov-photo">${r.student.photo?`<img src="${r.student.photo}" alt="">`:initials(r.student.name)}</div>${escapeHtml(r.student.name)}</div></td>
+        <td>${r.cls ? escapeHtml(r.cls.name) : "\u2014"}</td>
+        <td>${r.cls && r.cls.room ? escapeHtml(r.cls.room) : "\u2014"}</td>
+        <td>${r.student.phone ? `<a href="tel:${escapeHtml(r.student.phone)}" onclick="event.stopPropagation()" class="link-btn">${escapeHtml(r.student.phone)}</a>` : "\u2014"}</td>
+        <td>${r.student.parentPhone ? `<a href="tel:${escapeHtml(r.student.parentPhone)}" onclick="event.stopPropagation()" class="link-btn">${escapeHtml(r.student.parentPhone)}</a>` : "\u2014"}</td>
+        <td>${r.rate===null ? "\u2014" : Math.round(r.rate*100)+"%"}</td>
+        <td>${r.lastInterview ? escapeHtml(r.lastInterview) + (r.stale ? ` <span class="ov-flag">(${r.checkinDays}d ago)</span>` : ` <span class="hint">(${r.checkinDays}d ago)</span>`) : `<span class="ov-flag">Never</span>`}</td>
+        <td>${r.missing.length ? `<span class="ov-flag" title="Missing: ${escapeHtml(r.missing.join(', '))}">&#9888; ${r.missing.length}</span>` : ""}</td>
+      `;
+      tr.addEventListener("click", ()=> openStudentDrawer(r.student.id));
+      tbody.appendChild(tr);
+    });
+    const empty = ovOverlay.querySelector("#ovEmpty");
+    if(!rows.length){ empty.textContent = "No students match."; empty.classList.remove("hidden"); }
+    else empty.classList.add("hidden");
+    const missingCount = state.data.students.filter(s=> missingFields(s).length>0).length;
+    const attentionCount = attentionList().length;
+    const summaryEl = ovOverlay.querySelector("#ovMissingSummary");
+    summaryEl.textContent = `${state.data.students.length} student${state.data.students.length===1?"":"s"} total \u00b7 ${attentionCount} need attention \u00b7 ${missingCount} missing a shiur, room, or phone number.`;
+  }
+
+  async function exportOverviewCsv(){
+    const rows = overviewRows();
+    const header = ["Name","Shiur","Room","Status","Attendance % (last 8)","Student phone","Parent phone","Last check-in date","Days since check-in","Missing info","Needs attention because"];
+    const lines = [header.map(csvEscape).join(",")];
+    rows.forEach(r=>{
+      lines.push([
+        r.student.name,
+        r.cls ? r.cls.name : "",
+        r.cls && r.cls.room ? r.cls.room : "",
+        r.status,
+        r.rate===null ? "" : Math.round(r.rate*100),
+        r.student.phone||"",
+        r.student.parentPhone||"",
+        r.lastInterview||"",
+        r.checkinDays===null ? "" : r.checkinDays,
+        r.missing.join("; "),
+        r.reasons.join("; ")
+      ].map(csvEscape).join(","));
+    });
+    const csv = lines.join("\n");
+    try{
+      await saveFile(`school-overview-${todayStr()}.csv`, "text/csv", csv);
+    }catch(e){
+      if(e && e.code !== "declined") alert("Couldn't download: " + (e.message||e.code||e));
+    }
+  }
+
+  $("overviewBtn").addEventListener("click", openOverview);
+
+  boot();
+})();
+</script>
+</body>
+</html>
