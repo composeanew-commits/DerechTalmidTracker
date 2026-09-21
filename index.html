@@ -150,6 +150,29 @@
   .quick-call{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:var(--brand-soft);
     color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;line-height:1;}
   .ov-flag{color:var(--amber);font-size:11px;}
+
+  /* attention banner */
+  .attn-banner{background:var(--amber-bg);border:1px solid #eddcb0;border-radius:12px;margin-bottom:16px;overflow:hidden;}
+  .attn-toggle{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:none;border:none;
+    cursor:pointer;text-align:left;color:var(--ink);}
+  .attn-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none;}
+  .attn-toggle-text{flex:1;font-size:13px;font-weight:600;}
+  .attn-toggle-sub{font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px;}
+  .attn-chevron{color:var(--ink-soft);font-size:11px;transition:transform .15s ease;}
+  .attn-chevron.open{transform:rotate(180deg);}
+  .attn-list{border-top:1px solid #eddcb0;padding:4px 8px;}
+  .attn-row{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid #eddcb0;cursor:pointer;}
+  .attn-row:last-child{border-bottom:none;}
+  .attn-row:hover{background:rgba(255,255,255,.4);}
+  .attn-row-photo{width:32px;height:32px;border-radius:50%;background:var(--card);color:var(--brand);flex:none;
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:11px;overflow:hidden;}
+  .attn-row-photo img{width:100%;height:100%;object-fit:cover;}
+  .attn-row-main{flex:1;min-width:0;}
+  .attn-row-name{font-size:13px;color:var(--ink);}
+  .attn-row-reason{font-size:11px;color:var(--ink-soft);}
+  .attn-call{width:26px;height:26px;border-radius:50%;background:var(--card);color:var(--brand);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:13px;text-decoration:none;}
+  .attn-more{padding:10px 6px;font-size:12px;color:var(--brand);text-align:center;cursor:pointer;text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -180,6 +203,14 @@
 
   <!-- MAIN APP -->
   <div id="mainView" class="hidden">
+    <div class="attn-banner hidden" id="attnBanner">
+      <button class="attn-toggle" id="attnToggle">
+        <span class="attn-dot"></span>
+        <span class="attn-toggle-text" id="attnText">Loading\u2026<span class="attn-toggle-sub" id="attnSub"></span></span>
+        <span class="attn-chevron open" id="attnChevron">&#9662;</span>
+      </button>
+      <div class="attn-list" id="attnList"></div>
+    </div>
     <div class="tabs">
       <button class="tab active" data-tab="attendance">Attendance</button>
       <button class="tab" data-tab="interviews">Check-ins</button>
@@ -296,7 +327,7 @@
     });
     if(!res.ok) throw new Error(`${res.status} ${res.statusText} ${await res.text().catch(()=> "")}`.trim());
   }
-  async function persist(){ await sbUpsert(state.data); }
+  async function persist(){ await sbUpsert(state.data); updateAttentionBanner(); }
 
   function setConn(on, label){
     $("connText").textContent = label;
@@ -322,64 +353,4 @@
   // ---------------- boot ----------------
   async function boot(){
     const saved = loadLocal("sb-config") || BUILT_IN_SUPABASE;
-    $("sbUrl").value = saved.url; $("sbKey").value = saved.key;
-    $("connectBtn").textContent = "Retry connection";
-    setConn(false, "connecting\u2026");
-    try{
-      await connect(saved);
-      showMain();
-    }catch(e){
-      showSetupError(e.message);
-      setConn(false, "not connected");
-    }
-  }
-
-  function showSetupError(msg){
-    const el = $("setupErr");
-    el.textContent = "Couldn't connect \u2014 " + msg;
-    el.classList.remove("hidden");
-  }
-
-  function showMain(){
-    $("setupView").classList.add("hidden");
-    $("mainView").classList.remove("hidden");
-    $("overviewBtn").classList.remove("hidden");
-    if(!state.activeClass && state.data.classes.length) state.activeClass = state.data.classes[0].id;
-    renderRoster();
-    populateAttClassSelect();
-    $("attDate").value = todayStr();
-    renderAttendanceTab();
-    renderInterviewPicker();
-  }
-
-  $("connectBtn").addEventListener("click", async ()=>{
-    const url = $("sbUrl").value.trim().replace(/\/$/,"");
-    const key = $("sbKey").value.trim();
-    $("setupErr").classList.add("hidden");
-    if(!url || !key){ showSetupError("enter both the URL and the key."); return; }
-    $("connectBtn").disabled = true;
-    try{ await connect({url,key}); showMain(); }
-    catch(e){ showSetupError(e.message); }
-    finally{ $("connectBtn").disabled = false; }
-  });
-
-  $("refreshBtn").addEventListener("click", async ()=>{
-    if(!state.config) return;
-    try{
-      await connect(state.config);
-      renderRoster(); populateAttClassSelect(); renderAttendanceTab(); renderInterviewPicker();
-    }catch(e){ alert("Couldn't refresh: " + e.message); }
-  });
-
-  // ---------------- tabs ----------------
-  document.querySelectorAll(".tab").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      ["roster","attendance","interviews"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t !== btn.dataset.tab));
-      if(btn.dataset.tab === "attendance") renderAttendanceTab();
-      if(btn.dataset.tab === "interviews") renderInterviewPicker();
-    });
-  });
-
-  // ---------------- file export (works in ar
+    $("sbUrl").value = saved.url;
