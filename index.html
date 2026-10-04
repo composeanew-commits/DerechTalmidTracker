@@ -131,6 +131,18 @@
   .gs-sub{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .gs-act{flex:none;padding:8px 12px;font-size:12px;border-radius:999px;}
   .gs-none{padding:18px;text-align:center;color:var(--ink-soft);font-size:14px;}
+  .qs-actions{display:flex;gap:8px;margin:14px 0 6px;}
+  .qs-actions button{flex:1;padding:12px 8px;font-size:14px;border-radius:12px;}
+  .qs-actions button.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .qs-st{display:flex;gap:6px;margin:6px 0 2px;}
+  .qs-st button{flex:1;padding:14px 6px;font-size:15px;border-radius:12px;}
+  .qs-st button.p.active{background:var(--green);border-color:var(--green);color:#fff;}
+  .qs-st button.l.active{background:var(--amber);border-color:var(--amber);color:#fff;}
+  .qs-st button.a.active{background:var(--red);border-color:var(--red);color:#fff;}
+  .qs-head{display:flex;align-items:center;gap:14px;}
+  .qs-head .photo{margin:0 !important;flex:none;}
+  .rec-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#d33;margin-right:6px;animation:dotpulse 1s ease-in-out infinite;}
+  textarea.dictating{border-color:#d33 !important;box-shadow:0 0 0 3px rgba(221,51,51,.15);}
   .spinner{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;border:4px solid var(--brand-soft);border-top-color:var(--brand);animation:spin .8s linear infinite;}
   .spinner.sm{width:16px;height:16px;border-width:2px;margin:0;}
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -877,7 +889,7 @@
         </div>
         ${r.student.phone?`<a href="tel:${escapeHtml(r.student.phone)}" class="attn-call" onclick="event.stopPropagation()" title="Call">&#9742;</a>`:""}
       `;
-      row.addEventListener("click", ()=> openStudentDrawer(r.student.id));
+      row.addEventListener("click", ()=> openStudentQuick(r.student.id));
       listEl.appendChild(row);
     });
     if(list.length>8){
@@ -958,7 +970,7 @@
         <select class="quick-class-select">${classOptions}</select>
         <span class="status-label ${status}">${status==="unknown"?"No data":status==="red"?"Needs attention":status==="yellow"?"Keep an eye on":"Doing great"}</span>
       `;
-      card.addEventListener("click", ()=> openStudentDrawer(s.id));
+      card.addEventListener("click", ()=> openStudentQuick(s.id));
       const sel = card.querySelector(".quick-class-select");
       sel.addEventListener("click", e=> e.stopPropagation());
       sel.addEventListener("change", async e=>{
@@ -971,6 +983,126 @@
     });
   }
 
+
+
+  // ================= QUICK STUDENT SHEET (tap any student) =================
+  function openStudentQuick(studentId, startMode){
+    const student = state.data.students.find(x=>x.id===studentId);
+    if(!student) return;
+    const cls = student.classId ? classById(student.classId) : null;
+    const status = studentStatus(student);
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    overlay.addEventListener("click", e=>{ if(e.target===overlay){ stopAllDictation(); closeOverlay(overlay); } });
+    const lastCheck = state.data.interviews.filter(i=>i.studentId===student.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    overlay.innerHTML = `
+      <div class="drawer">
+        <div class="drawer-head">
+          <div class="qs-head">
+            <div class="photo ${status}">${student.photo?`<img src="${student.photo}" alt="">`:initials(student.name)}</div>
+            <div><div class="name">${escapeHtml(student.name)}</div>
+              <div class="hint" style="margin:0;">${escapeHtml([cls?cls.name:"No class", student.phone||""].filter(Boolean).join(" \u00b7 "))}</div></div>
+          </div>
+          <button class="ghost" id="qsClose">Close</button>
+        </div>
+        <div class="qs-actions">
+          <button id="qsModeCheck">Check-in</button>
+          <button id="qsModeAtt" ${cls?"":"disabled title='Assign a class first'"}>Attendance</button>
+          <button id="qsProfile">Profile</button>
+        </div>
+        ${student.phone?`<div style="margin:4px 0 8px;"><a href="tel:${escapeHtml(student.phone)}" style="font-size:13px;color:var(--brand);">&#9742; Call ${escapeHtml(student.phone)}</a></div>`:""}
+        <div id="qsBody">
+          <p class="hint">${lastCheck?`Last check-in: ${escapeHtml(lastCheck.date)}${lastCheck.status?" \u00b7 "+escapeHtml(lastCheck.status):""}`:"No check-ins yet."} Pick Check-in or Attendance above.</p>
+        </div>
+      </div>`;
+    showOverlay(overlay);
+    const body = overlay.querySelector("#qsBody");
+    const close = ()=>{ stopAllDictation(); closeOverlay(overlay); };
+    overlay.querySelector("#qsClose").addEventListener("click", close);
+    overlay.querySelector("#qsProfile").addEventListener("click", ()=>{ close(); openStudentDrawer(student.id); });
+    const setMode = m=>{
+      overlay.querySelector("#qsModeCheck").classList.toggle("on", m==="check");
+      overlay.querySelector("#qsModeAtt").classList.toggle("on", m==="att");
+    };
+
+    function checkInMode(){
+      setMode("check"); stopAllDictation();
+      let st = "";
+      body.innerHTML = `
+        <label for="qsDate">Date</label><input type="date" id="qsDate" value="${todayStr()}" />
+        <label>How's he holding?</label>
+        <div class="qs-st" id="qsCkSt">
+          <button class="a" data-st="struggling">Struggling</button>
+          <button class="l" data-st="steady">Steady</button>
+          <button class="p" data-st="thriving">Thriving</button>
+        </div>
+        <div class="row" style="align-items:center;margin:12px 0 4px;">
+          <label for="qsNotes" style="margin:0;flex:1;">Notes</label>
+          <button class="ghost" id="qsVoice" type="button" style="font-size:12px;">&#127908; Dictate</button>
+        </div>
+        <textarea id="qsNotes" rows="6" placeholder="How is he doing? What did you talk about?"></textarea>
+        <div class="row row-end" style="margin-top:12px;"><button class="primary" id="qsSaveCheck">Save check-in</button></div>`;
+      body.querySelectorAll("#qsCkSt button").forEach(b=> b.addEventListener("click", ()=>{
+        st = (st===b.dataset.st) ? "" : b.dataset.st;
+        body.querySelectorAll("#qsCkSt button").forEach(x=> x.classList.toggle("active", x.dataset.st===st));
+      }));
+      const dict = attachDictation(body.querySelector("#qsVoice"), body.querySelector("#qsNotes"));
+      body.querySelector("#qsSaveCheck").addEventListener("click", async ()=>{
+        dict.stop();
+        const notes = body.querySelector("#qsNotes").value.trim();
+        if(!notes){ toast("Add some notes first.", "error"); return; }
+        const btn = body.querySelector("#qsSaveCheck"); btn.disabled = true; btn.textContent = "Saving\u2026";
+        state.data.interviews.push({ id:uid(), studentId:student.id, date: body.querySelector("#qsDate").value || todayStr(), notes, status: st });
+        try{ await persist(); }
+        catch(e){ state.data.interviews.pop(); btn.disabled=false; btn.textContent="Save check-in"; return; }
+        toast("Check-in saved", "success");
+        renderRoster(); renderInterviewPanel(); renderGlobalSearch();
+        close();
+      });
+    }
+
+    function attendanceMode(){
+      setMode("att"); stopAllDictation();
+      if(!student.classId) return;
+      let date = todayStr();
+      const current = ()=>{ const r = findAttendanceRecord(student.classId, date); return (r && r.records && r.records[student.id]) || "present"; };
+      let sel = current();
+      const paint = ()=> body.querySelectorAll("#qsAtSt button").forEach(b=> b.classList.toggle("active", b.dataset.st===sel));
+      body.innerHTML = `
+        <label for="qsAtDate">Date</label><input type="date" id="qsAtDate" value="${date}" />
+        <label>Status for ${escapeHtml(student.name.split(" ")[0])}</label>
+        <div class="qs-st" id="qsAtSt">
+          <button class="p" data-st="present">Present</button>
+          <button class="l" data-st="late">Late</button>
+          <button class="a" data-st="absent">Absent</button>
+        </div>
+        <p class="hint" id="qsAtHint" style="margin-top:10px;"></p>
+        <div class="row row-end" style="margin-top:12px;"><button class="primary" id="qsSaveAtt">Save attendance</button></div>`;
+      const hint = ()=>{ body.querySelector("#qsAtHint").textContent = findAttendanceRecord(student.classId, date) ? "Attendance already taken for this class on this date \u2014 only his status will change." : "No attendance taken yet for this class on this date \u2014 everyone else will default to Present."; };
+      paint(); hint();
+      body.querySelectorAll("#qsAtSt button").forEach(b=> b.addEventListener("click", ()=>{ sel = b.dataset.st; paint(); }));
+      body.querySelector("#qsAtDate").addEventListener("change", e=>{ date = e.target.value || todayStr(); sel = current(); paint(); hint(); });
+      body.querySelector("#qsSaveAtt").addEventListener("click", async ()=>{
+        const btn = body.querySelector("#qsSaveAtt"); btn.disabled = true; btn.textContent = "Saving\u2026";
+        let rec = findAttendanceRecord(student.classId, date), created = false, prev;
+        if(!rec){ rec = {id:uid(), classId:student.classId, date, records:{}, photo:""}; state.data.attendance.push(rec); created = true; }
+        if(!rec.records) rec.records = {};
+        prev = rec.records[student.id];
+        rec.records[student.id] = sel;
+        try{ await persist(); }
+        catch(e){
+          if(created) state.data.attendance = state.data.attendance.filter(x=>x!==rec); else if(prev===undefined) delete rec.records[student.id]; else rec.records[student.id] = prev;
+          btn.disabled=false; btn.textContent="Save attendance"; return;
+        }
+        toast(`${student.name}: ${STATUS_LABEL[sel]} \u2014 saved`, "success");
+        renderRoster(); renderAttendanceTab(); renderAttClassStrip(); renderGlobalSearch();
+        close();
+      });
+    }
+    overlay.querySelector("#qsModeCheck").addEventListener("click", checkInMode);
+    overlay.querySelector("#qsModeAtt").addEventListener("click", attendanceMode);
+    if(startMode==="check") checkInMode(); else if(startMode==="att") attendanceMode();
+  }
 
   // ================= SMART SEARCH =================
   const normText = s => String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/['\u2019`]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();
@@ -1063,22 +1195,14 @@
       const row = document.createElement("div");
       row.className = "gs-row" + (idx===gsSel ? " sel":"");
       row.innerHTML = `<div class="gs-photo ${status}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
-        <div class="gs-info"><div class="gs-name">${highlightName(s.name, q)}</div><div class="gs-sub">${escapeHtml(sub)}</div></div>
-        <button type="button" class="gs-act primary" data-checkin>Check-in</button>`;
-      row.addEventListener("click", ()=> openStudentDrawer(s.id));
-      row.querySelector("[data-checkin]").addEventListener("click", e=>{
-        e.stopPropagation();
-        document.querySelector('.tab[data-tab="interviews"]').click();
-        state.activeInterviewStudent = s.id;
-        renderInterviewPicker();
-        window.scrollTo({top:0, behavior:"smooth"});
-      });
+        <div class="gs-info"><div class="gs-name">${highlightName(s.name, q)}</div><div class="gs-sub">${escapeHtml(sub)}</div></div>`;
+      row.addEventListener("click", ()=> openStudentQuick(s.id));
       box.appendChild(row);
     });
   }
   $("gsInput").addEventListener("input", renderGlobalSearch);
   $("gsInput").addEventListener("keydown", e=>{
-    if(e.key==="Enter" && gsHits.length){ e.preventDefault(); $("gsInput").blur(); openStudentDrawer(gsHits[gsSel].student.id); }
+    if(e.key==="Enter" && gsHits.length){ e.preventDefault(); $("gsInput").blur(); openStudentQuick(gsHits[gsSel].student.id); }
     else if(e.key==="Escape"){ $("gsInput").value=""; renderGlobalSearch(); }
     else if(e.key==="ArrowDown" || e.key==="ArrowUp"){
       if(!gsHits.length) return; e.preventDefault();
@@ -1429,6 +1553,7 @@
         updateAttSummary(roster.length);
       };
       row.querySelector(".att-status-pill").addEventListener("click", e=>{ e.stopPropagation(); cycle(); });
+      row.querySelector(".att-photo").addEventListener("click", e=>{ e.stopPropagation(); openStudentQuick(s.id); });
       row.addEventListener("click", cycle);
       rows.appendChild(row);
     });
@@ -1569,34 +1694,66 @@
     });
   });
 
-  // ---- voice dictation for check-in notes ----
+  // ---- voice dictation (reusable; keeps listening until you tap Stop) ----
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognizer = null, isDictating = false;
-  $("voiceBtn").addEventListener("click", ()=>{
-    if(!SpeechRec){ toast("Voice dictation isn't supported in this browser. It works in Chrome on Android and on desktop Chrome.", "error"); return; }
-    if(isDictating){ recognizer && recognizer.stop(); return; }
-    recognizer = new SpeechRec();
-    recognizer.lang = "en-US";
-    recognizer.continuous = true;
-    recognizer.interimResults = false;
-    const ta = $("entryNotes");
-    const startedWith = ta.value;
-    recognizer.onresult = (e)=>{
-      let finalText = "";
-      for(let i=e.resultIndex; i<e.results.length; i++){
-        if(e.results[i].isFinal) finalText += e.results[i][0].transcript;
-      }
-      if(finalText){
-        const prefix = ta.value && !ta.value.endsWith(" ") && !ta.value.endsWith("\n") ? " " : "";
-        ta.value += prefix + finalText.trim() + " ";
+  const _dictations = new Set();
+  function stopAllDictation(){ _dictations.forEach(d=> d.stop()); }
+  function attachDictation(btn, ta){
+    const IDLE = "\u{1F3A4} Dictate";
+    let rec = null, want = false, base = "", failCount = 0;
+    const ui = on=>{
+      btn.innerHTML = on ? '<span class="rec-dot"></span>Listening\u2026 tap to stop' : IDLE;
+      ta.classList.toggle("dictating", on);
+    };
+    const sep = t=> (t && !/\s$/.test(t)) ? t + " " : t;
+    function begin(){
+      rec = new SpeechRec();
+      rec.lang = "en-US";
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+      base = sep(ta.value);
+      rec.onresult = e=>{
+        failCount = 0;
+        let txt = "";
+        for(let i=0;i<e.results.length;i++) txt += e.results[i][0].transcript;
+        ta.value = base + txt.replace(/^\s+/,"");
+        ta.scrollTop = ta.scrollHeight;
+      };
+      rec.onerror = e=>{
+        if(e.error==="not-allowed" || e.error==="service-not-allowed"){
+          want = false; toast("Microphone access was blocked. Allow the microphone for this app in Android settings, then try again.", "error");
+        } else if(e.error==="network"){
+          want = false; toast("Dictation needs an internet connection.", "error");
+        } else if(e.error==="audio-capture"){
+          want = false; toast("No microphone found.", "error");
+        }
+        // "no-speech" / "aborted": just restart in onend
+      };
+      rec.onend = ()=>{
+        if(want && failCount < 8){
+          failCount++;
+          setTimeout(()=>{ if(want){ try{ begin(); }catch(err){ want=false; ui(false); } } }, 200);
+        } else { want = false; ui(false); }
+      };
+      rec.start();
+    }
+    const api = {
+      stop(){ want = false; try{ rec && rec.stop(); }catch(e){} ui(false); },
+      toggle(){
+        if(!SpeechRec){ toast("Voice dictation isn't supported in this browser. It works in Chrome on Android and on desktop Chrome.", "error"); return; }
+        if(want){ api.stop(); return; }
+        want = true; failCount = 0; ui(true);
+        try{ begin(); }catch(err){ want=false; ui(false); toast("Couldn't start dictation.", "error"); }
       }
     };
-    recognizer.onerror = ()=>{ isDictating=false; $("voiceBtn").textContent = "\u{1F3A4} Dictate"; };
-    recognizer.onend = ()=>{ isDictating=false; $("voiceBtn").textContent = "\u{1F3A4} Dictate"; };
-    recognizer.start();
-    isDictating = true;
-    $("voiceBtn").textContent = "\u23F9 Stop";
-  });
+    _dictations.add(api);
+    btn.addEventListener("click", api.toggle);
+    return api;
+  }
+  attachDictation($("voiceBtn"), $("entryNotes"));
+  $("cancelEntry").addEventListener("click", stopAllDictation);
+  $("saveEntry").addEventListener("click", stopAllDictation);
 
   $("addEntryBtn").addEventListener("click", ()=>{
     $("entryDate").value = todayStr();
@@ -1728,7 +1885,7 @@
         <div class="ov-card-name">${escapeHtml(r.student.name)}</div>
         <div class="ov-card-sub">${r.cls ? escapeHtml(r.cls.name) : "No shiur"}</div>
       `;
-      card.addEventListener("click", ()=> openStudentDrawer(r.student.id));
+      card.addEventListener("click", ()=> openStudentQuick(r.student.id));
       grid.appendChild(card);
     });
     const empty = ovOverlay.querySelector("#ovEmpty");
