@@ -472,6 +472,7 @@
             <button class="ghost" id="voiceBtn" type="button" title="Dictate" style="font-size:12px;">&#127908; Dictate</button>
           </div>
           <textarea id="entryNotes" placeholder="How is he doing? What did you talk about?"></textarea>
+          <p class="hint" style="margin-top:4px;">Tip: for the best accuracy, tap the box and use the &#127908; on your keyboard.</p>
           <div class="row row-end" style="margin-top:10px;">
             <button class="ghost" id="cancelEntry">Cancel</button>
             <button class="primary" id="saveEntry">Save</button>
@@ -1104,6 +1105,41 @@
 
 
 
+
+  // ---- "How's he doing?" without writing notes ----
+  function latestStanding(studentId){
+    const list = state.data.interviews.filter(i=> i.studentId===studentId && i.status);
+    if(!list.length) return null;
+    let best = list[0];
+    list.forEach(i=>{ if(i.date >= best.date) best = i; });
+    return best;
+  }
+  function setStanding(studentId, st){
+    const today = todayStr();
+    let e = state.data.interviews.find(i=> i.studentId===studentId && i.date===today && !i.notes);
+    if(e) e.status = st;
+    else state.data.interviews.push({ id:uid(), studentId, date:today, notes:"", status:st });
+    persist().catch(()=>{});
+  }
+  function standingHtml(studentId){
+    const cur = latestStanding(studentId);
+    return `<div class="seg qs-st" data-standing>
+        <button class="a ${cur&&cur.status==="struggling"?"active":""}" data-st="struggling">Struggling</button>
+        <button class="l ${cur&&cur.status==="steady"?"active":""}" data-st="steady">Steady</button>
+        <button class="p ${cur&&cur.status==="thriving"?"active":""}" data-st="thriving">Thriving</button>
+      </div>
+      <div class="hint" data-standing-hint style="margin:2px 0 6px;">${cur?`Last set ${escapeHtml(cur.date)}`:"Not set yet"}</div>`;
+  }
+  function wireStanding(root, studentId, after){
+    root.querySelectorAll("[data-standing] button").forEach(b=> b.addEventListener("click", ()=>{
+      setStanding(studentId, b.dataset.st);
+      root.querySelectorAll("[data-standing] button").forEach(x=> x.classList.toggle("active", x.dataset.st===b.dataset.st));
+      const h = root.querySelector("[data-standing-hint]"); if(h) h.textContent = "Saved for today";
+      toast("Marked " + b.dataset.st, "success");
+      if(after) after();
+    }));
+  }
+
   // ================= QUICK STUDENT SHEET (tap any student) =================
   function openStudentQuick(studentId, startMode){
     const student = state.data.students.find(x=>x.id===studentId);
@@ -1124,6 +1160,8 @@
           </div>
           <button class="ghost" id="qsClose">Close</button>
         </div>
+        <label style="margin-top:2px;">How's he doing?</label>
+        ${standingHtml(student.id)}
         <div class="qs-actions">
           <button id="qsModeCheck">Check-in</button>
           <button id="qsModeAtt" ${cls?"":"disabled title='Assign a class first'"}>Attendance</button>
@@ -1136,6 +1174,7 @@
       </div>`;
     showOverlay(overlay);
     const body = overlay.querySelector("#qsBody");
+    wireStanding(overlay, student.id, ()=>{ renderInterviewPanel(); });
     const close = ()=>{ stopAllDictation(); closeOverlay(overlay); };
     overlay.querySelector("#qsClose").addEventListener("click", close);
     overlay.querySelector("#qsProfile").addEventListener("click", ()=>{ close(); openStudentDrawer(student.id); });
@@ -1159,7 +1198,8 @@
           <label for="qsNotes" style="margin:0;flex:1;">Notes</label>
           <button class="ghost" id="qsVoice" type="button" style="font-size:12px;">&#127908; Dictate</button>
         </div>
-        <textarea id="qsNotes" rows="6" placeholder="How is he doing? What did you talk about?"></textarea>
+        <textarea id="qsNotes" rows="6" placeholder="How is he doing? What did you talk about? (optional if you picked a status)"></textarea>
+        <p class="hint" style="margin-top:4px;">Tip: for the best accuracy, tap the box and use the &#127908; on your keyboard.</p>
         <div class="row row-end" style="margin-top:12px;"><button class="primary" id="qsSaveCheck">Save check-in</button></div>`;
       body.querySelectorAll("#qsCkSt button").forEach(b=> b.addEventListener("click", ()=>{
         st = (st===b.dataset.st) ? "" : b.dataset.st;
@@ -1169,7 +1209,7 @@
       body.querySelector("#qsSaveCheck").addEventListener("click", async ()=>{
         dict.stop();
         const notes = body.querySelector("#qsNotes").value.trim();
-        if(!notes){ toast("Add some notes first.", "error"); return; }
+        if(!notes && !st){ toast("Add some notes or pick how he's holding.", "error"); return; }
         state.data.interviews.push({ id:uid(), studentId:student.id, date: body.querySelector("#qsDate").value || todayStr(), notes, status: st });
         renderRoster(); renderInterviewPanel(); renderGlobalSearch();
         close();
@@ -1421,7 +1461,7 @@
         <span class="timeline-dot ${cls||'brand'}"></span>
         <div class="timeline-body">
           <div class="timeline-date">${escapeHtml(it.date)} <span class="hint">\u00b7 check-in${it.status?" \u00b7 "+escapeHtml(it.status):""}</span></div>
-          <div class="timeline-text">${escapeHtml(it.notes)}</div>
+          ${it.notes ? `<div class="timeline-text">${escapeHtml(it.notes)}</div>` : ""}
         </div>
       </div>`;
     }).join("");
@@ -1468,6 +1508,9 @@
           ${student.phone ? `<a href="tel:${escapeHtml(student.phone)}" class="link-btn">Call student</a>` : ""}
         </div>` : ""}
         ${!isNew ? `
+        <label style="margin-top:14px;">How's he doing?</label>
+        ${standingHtml(student.id)}` : ""}
+        ${!isNew ? `
         <div class="kv"><span class="k">Attendance (last 8)</span><span class="v">${rate===null?"no data":Math.round(rate*100)+"%"}</span></div>
         <div class="rate-bar"><div style="width:${rate===null?0:Math.round(rate*100)}%"></div></div>
         <div class="kv"><span class="k">Last check-in</span><span class="v">${(()=>{ const li=lastInterviewDate(student.id); if(!li) return "never"; const d=daysSince(li); return escapeHtml(li)+" ("+d+"d ago)"; })()}</span></div>
@@ -1484,6 +1527,7 @@
     showOverlay(overlay);
     overlay.querySelector("#closeDrawer").addEventListener("click", ()=> closeOverlay(overlay));
     if(!isNew) renderStudentTimeline(overlay, student.id);
+    if(!isNew) wireStanding(overlay, student.id, ()=>{ renderStudentTimeline(overlay, student.id); renderInterviewPanel(); });
 
     const photoTap = overlay.querySelector("#photoTap");
     photoTap.addEventListener("click", ()=> overlay.querySelector("#stPhotoInput").click());
@@ -1803,7 +1847,7 @@
       div.className = "entry";
       const statusLabel = entry.status ? `<span class="status-label ${entry.status==='thriving'?'green':entry.status==='struggling'?'red':'yellow'}" style="margin-right:6px;">${entry.status}</span>` : "";
       div.innerHTML = `<div class="entry-date"><span>${statusLabel}${entry.date}</span><span><a href="#" data-del="${entry.id}" style="color:var(--red);font-size:12px;text-decoration:none;">delete</a></span></div>
-        <div class="entry-notes">${escapeHtml(entry.notes)}</div>`;
+        ${entry.notes ? `<div class="entry-notes">${escapeHtml(entry.notes)}</div>` : ""}`;
       div.querySelector("[data-del]").addEventListener("click", async e=>{
         e.preventDefault();
         if(!(await confirmDialog("Delete this entry?", {okLabel:"Delete", danger:true}))) return;
@@ -1848,24 +1892,39 @@
   function stopAllDictation(){ _dictations.forEach(d=> d.stop()); }
   function attachDictation(btn, ta){
     const IDLE = "\u{1F3A4} Dictate";
-    let rec = null, want = false, base = "", failCount = 0;
+    let rec = null, want = false, committed = "", failCount = 0;
     const ui = on=>{
       btn.innerHTML = on ? '<span class="rec-dot"></span>Listening\u2026 tap to stop' : IDLE;
       ta.classList.toggle("dictating", on);
     };
     const sep = t=> (t && !/\s$/.test(t)) ? t + " " : t;
+    const tidy = (chunk, before)=>{
+      chunk = chunk.trim();
+      if(!chunk) return "";
+      if(!before.trim() || /[.!?]\s*$/.test(before)) chunk = chunk.charAt(0).toUpperCase() + chunk.slice(1);
+      return chunk;
+    };
+    // if you type or fix a word while dictating, keep your edit
+    ta.addEventListener("input", ()=>{ if(want) committed = ta.value; });
     function begin(){
       rec = new SpeechRec();
       rec.lang = "en-US";
       rec.continuous = true;
       rec.interimResults = true;
       rec.maxAlternatives = 1;
-      base = sep(ta.value);
+      committed = ta.value;
       rec.onresult = e=>{
         failCount = 0;
-        let txt = "";
-        for(let i=0;i<e.results.length;i++) txt += e.results[i][0].transcript;
-        ta.value = base + txt.replace(/^\s+/,"");
+        let interim = "";
+        for(let i=e.resultIndex;i<e.results.length;i++){
+          const r = e.results[i];
+          if(r.isFinal){
+            const t = tidy(r[0].transcript, committed);
+            if(t) committed = sep(committed) + t;
+          } else interim += r[0].transcript;
+        }
+        // finals are kept for good; the grey-ish interim guess is shown but never saved
+        ta.value = interim.trim() ? sep(committed) + interim.trim() : committed;
         ta.scrollTop = ta.scrollHeight;
       };
       rec.onerror = e=>{
@@ -1876,9 +1935,9 @@
         } else if(e.error==="audio-capture"){
           want = false; toast("No microphone found.", "error");
         }
-        // "no-speech" / "aborted": just restart in onend
       };
       rec.onend = ()=>{
+        ta.value = committed;   // drop any unconfirmed guess
         if(want && failCount < 8){
           failCount++;
           setTimeout(()=>{ if(want){ try{ begin(); }catch(err){ want=false; ui(false); } } }, 200);
@@ -1913,7 +1972,7 @@
   $("cancelEntry").addEventListener("click", ()=> $("entryForm").classList.add("hidden"));
   $("saveEntry").addEventListener("click", async ()=>{
     const notes = $("entryNotes").value.trim();
-    if(!notes) { toast("Add some notes first.", "error"); return; }
+    if(!notes && !currentEntryStatus) { toast("Add some notes or pick how he's holding.", "error"); return; }
     state.data.interviews.push({ id:uid(), studentId: state.activeInterviewStudent, date: $("entryDate").value || todayStr(), notes, status: currentEntryStatus||"" });
     $("saveEntry").disabled = true;
     try{ await persist(); $("entryForm").classList.add("hidden"); renderInterviewPanel(); }
