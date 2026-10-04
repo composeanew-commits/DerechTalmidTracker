@@ -112,6 +112,25 @@
   .status-label.green{background:var(--green-bg);color:var(--green);}
   .status-label.unknown{background:var(--gray-bg);color:var(--gray);}
   .empty{padding:50px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+  .gs-wrap{position:sticky;top:calc(env(safe-area-inset-top,0px) + 0px);z-index:9;background:var(--paper);padding:4px 0 10px;}
+  .gs-box{position:relative;}
+  .gs-box input{width:100%;padding:13px 44px 13px 42px;font-size:16px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);}
+  .gs-box input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);}
+  .gs-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--ink-soft);pointer-events:none;}
+  .gs-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;padding:0;border-radius:50%;border:none;background:var(--gray-bg);color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;}
+  .gs-results{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;max-height:62vh;overflow-y:auto;box-shadow:0 8px 24px rgba(36,29,74,.12);}
+  .gs-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;}
+  .gs-row:last-child{border-bottom:none;}
+  .gs-row:hover,.gs-row.sel{background:var(--brand-soft);}
+  .gs-photo{flex:none;width:44px;height:44px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;overflow:hidden;border:3px solid var(--gray);}
+  .gs-photo img{width:100%;height:100%;object-fit:cover;}
+  .gs-photo.red{border-color:var(--red);} .gs-photo.yellow{border-color:var(--amber);} .gs-photo.green{border-color:var(--green);}
+  .gs-info{flex:1;min-width:0;}
+  .gs-name{font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gs-name mark{background:#fff0b3;color:inherit;border-radius:3px;padding:0 1px;}
+  .gs-sub{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gs-act{flex:none;padding:8px 12px;font-size:12px;border-radius:999px;}
+  .gs-none{padding:18px;text-align:center;color:var(--ink-soft);font-size:14px;}
   .spinner{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;border:4px solid var(--brand-soft);border-top-color:var(--brand);animation:spin .8s linear infinite;}
   .spinner.sm{width:16px;height:16px;border-width:2px;margin:0;}
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -320,6 +339,14 @@
 
   <!-- MAIN APP -->
   <div id="mainView" class="hidden">
+    <div class="gs-wrap">
+      <div class="gs-box">
+        <span class="gs-icon">&#128269;</span>
+        <input type="search" id="gsInput" placeholder="Search any student by name, class or phone" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
+        <button type="button" class="gs-clear hidden" id="gsClear" aria-label="Clear search">&#10005;</button>
+      </div>
+      <div class="gs-results hidden" id="gsResults"></div>
+    </div>
     <div class="attn-banner hidden" id="restoreBanner" style="background:var(--brand-soft);border-color:#cfc9ec;">
       <div style="padding:12px 14px;">
         <div style="font-size:13px;font-weight:600;color:var(--ink);">Recovered roster available</div>
@@ -907,10 +934,10 @@
 
   function renderRoster(){
     renderClassStrip();
-    const q = ($("rosterSearch").value||"").toLowerCase();
+    const q = ($("rosterSearch").value||"").trim();
     let list = state.activeClass===null ? state.data.students.slice() : studentsInClass(state.activeClass);
-    if(q) list = list.filter(s=> s.name.toLowerCase().includes(q));
-    list.sort((a,b)=> a.name.localeCompare(b.name));
+    if(q) list = searchStudents(list, q).map(r=>r.student);
+    else list.sort((a,b)=> a.name.localeCompare(b.name));
     const grid = $("rosterGrid");
     grid.innerHTML = "";
     $("rosterEmpty").classList.toggle("hidden", list.length!==0);
@@ -943,6 +970,124 @@
       grid.appendChild(card);
     });
   }
+
+
+  // ================= SMART SEARCH =================
+  const normText = s => String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/['\u2019`]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();
+  function lev(a,b){
+    if(a===b) return 0;
+    if(!a.length) return b.length; if(!b.length) return a.length;
+    let prev = Array.from({length:b.length+1},(_,i)=>i);
+    for(let i=1;i<=a.length;i++){
+      const cur=[i];
+      for(let j=1;j<=b.length;j++){
+        cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+      }
+      prev=cur;
+    }
+    return prev[b.length];
+  }
+  // Light normalisation so common spelling variants line up (Yehuda/Yehudah, Chaim/Haim, Moshe/Moishe, Shmuel/Schmuel...)
+  const phon = t => t.replace(/ch/g,"h").replace(/kh/g,"h").replace(/sch/g,"sh").replace(/ph/g,"f").replace(/oi/g,"o").replace(/ei|ey|ay/g,"a").replace(/([aeiou])\1+/g,"$1").replace(/(.)\1+/g,"$1").replace(/h$/,"").replace(/y$/,"i");
+  function scoreStudent(s, qTokens){
+    const nameN = normText(s.name);
+    const nameT = nameN.split(" ").filter(Boolean);
+    const cls = s.classId ? classById(s.classId) : null;
+    const clsT = cls ? normText(cls.name).split(" ").filter(Boolean) : [];
+    const phones = [s.phone, s.parentPhone].map(x=>String(x||"").replace(/\D/g,"")).filter(Boolean);
+    let total = 0;
+    for(const q of qTokens){
+      let best = 0;
+      const isNum = /^\d+$/.test(q);
+      if(isNum){
+        if(q.length>=3 && phones.some(p=>p.includes(q))) best = 70;
+      } else {
+        const qp = phon(q);
+        nameT.forEach((nt,i)=>{
+          let sc = 0;
+          if(nt===q) sc = 100;
+          else if(nt.startsWith(q)) sc = 90;
+          else if(q.length>=2 && nt.includes(q)) sc = 55;
+          else if(q.length>=3){
+            const ntp = phon(nt);
+            if(ntp===qp) sc = 80;
+            else if(ntp.startsWith(qp)) sc = 70;
+            else {
+              const allow = q.length<=3 ? 0 : q.length<=5 ? 1 : 2;
+              const d = Math.min(lev(q,nt), lev(q,nt.slice(0,q.length)), lev(qp,ntp), lev(qp,ntp.slice(0,qp.length)));
+              if(d<=allow) sc = 45 - d*8;
+            }
+          }
+          if(sc && i===0) sc += 4;
+          if(sc>best) best = sc;
+        });
+        if(best<30){
+          clsT.forEach(ct=>{ if(ct===q) best=Math.max(best,35); else if(q.length>=2 && ct.startsWith(q)) best=Math.max(best,30); });
+        }
+      }
+      if(!best) return 0;
+      total += best;
+    }
+    let score = total/qTokens.length;
+    const qJoin = qTokens.join(" ");
+    if(nameN===qJoin) score += 40; else if(nameN.startsWith(qJoin)) score += 15;
+    return score;
+  }
+  function searchStudents(list, query){
+    const qTokens = normText(query).split(" ").filter(Boolean);
+    if(!qTokens.length) return list.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(student=>({student,score:0}));
+    return list.map(student=>({student, score: scoreStudent(student, qTokens)}))
+      .filter(r=>r.score>0)
+      .sort((a,b)=> b.score-a.score || a.student.name.localeCompare(b.student.name));
+  }
+  function highlightName(name, query){
+    const toks = String(query).trim().split(/\s+/).filter(t=>t.length>0).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+    const safe = escapeHtml(name);
+    if(!toks.length) return safe;
+    try{ return safe.replace(new RegExp("("+toks.join("|")+")","ig"), "<mark>$1</mark>"); }catch(e){ return safe; }
+  }
+  let gsSel = 0, gsHits = [];
+  function renderGlobalSearch(){
+    const q = $("gsInput").value.trim();
+    const box = $("gsResults");
+    $("gsClear").classList.toggle("hidden", !q);
+    if(!q){ box.classList.add("hidden"); box.innerHTML=""; gsHits=[]; return; }
+    gsHits = searchStudents(state.data.students, q).slice(0, 25);
+    gsSel = 0;
+    box.classList.remove("hidden");
+    if(!gsHits.length){ box.innerHTML = '<div class="gs-none">No student found for \u201c'+escapeHtml(q)+'\u201d</div>'; return; }
+    box.innerHTML = "";
+    gsHits.forEach((r,idx)=>{
+      const s = r.student, status = studentStatus(s), cls = s.classId ? classById(s.classId) : null;
+      const sub = [cls ? cls.name : "No class", s.phone || ""].filter(Boolean).join(" \u00b7 ");
+      const row = document.createElement("div");
+      row.className = "gs-row" + (idx===gsSel ? " sel":"");
+      row.innerHTML = `<div class="gs-photo ${status}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
+        <div class="gs-info"><div class="gs-name">${highlightName(s.name, q)}</div><div class="gs-sub">${escapeHtml(sub)}</div></div>
+        <button type="button" class="gs-act primary" data-checkin>Check-in</button>`;
+      row.addEventListener("click", ()=> openStudentDrawer(s.id));
+      row.querySelector("[data-checkin]").addEventListener("click", e=>{
+        e.stopPropagation();
+        document.querySelector('.tab[data-tab="interviews"]').click();
+        state.activeInterviewStudent = s.id;
+        renderInterviewPicker();
+        window.scrollTo({top:0, behavior:"smooth"});
+      });
+      box.appendChild(row);
+    });
+  }
+  $("gsInput").addEventListener("input", renderGlobalSearch);
+  $("gsInput").addEventListener("keydown", e=>{
+    if(e.key==="Enter" && gsHits.length){ e.preventDefault(); $("gsInput").blur(); openStudentDrawer(gsHits[gsSel].student.id); }
+    else if(e.key==="Escape"){ $("gsInput").value=""; renderGlobalSearch(); }
+    else if(e.key==="ArrowDown" || e.key==="ArrowUp"){
+      if(!gsHits.length) return; e.preventDefault();
+      gsSel = (gsSel + (e.key==="ArrowDown"?1:-1) + gsHits.length) % gsHits.length;
+      [...$("gsResults").children].forEach((c,i)=>c.classList.toggle("sel", i===gsSel));
+      const el = $("gsResults").children[gsSel]; if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+    }
+  });
+  $("gsClear").addEventListener("click", ()=>{ $("gsInput").value=""; renderGlobalSearch(); $("gsInput").focus(); });
 
   $("rosterSearch").addEventListener("input", renderRoster);
 
