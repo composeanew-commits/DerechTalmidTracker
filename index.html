@@ -6,6 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Talmid Tracker" />
+<meta name="theme-color" content="#342B71" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
 <title>Derech Talmid Tracker</title>
 <style>
   :root{
@@ -257,6 +261,12 @@
   .attn-call{width:26px;height:26px;border-radius:50%;background:var(--card);color:var(--brand);flex:none;
     display:flex;align-items:center;justify-content:center;font-size:13px;text-decoration:none;}
   .attn-more{padding:10px 6px;font-size:12px;color:var(--brand);text-align:center;cursor:pointer;text-decoration:underline;}
+  .photo-edit{display:flex;align-items:center;gap:8px;}
+  .drawer .photo-edit .photo{margin:0;}
+  .photo-tap{cursor:pointer;}
+  .rot-btn{width:30px;height:30px;padding:0;border-radius:50%;font-size:16px;line-height:1;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;}
+  .photo-sub{margin-top:6px;font-size:11px;display:flex;gap:6px;align-items:center;}
+  button.linkish{background:none;border:none;padding:0;font-size:11px;color:var(--red);text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -265,7 +275,7 @@
   <div class="topbar">
     <h1>Derech Talmid Tracker</h1>
     <div class="row" style="gap:8px;align-items:center;">
-      <div class="pill" id="connPill"><span class="dot off"></span><span id="connText">not connected</span></div>
+      <div class="pill hidden" id="connPill"><span class="dot off"></span><span id="connText">not connected</span></div>
       <div class="menu-wrap hidden" id="moreMenuWrap">
         <button class="ghost" id="moreMenuBtn" title="More">&#8942;</button>
         <div class="menu-dropdown hidden" id="moreMenu">
@@ -281,7 +291,7 @@
   </div>
 
   <!-- SETUP VIEW -->
-  <div id="setupView" class="panel">
+  <div id="setupView" class="panel hidden">
     <p class="setup-title">Connect your data</p>
     <p class="setup-desc">This app is pre-configured to connect automatically. If you're seeing this screen, the automatic connection failed &mdash; check the error message below, then try again once your internet connection is stable.</p>
     <label for="sbUrl">Supabase URL</label>
@@ -292,6 +302,13 @@
       <button class="primary" id="connectBtn">Connect</button>
     </div>
     <span id="setupErr" class="err hidden"></span>
+  </div>
+
+  <div id="loadingView" class="empty">Loading&hellip;</div>
+  <div id="offlineView" class="panel hidden" style="text-align:center;">
+    <p class="setup-title">Can&rsquo;t load your data right now</p>
+    <p class="setup-desc" id="offlineMsg">Check your internet connection and try again.</p>
+    <button class="primary" id="retryBtn">Try again</button>
   </div>
 
   <!-- MAIN APP -->
@@ -412,23 +429,8 @@
 
 <script>
   // Safety net: if ANYTHING in this page throws, show it on screen instead of failing silently.
-  window.addEventListener("error", function(e){
-    try{
-      var el = document.getElementById("setupErr");
-      var setup = document.getElementById("setupView");
-      if(setup) setup.classList.remove("hidden");
-      if(el){ el.textContent = "App error: " + (e.message || e); el.classList.remove("hidden"); }
-    }catch(_){}
-  });
-  window.addEventListener("unhandledrejection", function(e){
-    try{
-      var el = document.getElementById("setupErr");
-      var setup = document.getElementById("setupView");
-      if(setup) setup.classList.remove("hidden");
-      var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
-      if(el){ el.textContent = "App error: " + msg; el.classList.remove("hidden"); }
-    }catch(_){}
-  });
+  window.addEventListener("error", function(e){ try{ console.error("App error:", e.message || e); }catch(_){} });
+  window.addEventListener("unhandledrejection", function(e){ try{ console.error("App error:", e.reason); }catch(_){} });
 (function(){
   "use strict";
 
@@ -589,13 +591,21 @@
   }
 
   function showSetupError(msg){
-    const el = $("setupErr");
-    el.textContent = "Couldn't connect \u2014 " + msg;
-    el.classList.remove("hidden");
+    // Connection details stay hidden; just offer a plain retry screen.
+    $("loadingView").classList.add("hidden");
+    $("offlineMsg").textContent = "Couldn't connect \u2014 " + msg;
+    $("offlineView").classList.remove("hidden");
   }
+  $("retryBtn").addEventListener("click", ()=>{
+    $("offlineView").classList.add("hidden");
+    $("loadingView").classList.remove("hidden");
+    boot();
+  });
 
   function showMain(){
     $("setupView").classList.add("hidden");
+    $("loadingView").classList.add("hidden");
+    $("offlineView").classList.add("hidden");
     $("mainView").classList.remove("hidden");
     $("moreMenuWrap").classList.remove("hidden");
     purgeOldTrash();
@@ -1033,7 +1043,12 @@
       <div class="drawer">
         <div class="drawer-head">
           <div>
-            <div class="photo">${student.photo?`<img src="${student.photo}" alt="">`:initials(student.name||"?")}</div>
+            <div class="photo-edit">
+              <div class="photo photo-tap" id="photoTap" role="button" tabindex="0" title="Tap to change photo">${student.photo?`<img src="${student.photo}" alt="">`:initials(student.name||"?")}</div>
+              <button type="button" class="rot-btn" id="rotatePhotoBtn" title="Rotate photo" aria-label="Rotate photo" ${student.photo?"":"disabled"}>&#8635;</button>
+            </div>
+            <div class="photo-sub"><span class="hint" style="margin:0;">Tap photo to change</span>${student.photo ? ` <button type="button" class="linkish" id="removePhotoBtn">Remove</button>` : ""}</div>
+            <input type="file" id="stPhotoInput" accept="image/*" class="thumb-input" style="display:none;" />
           </div>
           <button class="ghost" id="closeDrawer">Close</button>
         </div>
@@ -1054,13 +1069,6 @@
           ${student.parentPhone ? `<a href="tel:${escapeHtml(student.parentPhone)}" class="link-btn">Call parent</a>` : ""}
           ${student.phone ? `<a href="tel:${escapeHtml(student.phone)}" class="link-btn">Call student</a>` : ""}
         </div>` : ""}
-        <label>Photo</label>
-        <input type="file" id="stPhotoInput" accept="image/*" capture="environment" class="thumb-input" style="display:none;" />
-        <div class="row" style="gap:8px;">
-          <button class="ghost" type="button" id="changePhotoBtn" style="font-size:12px;">Change photo</button>
-          <button class="ghost" type="button" id="rotatePhotoBtn" style="font-size:12px;" ${student.photo?"":"disabled"}>&#8635; Rotate</button>
-          ${student.photo ? `<button class="ghost" type="button" id="removePhotoBtn" style="font-size:12px;color:var(--red);">Remove</button>` : ""}
-        </div>
         ${!isNew ? `
         <div class="kv"><span class="k">Attendance (last 8)</span><span class="v">${rate===null?"no data":Math.round(rate*100)+"%"}</span></div>
         <div class="rate-bar"><div style="width:${rate===null?0:Math.round(rate*100)}%"></div></div>
@@ -1079,7 +1087,9 @@
     overlay.querySelector("#closeDrawer").addEventListener("click", ()=> closeOverlay(overlay));
     if(!isNew) renderStudentTimeline(overlay, student.id);
 
-    overlay.querySelector("#changePhotoBtn").addEventListener("click", ()=> overlay.querySelector("#stPhotoInput").click());
+    const photoTap = overlay.querySelector("#photoTap");
+    photoTap.addEventListener("click", ()=> overlay.querySelector("#stPhotoInput").click());
+    photoTap.addEventListener("keydown", e=>{ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); overlay.querySelector("#stPhotoInput").click(); } });
 
     overlay.querySelector("#stPhotoInput").addEventListener("change", async e=>{
       const file = e.target.files[0];
@@ -1445,14 +1455,39 @@
 
   // ================= FULL SCHOOL OVERVIEW =================
   let ovOverlay = null;
-  let ovFilter = { text:"", status:"all" };
+  let ovFilter = { text:"", status:"all", classes:new Set() };
 
   function lastInterviewDate(studentId){
     const entries = state.data.interviews.filter(i=>i.studentId===studentId).sort((a,b)=> b.date.localeCompare(a.date));
     return entries.length ? entries[0].date : "";
   }
 
+  function ovClassMatch(s){
+    if(!ovFilter.classes.size) return true;
+    return ovFilter.classes.has(s.classId || "__none");
+  }
+
+  function renderOvClassStrip(){
+    if(!ovOverlay) return;
+    const strip = ovOverlay.querySelector("#ovClassStrip");
+    strip.innerHTML = "";
+    const addChip = (id, label, count)=>{
+      const chip = document.createElement("div");
+      chip.className = "class-chip" + (ovFilter.classes.has(id) ? " active" : "");
+      chip.innerHTML = `${escapeHtml(label)} <span class="n">${count}</span>`;
+      chip.addEventListener("click", ()=>{
+        if(ovFilter.classes.has(id)) ovFilter.classes.delete(id); else ovFilter.classes.add(id);
+        renderOvClassStrip(); renderOverviewRows();
+      });
+      strip.appendChild(chip);
+    };
+    state.data.classes.forEach(c=> addChip(c.id, c.name, studentsInClass(c.id).length));
+    const none = studentsInClass("__none").length;
+    if(none) addChip("__none", "No shiur", none);
+  }
+
   function openOverview(){
+    ovFilter.classes = new Set(); // default = everybody
     ovOverlay = document.createElement("div");
     ovOverlay.className = "overlay";
     ovOverlay.addEventListener("click", e=>{ if(e.target===ovOverlay){ closeOverlay(ovOverlay); ovOverlay=null; } });
@@ -1462,6 +1497,7 @@
           <p class="setup-title" style="font-size:20px;margin:0;">Full school overview</p>
           <button class="ghost" id="closeOverview">Close</button>
         </div>
+        <div class="class-strip" id="ovClassStrip" style="margin-bottom:12px;"></div>
         <div class="ov-toolbar">
           <input type="text" id="ovSearch" placeholder="Search name" />
           <select id="ovStatusFilter">
@@ -1487,6 +1523,7 @@
     ovOverlay.querySelector("#ovSearch").addEventListener("input", e=>{ ovFilter.text = e.target.value.toLowerCase(); renderOverviewRows(); });
     ovOverlay.querySelector("#ovStatusFilter").addEventListener("change", e=>{ ovFilter.status = e.target.value; renderOverviewRows(); });
     ovOverlay.querySelector("#exportCsvBtn").addEventListener("click", exportOverviewCsv);
+    renderOvClassStrip();
     renderOverviewRows();
   }
 
@@ -1500,6 +1537,7 @@
       const stale = !lastInterview || (checkinDays!==null && checkinDays>=CHECKIN_STALE_DAYS);
       return { student:s, cls, status, rate, lastInterview, checkinDays, stale, missing: missingFields(s), reasons: attentionReasons(s) };
     }).filter(r=>{
+      if(!ovClassMatch(r.student)) return false;
       if(ovFilter.text){
         const hay = (r.student.name + " " + (r.cls?r.cls.name:"") + " " + (r.cls?r.cls.rebbi||"":"") + " " + r.reasons.join(" ")).toLowerCase();
         if(!hay.includes(ovFilter.text)) return false;
@@ -1533,10 +1571,11 @@
     const empty = ovOverlay.querySelector("#ovEmpty");
     if(!rows.length){ empty.textContent = "No students match."; empty.classList.remove("hidden"); }
     else empty.classList.add("hidden");
-    const missingCount = state.data.students.filter(s=> missingFields(s).length>0).length;
-    const attentionCount = attentionList().length;
+    const scoped = state.data.students.filter(ovClassMatch);
+    const missingCount = scoped.filter(s=> missingFields(s).length>0).length;
+    const attentionCount = scoped.filter(s=> attentionReasons(s).length>0).length;
     const summaryEl = ovOverlay.querySelector("#ovMissingSummary");
-    summaryEl.textContent = `${state.data.students.length} student${state.data.students.length===1?"":"s"} total \u00b7 ${attentionCount} need attention \u00b7 ${missingCount} missing a shiur, room, or phone number. Tap a photo for full details.`;
+    summaryEl.textContent = `${scoped.length} student${scoped.length===1?"":"s"} ${ovFilter.classes.size?"in selected shiurim":"total"} \u00b7 ${attentionCount} need attention \u00b7 ${missingCount} missing a shiur, room, or phone number. Tap a photo for full details.`;
   }
 
   async function exportOverviewCsv(){
@@ -2044,6 +2083,9 @@
 
   boot();
 })();
+</script>
+<script>
+if("serviceWorker" in navigator){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
 </script>
 </body>
 </html>
