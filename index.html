@@ -132,6 +132,12 @@
   .gs-sub{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .gs-act{flex:none;padding:8px 12px;font-size:12px;border-radius:999px;}
   .gs-none{padding:18px;text-align:center;color:var(--ink-soft);font-size:14px;}
+  .seder-bar{margin-bottom:14px;}
+  .seder-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;}
+  .seder-chip{flex:none;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:14px;cursor:pointer;white-space:nowrap;}
+  .seder-chip.active{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600;}
+  .seder-note{font-size:12px;color:var(--ink-soft);margin:6px 2px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .seder-note button{background:none;border:none;padding:0;color:var(--brand);text-decoration:underline;font-size:12px;cursor:pointer;}
   .qs-actions{display:flex;gap:8px;margin:14px 0 6px;}
   .qs-actions button{flex:1;padding:12px 8px;font-size:14px;border-radius:12px;}
   .qs-actions button.on{background:var(--brand);border-color:var(--brand);color:#fff;}
@@ -401,6 +407,10 @@
 
     <!-- ATTENDANCE TAB -->
     <div id="tab-attendance">
+      <div class="seder-bar" id="sederBar">
+        <div class="seder-chips" id="sederChips"></div>
+        <div class="seder-note" id="sederNote"></div>
+      </div>
       <div class="panel" id="attClassPickerPanel">
         <p class="setup-title" style="font-size:16px;">Pick a shiur to take attendance</p>
         <div id="attClassStrip" style="margin-top:10px;"></div>
@@ -919,7 +929,9 @@
   function studentsInClass(id){ return state.data.students.filter(s=> id === "__none" ? !s.classId : s.classId === id); }
 
   function classAttendanceRate(studentId, classId, lastN){
-    const sessions = state.data.attendance.filter(a=>a.classId===classId).sort((a,b)=> b.date.localeCompare(a.date)).slice(0,lastN);
+    const all = state.data.attendance.filter(a=>a.classId===classId);
+    const days = [...new Set(all.map(a=>a.date))].sort((a,b)=> b.localeCompare(a)).slice(0,lastN);
+    const sessions = all.filter(a=> days.includes(a.date));
     if(!sessions.length) return null;
     let present=0, total=0;
     sessions.forEach(s=>{
@@ -1170,10 +1182,13 @@
       setMode("att"); stopAllDictation();
       if(!student.classId) return;
       let date = todayStr();
-      const current = ()=>{ const r = findAttendanceRecord(student.classId, date); return (r && r.records && r.records[student.id]) || "present"; };
+      let seder = state.activeSeder;
+      const current = ()=>{ const r = findAttendanceRecord(student.classId, date, seder); return (r && r.records && r.records[student.id]) || "present"; };
       let sel = current();
       const paint = ()=> body.querySelectorAll("#qsAtSt button").forEach(b=> b.classList.toggle("active", b.dataset.st===sel));
       body.innerHTML = `
+        <label for="qsAtSeder">Seder</label>
+        <select id="qsAtSeder">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select>
         <label for="qsAtDate">Date</label><input type="date" id="qsAtDate" value="${date}" />
         <label>Status for ${escapeHtml(student.name.split(" ")[0])}</label>
         <div class="qs-st" id="qsAtSt">
@@ -1183,18 +1198,19 @@
         </div>
         <p class="hint" id="qsAtHint" style="margin-top:10px;"></p>
         <div class="row row-end" style="margin-top:12px;"><button class="primary" id="qsSaveAtt">Save attendance</button></div>`;
-      const hint = ()=>{ body.querySelector("#qsAtHint").textContent = findAttendanceRecord(student.classId, date) ? "Attendance already taken for this class on this date \u2014 only his status will change." : "No attendance taken yet for this class on this date \u2014 everyone else will default to Present."; };
+      const hint = ()=>{ body.querySelector("#qsAtHint").textContent = findAttendanceRecord(student.classId, date, seder) ? "Attendance already taken for this class for this seder \u2014 only his status will change." : "No attendance taken yet for this class for this seder \u2014 everyone else will default to Present."; };
       paint(); hint();
       body.querySelectorAll("#qsAtSt button").forEach(b=> b.addEventListener("click", ()=>{ sel = b.dataset.st; paint(); }));
       body.querySelector("#qsAtDate").addEventListener("change", e=>{ date = e.target.value || todayStr(); sel = current(); paint(); hint(); });
+      body.querySelector("#qsAtSeder").addEventListener("change", e=>{ seder = e.target.value; sel = current(); paint(); hint(); });
       body.querySelector("#qsSaveAtt").addEventListener("click", async ()=>{
-        let rec = findAttendanceRecord(student.classId, date);
-        if(!rec){ rec = {id:uid(), classId:student.classId, date, records:{}, photo:""}; state.data.attendance.push(rec); }
+        let rec = findAttendanceRecord(student.classId, date, seder);
+        if(!rec){ rec = {id:uid(), classId:student.classId, date, seder, records:{}, photo:""}; state.data.attendance.push(rec); }
         if(!rec.records) rec.records = {};
         rec.records[student.id] = sel;
         renderRoster(); renderAttendanceTab(); renderAttClassStrip(); renderGlobalSearch();
         close();
-        toast(`${student.name}: ${STATUS_LABEL[sel]} \u2014 saving\u2026`, "success");
+        toast(`${student.name}: ${STATUS_LABEL[sel]} (${sederLabel(seder)}) \u2014 saving\u2026`, "success");
         persist().catch(()=>{});
       });
     }
@@ -1374,7 +1390,7 @@
     state.data.attendance.forEach(a=>{
       if(a.records && a.records[studentId]!==undefined){
         const cls = classById(a.classId);
-        items.push({ type:"attendance", date:a.date, status:a.records[studentId], className: cls?cls.name:"" });
+        items.push({ type:"attendance", date:a.date, status:a.records[studentId], className: (cls?cls.name:"") + (a.seder ? " \u00b7 " + sederLabel(a.seder) : "") });
       }
     });
     state.data.interviews.filter(i=>i.studentId===studentId).forEach(i=>{
@@ -1549,17 +1565,17 @@
     }
     const today = todayStr();
     const withStudents = state.data.classes.filter(c=> studentsInClass(c.id).length>0);
-    const takenCount = withStudents.filter(c=> findAttendanceRecord(c.id, today)).length;
+    const takenCount = withStudents.filter(c=> findAttendanceRecord(c.id, today, state.activeSeder)).length;
     const summary = document.createElement("div");
     const allDone = withStudents.length>0 && takenCount===withStudents.length;
     summary.style.cssText = "padding:10px 12px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:600;" +
       (allDone ? "background:var(--green-bg);color:var(--green);" : "background:var(--amber-bg);color:var(--amber);");
-    summary.textContent = allDone ? `All ${withStudents.length} shiurim taken today \u2713` : `${takenCount} of ${withStudents.length} shiurim taken today \u2014 ${withStudents.length-takenCount} still to go`;
+    summary.textContent = allDone ? `All ${withStudents.length} shiurim taken for ${sederLabel(state.activeSeder)} \u2713` : `${sederLabel(state.activeSeder)}: ${takenCount} of ${withStudents.length} shiurim taken \u2014 ${withStudents.length-takenCount} still to go`;
     strip.appendChild(summary);
     state.data.classes.forEach(c=>{
       const n = studentsInClass(c.id).length;
       const sub = [c.rebbi||null, c.room?("Room "+c.room):null].filter(Boolean).join(" \u00b7 ");
-      const rec = findAttendanceRecord(c.id, today);
+      const rec = findAttendanceRecord(c.id, today, state.activeSeder);
       let statusHtml;
       if(rec){
         const vals = Object.values(rec.records);
@@ -1593,16 +1609,52 @@
     $("attClassPickerPanel").classList.remove("hidden");
     renderAttClassStrip();
   });
-  $("attDate").addEventListener("change", renderAttendanceTab);
+  $("attDate").addEventListener("change", ()=>{ renderAttClassStrip(); renderAttendanceTab(); });
 
-  function findAttendanceRecord(classId, date){
-    return state.data.attendance.find(a=> a.classId===classId && a.date===date);
+  // ---- sedarim ----
+  const SEDARIM = [
+    {id:"m1", label:"1st Morning"}, {id:"m2", label:"2nd Morning"},
+    {id:"a1", label:"1st Afternoon"}, {id:"a2", label:"2nd Afternoon"}, {id:"n", label:"Night Seder"}
+  ];
+  // Times (24h) at which the next seder starts. Edit these to match your schedule.
+  const SEDER_STARTS = [ ["m1", 0], ["m2", 10.5], ["a1", 13.5], ["a2", 16.25], ["n", 19] ];
+  const sederLabel = id => (SEDARIM.find(x=>x.id===id) || SEDARIM[0]).label;
+  const recSeder = a => a.seder || "m1";   // older records (before sedarim existed) count as 1st Morning
+  function guessSeder(){
+    const d = new Date(), h = d.getHours() + d.getMinutes()/60;
+    let id = "m1";
+    SEDER_STARTS.forEach(([sid, start])=>{ if(h >= start) id = sid; });
+    return id;
+  }
+  state.sederManual = false;
+  state.activeSeder = guessSeder();
+  function findAttendanceRecord(classId, date, seder){
+    const sd = seder || state.activeSeder;
+    return state.data.attendance.find(a=> a.classId===classId && a.date===date && recSeder(a)===sd);
+  }
+  function renderSederBar(){
+    if(!state.sederManual && $("attDate").value === todayStr()) state.activeSeder = guessSeder();
+    const chips = $("sederChips"); chips.innerHTML = "";
+    SEDARIM.forEach(sd=>{
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "seder-chip" + (sd.id===state.activeSeder ? " active":"");
+      b.textContent = sd.label;
+      b.addEventListener("click", ()=>{ state.sederManual = true; state.activeSeder = sd.id; renderAttClassStrip(); renderAttendanceTab(); });
+      chips.appendChild(b);
+    });
+    const note = $("sederNote");
+    note.innerHTML = state.sederManual
+      ? `Taking attendance for <b>${sederLabel(state.activeSeder)}</b> (chosen by you) <button type="button" id="sederAuto">Use time of day instead</button>`
+      : `Taking attendance for <b>${sederLabel(state.activeSeder)}</b> (guessed from the time) \u2014 tap another to change`;
+    const au = document.getElementById("sederAuto");
+    if(au) au.addEventListener("click", ()=>{ state.sederManual = false; state.activeSeder = guessSeder(); renderAttClassStrip(); renderAttendanceTab(); });
   }
 
   let currentAttRecord = null;
   let currentAttRoster = [];
 
   function renderAttendanceTab(){
+    renderSederBar();
     if(!state.data.classes.length || !state.activeAttClass){
       $("attTakePanel").classList.add("hidden");
       $("attClassPickerPanel").classList.remove("hidden");
@@ -1617,11 +1669,11 @@
       return;
     }
     $("attActiveClassName").textContent = activeCls.name;
-    $("attRoomHint").textContent = [activeCls.rebbi ? "with "+activeCls.rebbi : null, activeCls.room ? "Room "+activeCls.room : null].filter(Boolean).join(" \u00b7 ");
+    $("attRoomHint").textContent = [sederLabel(state.activeSeder), activeCls.rebbi ? "with "+activeCls.rebbi : null, activeCls.room ? "Room "+activeCls.room : null].filter(Boolean).join(" \u00b7 ");
     if(!$("attDate").value) $("attDate").value = todayStr();
     const date = $("attDate").value || todayStr();
     const existing = findAttendanceRecord(classId, date);
-    currentAttRecord = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(), classId, date, records:{}, photo:""};
+    currentAttRecord = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(), classId, date, seder:state.activeSeder, records:{}, photo:""};
 
     const roster = studentsInClass(classId).sort((a,b)=>a.name.localeCompare(b.name));
     currentAttRoster = roster;
@@ -1689,7 +1741,8 @@
   });
 
   $("saveAttendance").addEventListener("click", async ()=>{
-    const idx = state.data.attendance.findIndex(a=> a.classId===currentAttRecord.classId && a.date===currentAttRecord.date);
+    currentAttRecord.seder = currentAttRecord.seder || state.activeSeder;
+    const idx = state.data.attendance.findIndex(a=> a.classId===currentAttRecord.classId && a.date===currentAttRecord.date && recSeder(a)===currentAttRecord.seder);
     const snapshot = JSON.parse(JSON.stringify(currentAttRecord));
     if(idx>=0) state.data.attendance[idx] = snapshot;
     else state.data.attendance.push(snapshot);
@@ -1700,7 +1753,7 @@
   });
 
   function renderAttHistory(classId){
-    const sessions = state.data.attendance.filter(a=>a.classId===classId).sort((a,b)=> b.date.localeCompare(a.date));
+    const sessions = state.data.attendance.filter(a=>a.classId===classId).sort((a,b)=> b.date.localeCompare(a.date) || SEDARIM.findIndex(x=>x.id===recSeder(b)) - SEDARIM.findIndex(x=>x.id===recSeder(a)));
     const el = $("attHistory");
     if(!sessions.length){ el.innerHTML = '<p class="hint">No sessions recorded yet.</p>'; return; }
     el.innerHTML = "";
@@ -1711,8 +1764,8 @@
       const late = vals.filter(v=>v==="late").length;
       const row = document.createElement("div");
       row.className = "hist-item";
-      row.innerHTML = `<span>${s.date}</span><span class="hist-counts">${present}P \u00b7 ${late}L \u00b7 ${absent}A</span>`;
-      row.addEventListener("click", ()=>{ $("attDate").value = s.date; renderAttendanceTab(); });
+      row.innerHTML = `<span>${s.date} \u00b7 ${sederLabel(recSeder(s))}</span><span class="hist-counts">${present}P \u00b7 ${late}L \u00b7 ${absent}A</span>`;
+      row.addEventListener("click", ()=>{ $("attDate").value = s.date; state.sederManual = true; state.activeSeder = recSeder(s); renderAttClassStrip(); renderAttendanceTab(); });
       el.appendChild(row);
     });
   }
