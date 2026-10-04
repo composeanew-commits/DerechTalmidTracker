@@ -40,6 +40,36 @@
   .tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
   .tab{flex:none;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:13px;cursor:pointer;white-space:nowrap;}
   .tab.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 10px;}
+  .pf-stats>div{background:var(--brand-soft);border-radius:12px;padding:10px 6px;text-align:center;}
+  .pf-stats b{display:block;font-size:20px;color:var(--ink);} .pf-stats b.g{color:#1F9D55;} .pf-stats b.y{color:#B87400;} .pf-stats b.r{color:var(--red);}
+  .pf-stats span{font-size:11px;color:var(--ink-soft);}
+  .pf-dots{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;} .pf-dot{width:14px;height:14px;border-radius:50%;background:var(--line);}
+  .pf-dot.present{background:#1F9D55;} .pf-dot.late{background:#E0A100;} .pf-dot.absent{background:var(--red);}
+  .pf-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:6px 0;}
+  .pf-ck{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin-bottom:8px;font-size:13px;color:var(--ink);}
+  .pf-st{font-size:11px;padding:2px 7px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-weight:600;}
+  .pf-st.struggling{background:var(--red-bg);color:var(--red);} .pf-st.thriving{background:#E6F5EC;color:#14703c;}
+  .sh-card{cursor:pointer;} .sh-row{cursor:pointer;margin-bottom:8px;}
+  .sh-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .sh-avg{text-align:right;font-size:22px;font-weight:700;color:var(--brand);line-height:1;} .sh-avg span{display:block;font-size:10px;font-weight:500;color:var(--ink-soft);margin-top:3px;}
+  .sh-bar{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-top:10px;background:var(--line);}
+  .sh-bar i{display:block;background:var(--line);} .sh-bar i.g{background:#1F9D55;} .sh-bar i.y{background:#E0A100;} .sh-bar i.r{background:var(--red);}
+  .tab-badge{display:inline-block;min-width:18px;padding:1px 6px;margin-left:4px;border-radius:999px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:16px;text-align:center;}
+  .nm-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:16px;color:var(--ink);} .nm-head span{font-size:12px;color:var(--ink-soft);}
+  .nm-filters{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;}
+  .nm-filter{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:12px;cursor:pointer;}
+  .nm-filter.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);}
+  .nm-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .nm-top{display:flex;gap:12px;align-items:center;} .nm-main{flex:1;min-width:0;}
+  .nm-name{font-weight:600;font-size:15px;color:var(--ink);} .nm-sub{font-size:12px;color:var(--ink-soft);margin:1px 0 6px;}
+  .nm-tags{display:flex;flex-wrap:wrap;gap:5px;} .nm-tag{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:600;}
+  .nm-tag.danger{background:var(--red-bg);color:var(--red);} .nm-tag.warn{background:#FBF1DC;color:#8A5A00;}
+  .nm-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
+  .nm-btn{flex:1 1 auto;text-align:center;text-decoration:none;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;}
+  .nm-btn.wa{background:#1F9D55;border-color:#1F9D55;color:#fff;} .nm-btn.wa.alt{background:#E6F5EC;color:#14703c;border-color:#bfe3cd;}
+  .nm-btn.main{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .nm-empty{text-align:center;padding:40px 10px;color:var(--ink-soft);font-size:14px;}
 
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;}
   .panel + .panel{margin-top:14px;}
@@ -313,6 +343,24 @@
   .rot-btn{width:30px;height:30px;padding:0;border-radius:50%;font-size:16px;line-height:1;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;}
   .photo-sub{margin-top:6px;font-size:11px;display:flex;gap:6px;align-items:center;}
   button.linkish{background:none;border:none;padding:0;font-size:11px;color:var(--red);text-decoration:underline;}
+
+  /* ---- polish ---- */
+  :root{ --paper:#F5F2EA; --brand:#2B2368; --brand-soft:#ECE9F8; --gold:#C9A24B; }
+  body{background:linear-gradient(180deg,#E9E5F6 0,var(--paper) 260px) fixed;}
+  h1{font-family:var(--serif);letter-spacing:.01em;color:var(--brand);}
+  #app{animation:fadeUp .35s ease both;} @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .topbar{background:rgba(245,242,234,.85);backdrop-filter:blur(8px);border-bottom:2px solid var(--gold);padding:10px 0;}
+  .tab{transition:all .15s;box-shadow:0 1px 2px rgba(36,29,74,.06);} .tab.active{box-shadow:0 6px 14px rgba(43,35,104,.28);transform:translateY(-1px);}
+  button{transition:transform .08s,box-shadow .15s,background .15s;} button:active,.nm-btn:active{transform:scale(.97);}
+  button.primary,.nm-btn.main{background:linear-gradient(135deg,#3A2F86,var(--brand));box-shadow:0 4px 12px rgba(43,35,104,.25);}
+  .nm-card{border-radius:18px;box-shadow:0 2px 8px rgba(36,29,74,.06);transition:transform .15s,box-shadow .15s;} .sh-card:hover,.sh-row:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(36,29,74,.12);}
+  .overlay{backdrop-filter:blur(3px);} .drawer{border-radius:22px 0 0 22px;}
+  .qr-prog{height:6px;border-radius:9px;background:var(--line);margin:8px 0 14px;overflow:hidden;} .qr-prog i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--brand));transition:width .3s;}
+  .qr-card{text-align:center;padding:14px 0 18px;} .qr-photo{width:112px;height:112px;font-size:34px;margin:0 auto 12px;} .qr-name{font-family:var(--serif);font-size:24px;color:var(--ink);}
+  .qr-btn{display:block;width:100%;padding:18px;margin-bottom:10px;border-radius:16px;border:0;font-size:18px;font-weight:600;color:#fff;cursor:pointer;}
+  .qr-btn.thr{background:#1F9D55;} .qr-btn.ok{background:var(--brand);} .qr-btn.str{background:var(--red);}
+  .qr-scope{display:flex;justify-content:space-between;width:100%;padding:16px;margin-bottom:8px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;color:var(--ink);cursor:pointer;}
+  .qr-scope.main{background:var(--brand-soft);border-color:var(--brand);} .qr-scope span{color:var(--ink-soft);font-size:13px;}
 </style>
 </head>
 <body>
@@ -326,10 +374,12 @@
         <button class="ghost" id="moreMenuBtn" title="More">&#8942;</button>
         <div class="menu-dropdown hidden" id="moreMenu">
           <button id="overviewBtn">Full school overview</button>
-          <button id="importBtn">Import from file</button>
+          <button id="importBtn">Import from Excel (phones, shiurim, rooms)</button>
           <button id="trashBtn">Recently deleted</button>
           <button id="weeklyReportBtn">Weekly report (printable)</button>
           <button id="backupBtn">Download full backup</button>
+          <button id="backupsBtn">Backups</button>
+          <button id="addPhonesBtn">Add Shana Alef phone numbers</button>
           <button id="refreshMenuBtn">Sync now</button>
         </div>
       </div>
@@ -388,9 +438,14 @@
     </div>
     <div class="tabs">
       <button class="tab active" data-tab="attendance">Attendance</button>
+      <button class="tab" data-tab="needs">Needs me <span class="tab-badge hidden" id="needsBadge"></span></button>
+      <button class="tab" data-tab="shiurim">Shiurim</button>
       <button class="tab" data-tab="interviews">Check-ins</button>
       <button class="tab" data-tab="roster">Classes &amp; Students</button>
     </div>
+
+    <div id="tab-shiurim" class="hidden"><div id="shiurimBody"></div></div>
+    <div id="tab-needs" class="hidden"><div id="needsBody"></div></div>
 
     <!-- ROSTER TAB -->
     <div id="tab-roster" class="hidden">
@@ -567,7 +622,8 @@
   }
 
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-  const todayStr = () => new Date().toISOString().slice(0,10);
+  const localDateStr = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const todayStr = () => localDateStr(new Date());
   const escapeHtml = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const initials = name => (name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
 
@@ -673,17 +729,25 @@
     bar.classList.toggle("show", !!mode);
     bar.classList.toggle("err", mode==="err");
     const t = document.getElementById("savingText");
-    if(t) t.textContent = mode==="err" ? "Not saved \u2014 tap to retry" : "Saving\u2026";
+    if(t) t.textContent = mode==="err" ? "Not saved \u2014 tap to retry" : mode==="offline" ? "Offline \u2014 saved on this phone, will sync automatically" : "Saving\u2026";
+  }
+  function cacheLocal(pending){
+    try{
+      localStorage.setItem("derech-cache", JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v));
+      localStorage.setItem("derech-pending", pending ? "1" : "");
+    }catch(e){}
   }
   async function persist(){
-    _dirty = true;
+    _dirty = true; cacheLocal(true);
+    if(state.offline){ showBar("offline"); return; }
     if(!_q){
       showBar("saving");
       _q = (async()=>{
         try{
           while(_dirty){ _dirty = false; await doSave(); }
-          showBar(null); updateAttentionBanner();
+          cacheLocal(false); showBar(null); updateAttentionBanner();
         }catch(e){
+          if(!e.status){ _dirty = false; state.offline = true; setConn(false,"offline"); showBar("offline"); return; }
           _dirty = false; showBar("err");
           e.shown = true; toast("Couldn't save: " + e.message, "error");
           throw e;
@@ -707,7 +771,7 @@
     dot.classList.toggle("spin", !!connecting);
   }
 
-  async function connect(cfg){
+  async function connect(cfg, keepLocal){
     state.config = cfg;
     setConn(false, "connecting\u2026");
     let rows;
@@ -715,13 +779,16 @@
     photosFetch.catch(()=>{});
     try{ rows = await sbGet("derech_data?select=data,updated_at&id=eq.main"); }
     catch(e){ setConn(false,"not connected"); throw e; }
-    if(rows && rows.length){
+    if(keepLocal){
+      state.data = Object.assign(emptyData(), keepLocal);
+    } else if(rows && rows.length){
       state.data = Object.assign(emptyData(), rows[0].data || {});
     } else {
       state.data = emptyData();
       await sbUpsert(state.data);
     }
     // photos are stored separately: blank the markers now, fill them in as soon as the photos row arrives
+    if(!keepLocal) cacheLocal(false);
     photoHolders(state.data).forEach(h=>{ if(h.obj.photo==="@") h.obj.photo = ""; });
     state.photoStore = null;
     state.photosPromise = photosFetch.then(rws=>{
@@ -747,11 +814,19 @@
       setConn(false, i===1 ? "connecting\u2026" : `still connecting (try ${i} of ${attempts})\u2026`, true);
       const lt = $("loadingText"); if(lt) lt.textContent = i===1 ? "Connecting\u2026" : `Still connecting (try ${i} of ${attempts})\u2026`;
       try{
-        await connect(saved);
-        showMain();
+        const pend = loadLocal("derech-pending") ? loadLocal("derech-cache") : null;
+        await connect(saved, pend);
+        showMain(); autoBackup();
+        if(pend) persist().catch(()=>{});
         return;
       }catch(e){
         if(i===attempts){
+          const c = loadLocal("derech-cache");
+          if(c){
+            state.config = saved; state.data = Object.assign(emptyData(), c);
+            photoHolders(state.data).forEach(h=>{ if(h.obj.photo==="@") h.obj.photo = ""; });
+            state.offline = true; setConn(false, "offline"); showMain(); showBar("offline"); return;
+          }
           showSetupError(e.message);
           setConn(false, "not connected");
           return;
@@ -760,6 +835,22 @@
       }
     }
   }
+
+  let _rc = false;
+  async function tryReconnect(){
+    if(_rc || !state.offline || !state.config || _q) return;
+    _rc = true;
+    try{
+      await connect(state.config, state.data);
+      state.offline = false;
+      renderRoster(); renderGlobalSearch(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner();
+      if(loadLocal("derech-pending")) await persist(); else showBar(null);
+      toast("Back online \u2014 changes synced.", "success");
+    }catch(e){ setConn(false, "offline"); }
+    finally{ _rc = false; }
+  }
+  window.addEventListener("online", tryReconnect);
+  setInterval(tryReconnect, 20000);
 
   function showSetupError(msg){
     // Connection details stay hidden; just offer a plain retry screen.
@@ -860,9 +951,11 @@
     btn.addEventListener("click", ()=>{
       document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
-      ["roster","attendance","interviews"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t !== btn.dataset.tab));
+      ["roster","attendance","interviews","needs","shiurim"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t !== btn.dataset.tab));
       if(btn.dataset.tab === "attendance") renderAttendanceTab();
       if(btn.dataset.tab === "interviews") renderInterviewPicker();
+      if(btn.dataset.tab === "needs") renderNeeds();
+      if(btn.dataset.tab === "shiurim") renderShiurim();
     });
   });
 
@@ -970,8 +1063,8 @@
     const days = li ? daysSince(li) : null;
     if(!li) reasons.push("no check-in logged yet");
     else if(days!==null && days>=CHECKIN_STALE_DAYS) reasons.push(`no check-in in ${days} days`);
-    const missing = missingFields(s);
-    if(missing.length) reasons.push("missing " + missing.join(", "));
+    const stand = latestStanding(s.id);
+    if(stand && stand.status==="struggling") reasons.push("marked struggling");
     return reasons;
   }
 
@@ -990,6 +1083,7 @@
   function updateAttentionBanner(){
     const banner = $("attnBanner");
     if(!banner || !state.data) return;
+    try{ renderNeeds(); renderShiurim(); }catch(e){}
     const list = attentionList();
     if(!list.length){ banner.classList.add("hidden"); return; }
     banner.classList.remove("hidden");
@@ -1160,6 +1254,7 @@
           </div>
           <button class="ghost" id="qsClose">Close</button>
         </div>
+        ${profileSummaryHtml(student)}
         <label style="margin-top:2px;">How's he doing?</label>
         ${standingHtml(student.id)}
         <div class="qs-actions">
@@ -1167,7 +1262,6 @@
           <button id="qsModeAtt" ${cls?"":"disabled title='Assign a class first'"}>Attendance</button>
           <button id="qsProfile">Profile</button>
         </div>
-        ${student.phone?`<div style="margin:4px 0 8px;"><a href="tel:${escapeHtml(student.phone)}" style="font-size:13px;color:var(--brand);">&#9742; Call ${escapeHtml(student.phone)}</a></div>`:""}
         <div id="qsBody">
           <p class="hint">${lastCheck?`Last check-in: ${escapeHtml(lastCheck.date)}${lastCheck.status?" \u00b7 "+escapeHtml(lastCheck.status):""}`:"No check-ins yet."} Pick Check-in or Attendance above.</p>
         </div>
@@ -2425,7 +2519,412 @@
     commitBtn.disabled = plan.length === 0;
   }
 
-  $("importBtn").addEventListener("click", openImportOverlay);
+    // ================= SMART EXCEL IMPORT: phones, shiur, rooms (matches existing students) =================
+  function siPhone(v){
+    const s = String(v==null?"":v).trim(); if(!s || /[A-Za-z]/.test(s)) return "";
+    const d = s.replace(/\D/g,""); if(d.length<7) return "";
+    if(d.length===10) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
+    if(d.length===11 && d[0]==="1") return `${d.slice(1,4)}-${d.slice(4,7)}-${d.slice(7)}`;
+    if(/^(44\d{10}|32\d{9,})$/.test(d)) return "+"+d;
+    return s;
+  }
+  function siRole(h){
+    h = String(h||"").toLowerCase().replace(/\s+/g," ").trim();
+    if(!h || /email|address|city|state|zip|school|dob|birth|group/.test(h)) return "";
+    if(/^last/.test(h)) return "last";
+    if(/^first/.test(h)) return "first";
+    if(/^(student )?name$|^full name/.test(h)) return "name";
+    if(/room|dorm/.test(h)) return "room";
+    if(/rebbi|rabbi|teacher/.test(h)) return "rebbi";
+    if(/phone|cell|mobile|tel/.test(h)){
+      if(/father|dad|abba/.test(h)) return "dad"; if(/mother|mom|ima/.test(h)) return "mom";
+      if(/parent/.test(h)) return "parent"; if(/home/.test(h)) return "home"; return "stu";
+    }
+    if(/shiur|shana|year|yr|class|grade/.test(h)) return "cls";
+    return "";
+  }
+  const siToks = n => String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
+  const siKey = n => siToks(n).sort().join(" ");
+  function siClsKey(n){
+    let k = String(n||"").toLowerCase().replace(/shana|shanah|year|yr|shiur|class|grade|[^a-z0-9]/g,"");
+    k = k.replace(/aleph/,"alef").replace(/beis|beit|bais/,"bet").replace(/1st|first/,"1").replace(/2nd|second/,"2");
+    return k==="alef"?"1":k==="bet"?"2":k;
+  }
+
+  async function openSmartImport(){
+    $("moreMenu").classList.add("hidden");
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.innerHTML = `<div class="drawer drawer-wide">
+      <div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">Import from Excel</p><button class="ghost" id="siClose">&#10005;</button></div>
+      <p class="hint">Upload a sheet with names plus any of: phone numbers, shiur/year, room. Columns are detected automatically and existing students are matched by name. Nobody new is added unless you tick the box.</p>
+      <input type="file" id="siFile" accept=".xlsx,.xls,.csv" class="thumb-input" />
+      <div id="siBody" style="margin-top:14px;"></div></div>`;
+    showOverlay(ov);
+    ov.querySelector("#siClose").addEventListener("click", ()=> closeOverlay(ov));
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    const body = ov.querySelector("#siBody");
+    ov.querySelector("#siFile").addEventListener("change", async e=>{
+      const f = e.target.files[0]; if(!f) return;
+      body.innerHTML = '<p class="hint">Reading file\u2026</p>';
+      try{
+        await ensureXLSX();
+        const wb = window.XLSX.read(await f.arrayBuffer(), {type:"array"});
+        const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:""});
+        siPreview(ov, body, rows);
+      }catch(err){ body.innerHTML = `<span class="err">${escapeHtml(err.message||err)}</span>`; }
+    });
+  }
+
+  function siPreview(ov, body, rows){
+    let hi = -1, roles = [];
+    for(let i=0;i<Math.min(rows.length,10);i++){
+      const r = rows[i].map(siRole);
+      if(r.filter(Boolean).length>=2 && r.some(x=>x==="name"||x==="first"||x==="last"||x==="cls")){ hi=i; roles=r; break; }
+    }
+    if(hi<0){ body.innerHTML = '<span class="err">Couldn\u2019t find a header row. The sheet needs headers like Last Name, First Name, Phone, Shiur, Room.</span>'; return; }
+    const recs = [];
+    rows.slice(hi+1).forEach(row=>{
+      const c = {}; roles.forEach((role,i)=>{ if(role && row[i]!=="" && row[i]!=null && !(role in c)) c[role] = String(row[i]).trim(); });
+      const name = c.name || [c.first, c.last].filter(Boolean).join(" ");
+      const rec = { name, last:(c.last||"").toLowerCase().replace(/[^a-z ]/g,"").trim(), stu:siPhone(c.stu),
+        par: siPhone(c.dad)||siPhone(c.mom)||siPhone(c.parent)||siPhone(c.home), cls:c.cls||"", room:c.room||"", rebbi:c.rebbi||"" };
+      if(name || (rec.cls && (rec.room||rec.rebbi))) recs.push(rec);
+    });
+    const students = state.data.students, used = new Set(), items = [], unmatched = [];
+    const exact = {}; students.forEach(s=>{ const k = siKey(s.name); if(!exact[k]) exact[k] = s; });
+    const named = recs.filter(r=>r.name);
+    named.forEach(r=>{ const s = exact[siKey(r.name)]; if(s && !used.has(s.id)){ used.add(s.id); r.s = s; r.how = "exact"; } });
+    named.filter(r=>!r.s).forEach(r=>{
+      const lt = r.last ? siToks(r.last) : siToks(r.name).slice(-1);
+      const cand = students.filter(s=> !used.has(s.id) && lt.length && lt.every(t=> siToks(s.name).includes(t)));
+      if(cand.length===1){ r.s = cand[0]; used.add(cand[0].id); r.how = "similar"; }
+    });
+    const clsByKey = {}; state.data.classes.forEach(c=>{ clsByKey[siClsKey(c.name)] = c; });
+    const newClasses = {};
+    named.forEach(r=>{
+      if(!r.s){ unmatched.push(r); return; }
+      const ch = [];
+      if(r.stu && r.stu!==r.s.phone) ch.push({k:"phone", t:`Student phone ${r.stu}`, over:!!r.s.phone});
+      if(r.par && r.par!==r.s.parentPhone) ch.push({k:"parentPhone", t:`Parent phone ${r.par}`, over:!!r.s.parentPhone});
+      if(r.cls){
+        const k = siClsKey(r.cls), c = clsByKey[k];
+        if(c){ if(c.id!==r.s.classId) ch.push({k:"class", t:`Shiur \u2192 ${c.name}`, cid:c.id}); }
+        else { newClasses[k] = newClasses[k] || r.cls; ch.push({k:"class", t:`Shiur \u2192 ${r.cls} (new)`, newKey:k}); }
+      }
+      if(ch.length) items.push({r, ch, on: r.how==="exact" || (r.name[0]||"").toLowerCase()===(r.s.name[0]||"").toLowerCase()});
+    });
+    // rooms / rebbi per shiur (from any row that names a shiur, or from the student's current shiur)
+    const roomFor = {};
+    recs.forEach(r=>{
+      if(!r.room && !r.rebbi) return;
+      let key = null;
+      if(r.cls) key = "k:"+siClsKey(r.cls);
+      else if(r.s && r.s.classId) key = "id:"+r.s.classId;
+      if(key) roomFor[key] = Object.assign(roomFor[key]||{}, r.room?{room:r.room}:{}, r.rebbi?{rebbi:r.rebbi}:{});
+    });
+    const roomLines = [];
+    Object.keys(roomFor).forEach(key=>{
+      const c = key.startsWith("id:") ? state.data.classes.find(x=>x.id===key.slice(3)) : clsByKey[key.slice(2)];
+      const v = roomFor[key];
+      if(c && ((v.room && v.room!==c.room) || (v.rebbi && v.rebbi!==c.rebbi))) roomLines.push({c, v});
+      else if(!c) roomLines.push({c:null, name:newClasses[key.slice(2)]||key.slice(2), v});
+    });
+    const rowsHtml = items.map((it,i)=>`<label style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);margin:0;font-size:13px;color:var(--ink);">
+      <input type="checkbox" data-i="${i}" ${it.on?"checked":""} style="margin-top:3px;">
+      <span><b>${escapeHtml(it.r.s.name)}</b>${it.r.how==="similar"?` <span class="ov-flag">matched from \u201c${escapeHtml(it.r.name)}\u201d \u2014 check</span>`:""}<br>
+      <span class="hint">${it.ch.map(c=>escapeHtml(c.t)+(c.over?" (replaces existing)":"")).join(" \u00b7 ")}</span></span></label>`).join("");
+    body.innerHTML = `
+      <div class="panel" style="background:var(--brand-soft);border-color:#cfc9ec;">
+        <b>${items.length}</b> students will be updated${roomLines.length?`, <b>${roomLines.length}</b> shiur room/rebbi change${roomLines.length===1?"":"s"}`:""}.
+        ${unmatched.length?`<div class="hint">${unmatched.length} in the sheet not found in your roster: ${escapeHtml(unmatched.map(u=>u.name).join(", "))}</div>`:""}
+        ${roomLines.length?`<div class="hint">${roomLines.map(l=>escapeHtml((l.c?l.c.name:l.name+" (new)")+": "+[l.v.room?"room "+l.v.room:"",l.v.rebbi?"rebbi "+l.v.rebbi:""].filter(Boolean).join(", "))).join(" \u00b7 ")}</div>`:""}
+      </div>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink);"><input type="checkbox" id="siOver" checked> Replace phone numbers that are already saved</label>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink);"><input type="checkbox" id="siAdd" ${unmatched.length?"":"disabled"}> Add the ${unmatched.length} unmatched as new students</label>
+      <div style="margin-top:10px;">${rowsHtml || '<p class="hint">Nothing to change \u2014 everything in the sheet is already in the app.</p>'}</div>
+      <div class="row row-end" style="margin-top:14px;"><button class="ghost" id="siCancel">Cancel</button><button class="primary" id="siApply" ${(items.length||roomLines.length||unmatched.length)?"":"disabled"}>Apply</button></div>`;
+    body.querySelector("#siCancel").addEventListener("click", ()=> closeOverlay(ov));
+    body.querySelector("#siApply").addEventListener("click", async ()=>{
+      const over = body.querySelector("#siOver").checked, add = body.querySelector("#siAdd").checked;
+      const made = {}, getClass = (k, nm)=>{ if(clsByKey[k]) return clsByKey[k]; if(!made[k]){ made[k] = {id:uid(), name:nm, room:"", rebbi:""}; state.data.classes.push(made[k]); clsByKey[k] = made[k]; } return made[k]; };
+      let n = 0;
+      body.querySelectorAll("input[data-i]").forEach(cb=>{
+        if(!cb.checked) return;
+        const it = items[+cb.dataset.i]; n++;
+        it.ch.forEach(c=>{
+          if(c.k==="phone" && (!c.over || over)) it.r.s.phone = it.r.stu;
+          else if(c.k==="parentPhone" && (!c.over || over)) it.r.s.parentPhone = it.r.par;
+          else if(c.k==="class") it.r.s.classId = (c.cid || getClass(c.newKey, it.r.cls).id);
+        });
+      });
+      if(add) unmatched.forEach(u=>{
+        const c = u.cls ? getClass(siClsKey(u.cls), u.cls) : null;
+        students.push({id:uid(), name:u.name, classId:c?c.id:null, photo:"", phone:u.stu, parentPhone:u.par}); n++;
+      });
+      roomLines.forEach(l=>{ const c = l.c || getClass(siClsKey(l.name), l.name); if(l.v.room) c.room = l.v.room; if(l.v.rebbi) c.rebbi = l.v.rebbi; });
+      try{
+        await persist(); closeOverlay(ov);
+        renderRoster(); renderGlobalSearch(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); updateAttentionBanner();
+        toast(`Import done \u2014 ${n} student${n===1?"":"s"} updated.`, "success");
+      }catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
+    });
+  }
+
+  // ================= NEEDS ME TAB (absence streaks, low attendance, overdue check-ins) =================
+  const STREAK_ALERT = 3;
+  let needsFilter = "all";
+  function absentStreak(s){
+    if(!s.classId) return 0;
+    const sess = state.data.attendance.filter(a=> a.classId===s.classId && a.records && a.records[s.id])
+      .sort((a,b)=> (b.date+(b.seder||"")).localeCompare(a.date+(a.seder||"")));
+    let n = 0; for(const a of sess){ if(a.records[s.id]==="absent") n++; else break; }
+    return n;
+  }
+  function waLink(p){
+    const raw = String(p||"").trim(); let d = raw.replace(/\D/g,""); if(!d) return "";
+    if(!raw.startsWith("+")){ if(d[0]==="0") d = "972"+d.slice(1); else if(d.length===10) d = "1"+d; }
+    return "https://wa.me/"+d;
+  }
+  function needsEntries(){
+    return state.data.students.map(s=>{
+      const streak = absentStreak(s), status = studentStatus(s), li = lastInterviewDate(s.id), days = li ? daysSince(li) : null;
+      const stand = latestStanding(s.id), struggling = !!(stand && stand.status==="struggling"), low = status==="red" || struggling, overdue = !li || (days!==null && days>=CHECKIN_STALE_DAYS);
+      return {s, streak, status, li, days, low, struggling, overdue, hot: streak>=STREAK_ALERT};
+    }).filter(e=> e.hot || e.low || e.overdue)
+      .sort((a,b)=> (b.hot-a.hot) || (b.streak-a.streak) || (b.low-a.low) || ((b.days===null?9999:b.days)-(a.days===null?9999:a.days)) || a.s.name.localeCompare(b.s.name));
+  }
+  function renderNeeds(){
+    const body = $("needsBody"); if(!body || !state.data) return;
+    const all = needsEntries();
+    const badge = $("needsBadge"); badge.textContent = all.length || ""; badge.classList.toggle("hidden", !all.length);
+    const counts = {all:all.length, hot:all.filter(e=>e.hot).length, low:all.filter(e=>e.low).length, overdue:all.filter(e=>e.overdue).length};
+    const list = needsFilter==="all" ? all : all.filter(e=>e[needsFilter]);
+    const chips = [["all","Everyone"],["hot",`Absent ${STREAK_ALERT}+ in a row`],["low","Low attendance"],["overdue","Check-in overdue"]]
+      .map(([k,l])=>`<button class="nm-filter${needsFilter===k?" on":""}" data-f="${k}">${l} <b>${counts[k]}</b></button>`).join("");
+    const cards = list.map(e=>{
+      const s = e.s, c = classById(s.classId), wa = waLink(s.phone), wp = waLink(s.parentPhone), tel = String(s.phone||s.parentPhone||"").replace(/[^\d+]/g,"");
+      const tags = [];
+      if(e.hot) tags.push(`<span class="nm-tag danger">Absent ${e.streak} in a row</span>`);
+      if(e.struggling) tags.push(`<span class="nm-tag danger">Struggling</span>`);
+      else if(e.low && !e.hot) tags.push(`<span class="nm-tag danger">Low attendance</span>`);
+      if(e.overdue) tags.push(`<span class="nm-tag warn">${e.li?`No check-in in ${e.days} days`:"Never checked in"}</span>`);
+      return `<div class="nm-card" data-id="${escapeHtml(s.id)}">
+        <div class="nm-top"><div class="photo ${e.status}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
+          <div class="nm-main"><div class="nm-name">${escapeHtml(s.name)}</div>
+            <div class="nm-sub">${c?escapeHtml(c.name):"No shiur"}${c&&c.rebbi?" \u00b7 "+escapeHtml(c.rebbi):""}</div>
+            <div class="nm-tags">${tags.join("")}</div></div></div>
+        <div class="nm-actions">
+          ${wa?`<a class="nm-btn wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`:""}
+          ${wp?`<a class="nm-btn wa alt" href="${wp}" target="_blank" rel="noopener">${wa?"Parent":"WhatsApp parent"}</a>`:""}
+          ${tel?`<a class="nm-btn" href="tel:${tel}">Call</a>`:""}
+          <button class="nm-btn main" data-act="checkin">Check-in</button>
+          <button class="nm-btn" data-act="open">Profile</button></div></div>`;
+    }).join("");
+    body.innerHTML = `<div class="nm-head"><b>${all.length?`${all.length} guy${all.length===1?"":"s"} could use you today`:"All caught up"}</b><span>Most urgent first</span></div>
+      <button class="nm-btn main" id="qrStart" style="width:100%;margin-bottom:12px;padding:14px;font-size:15px;">\u26a1 Quick review \u2014 go through the guys</button>
+      <div class="nm-filters">${chips}</div>
+      ${cards || `<div class="nm-empty"><div style="font-size:34px;">\u2705</div>Nobody here right now \u2014 nice work.</div>`}`;
+    body.querySelector("#qrStart").addEventListener("click", openQuickReview);
+    body.querySelectorAll(".nm-filter").forEach(b=> b.addEventListener("click", ()=>{ needsFilter = b.dataset.f; renderNeeds(); }));
+    body.querySelectorAll(".nm-card").forEach(card=>{
+      const id = card.dataset.id;
+      card.querySelector('[data-act="open"]').addEventListener("click", ()=> openStudentQuick(id));
+      card.querySelector('[data-act="checkin"]').addEventListener("click", ()=>{
+        state.activeInterviewStudent = id;
+        document.querySelector('.tab[data-tab="interviews"]').click();
+        renderInterviewPicker(); renderInterviewPanel();
+      });
+    });
+  }
+
+  // ================= PROFILE SUMMARY (stats, attendance dots, contact, recent check-ins) =================
+  function profileSummaryHtml(s){
+    const sess = s.classId ? state.data.attendance.filter(a=> a.classId===s.classId && a.records && a.records[s.id])
+      .sort((a,b)=> (b.date+(b.seder||"")).localeCompare(a.date+(a.seder||""))).slice(0,14).reverse() : [];
+    const dots = sess.map(a=>{ const v = a.records[s.id]; return `<span class="pf-dot ${v}" title="${escapeHtml(a.date)} \u00b7 ${v}"></span>`; }).join("");
+    const rate = s.classId ? classAttendanceRate(s.id, s.classId, 4) : null, streak = absentStreak(s);
+    const cks = state.data.interviews.filter(i=>i.studentId===s.id).sort((a,b)=> b.date.localeCompare(a.date));
+    const d = cks.length ? daysSince(cks[0].date) : null;
+    const wa = waLink(s.phone), wp = waLink(s.parentPhone);
+    const tel = String(s.phone||"").replace(/[^\d+]/g,""), ptel = String(s.parentPhone||"").replace(/[^\d+]/g,"");
+    const contact = [wa?`<a class="nm-btn wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`:"",
+      wp?`<a class="nm-btn wa alt" href="${wp}" target="_blank" rel="noopener">WhatsApp parent</a>`:"",
+      tel?`<a class="nm-btn" href="tel:${tel}">Call</a>`:"", ptel?`<a class="nm-btn" href="tel:${ptel}">Call parent</a>`:""].join("");
+    const recent = cks.slice(0,3).map(i=>`<div class="pf-ck"><b>${escapeHtml(i.date)}</b>${i.status?` <span class="pf-st ${escapeHtml(i.status)}">${escapeHtml(i.status)}</span>`:""}
+      ${i.notes?`<div>${escapeHtml(i.notes.length>140?i.notes.slice(0,140)+"\u2026":i.notes)}</div>`:""}</div>`).join("");
+    return `<div class="pf-stats">
+        <div><b class="${rate===null?"":rate>=0.8?"g":rate>=0.5?"y":"r"}">${rate===null?"\u2014":Math.round(rate*100)+"%"}</b><span>Recent attendance</span></div>
+        <div><b class="${streak>=STREAK_ALERT?"r":""}">${streak}</b><span>Absent in a row</span></div>
+        <div><b class="${d===null||d>=CHECKIN_STALE_DAYS?"y":""}">${d===null?"\u2014":d===0?"Today":d+"d"}</b><span>Last check-in</span></div></div>
+      ${dots?`<div class="pf-dots" title="Oldest \u2192 newest">${dots}</div>`:""}
+      ${contact?`<div class="nm-actions" style="margin:10px 0;">${contact}</div>`:""}
+      ${recent?`<div class="pf-recent"><div class="pf-lbl">Recent check-ins</div>${recent}</div>`:""}`;
+  }
+
+  // ================= SHIURIM TAB (how is each shiur doing — for rebbe meetings) =================
+  let shiurOpen = null;
+  function shiurStats(c){
+    const sts = studentsInClass(c.id);
+    const rows = sts.map(s=>{
+      const st = studentStatus(s), rate = classAttendanceRate(s.id, c.id, 4), streak = absentStreak(s);
+      const li = lastInterviewDate(s.id), days = li ? daysSince(li) : null, stand = latestStanding(s.id);
+      return {s, st, rate, streak, days, li, stand: stand ? stand.status : "", overdue: !li || days>=CHECKIN_STALE_DAYS};
+    });
+    const rated = rows.filter(r=>r.rate!==null);
+    return { rows, n: rows.length, avg: rated.length ? rated.reduce((a,r)=>a+r.rate,0)/rated.length : null,
+      green: rows.filter(r=>r.st==="green").length, yellow: rows.filter(r=>r.st==="yellow").length, red: rows.filter(r=>r.st==="red").length,
+      struggling: rows.filter(r=>r.stand==="struggling").length, thriving: rows.filter(r=>r.stand==="thriving").length,
+      streaks: rows.filter(r=>r.streak>=STREAK_ALERT).length, overdue: rows.filter(r=>r.overdue).length };
+  }
+  const pct = v => v===null ? "\u2014" : Math.round(v*100)+"%";
+  function renderShiurim(){
+    const body = $("shiurimBody"); if(!body || !state.data) return;
+    const classes = state.data.classes;
+    if(shiurOpen && !classes.some(c=>c.id===shiurOpen)) shiurOpen = null;
+    if(!shiurOpen){
+      body.innerHTML = classes.length ? `<div class="nm-head"><b>How each shiur is doing</b><span>Tap one for the rebbe meeting</span></div>` +
+        classes.map(c=>{
+          const x = shiurStats(c), tot = x.green+x.yellow+x.red;
+          return `<div class="nm-card sh-card" data-id="${escapeHtml(c.id)}">
+            <div class="sh-top"><div><div class="nm-name">${escapeHtml(c.name)}</div>
+              <div class="nm-sub">${c.rebbi?escapeHtml(c.rebbi):"No rebbi set"}${c.room?" \u00b7 Room "+escapeHtml(c.room):""} \u00b7 ${x.n} guys</div></div>
+              <div class="sh-avg">${pct(x.avg)}<span>attendance</span></div></div>
+            <div class="sh-bar">${tot?`<i class="g" style="flex:${x.green}"></i><i class="y" style="flex:${x.yellow}"></i><i class="r" style="flex:${x.red}"></i>`:`<i style="flex:1"></i>`}</div>
+            <div class="nm-tags" style="margin-top:8px;">
+              ${x.streaks?`<span class="nm-tag danger">${x.streaks} absent ${STREAK_ALERT}+ in a row</span>`:""}
+              ${x.struggling?`<span class="nm-tag danger">${x.struggling} struggling</span>`:""}
+              ${x.overdue?`<span class="nm-tag warn">${x.overdue} check-ins overdue</span>`:""}
+              ${x.thriving?`<span class="nm-tag" style="background:#E6F5EC;color:#14703c;">${x.thriving} thriving</span>`:""}</div></div>`;
+        }).join("") : `<div class="nm-empty">No shiurim yet \u2014 add them under Classes &amp; Students.</div>`;
+      body.querySelectorAll(".sh-card").forEach(el=> el.addEventListener("click", ()=>{ shiurOpen = el.dataset.id; renderShiurim(); window.scrollTo(0,0); }));
+      return;
+    }
+    const c = classById(shiurOpen), x = shiurStats(c);
+    const order = r => (r.streak>=STREAK_ALERT?0:r.stand==="struggling"?1:r.st==="red"?2:r.overdue?3:4);
+    const rows = x.rows.slice().sort((a,b)=> order(a)-order(b) || a.s.name.localeCompare(b.s.name));
+    body.innerHTML = `<div class="row" style="align-items:center;margin-bottom:8px;"><button class="ghost" id="shBack">\u2039 All shiurim</button><div style="flex:1"></div><button class="nm-btn main" id="shCopy" style="flex:none;">Copy summary</button></div>
+      <div class="nm-head"><b>${escapeHtml(c.name)}</b><span>${c.rebbi?escapeHtml(c.rebbi):""}${c.room?" \u00b7 Room "+escapeHtml(c.room):""}</span></div>
+      <div class="pf-stats"><div><b>${pct(x.avg)}</b><span>Attendance</span></div><div><b class="${x.streaks?"r":""}">${x.streaks}</b><span>Absent ${STREAK_ALERT}+ in a row</span></div><div><b class="${x.struggling?"r":""}">${x.struggling}</b><span>Struggling</span></div></div>
+      ${rows.map(r=>`<div class="nm-card sh-row" data-id="${escapeHtml(r.s.id)}"><div class="nm-top"><div class="photo ${r.st}">${r.s.photo?`<img src="${r.s.photo}" alt="">`:initials(r.s.name)}</div>
+        <div class="nm-main"><div class="nm-name">${escapeHtml(r.s.name)}</div><div class="nm-tags" style="margin-top:4px;">
+          <span class="nm-tag" style="background:var(--brand-soft);color:var(--brand);">${pct(r.rate)}</span>
+          ${r.streak>=STREAK_ALERT?`<span class="nm-tag danger">Absent ${r.streak} in a row</span>`:""}
+          ${r.stand?`<span class="pf-st ${r.stand}">${r.stand}</span>`:""}
+          ${r.overdue?`<span class="nm-tag warn">${r.li?"No check-in "+r.days+"d":"Never checked in"}</span>`:""}</div></div></div></div>`).join("")}`;
+    body.querySelector("#shBack").addEventListener("click", ()=>{ shiurOpen = null; renderShiurim(); });
+    body.querySelectorAll(".sh-row").forEach(el=> el.addEventListener("click", ()=> openStudentQuick(el.dataset.id)));
+    body.querySelector("#shCopy").addEventListener("click", async ()=>{
+      const flag = rows.filter(r=> order(r)<4).map(r=> `- ${r.s.name}: ${[r.streak>=STREAK_ALERT?`absent ${r.streak} in a row`:"", r.stand||"", r.st==="red"?"low attendance":"", r.overdue?(r.li?`no check-in ${r.days}d`:"never checked in"):""].filter(Boolean).join(", ")}`);
+      const txt = `${c.name}${c.rebbi?" \u2014 "+c.rebbi:""}\n${x.n} guys \u00b7 attendance ${pct(x.avg)} \u00b7 ${x.thriving} thriving, ${x.struggling} struggling\n\nTo discuss:\n${flag.join("\n")||"- Nobody flagged"}`;
+      try{ await navigator.clipboard.writeText(txt); toast("Summary copied \u2014 paste it anywhere.", "success"); }catch(e){ toast("Couldn't copy on this device.", "error"); }
+    });
+  }
+
+  // ================= AUTOMATIC WEEKLY BACKUP (kept safely online, last 8 weeks) =================
+  const BACKUP_KEEP = 8;
+  function backupJson(){ return JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v); }
+  async function makeBackup(id){ await sbPut(id, backupJson()); }
+  async function pruneBackups(){
+    try{
+      const rows = await sbGet("derech_data?select=id&id=like.backup-*&order=id.desc");
+      for(const r of rows.slice(BACKUP_KEEP)){
+        await fetchWithTimeout(`${state.config.url}/rest/v1/derech_data?id=eq.${encodeURIComponent(r.id)}`, { method:"DELETE", headers:{ apikey:state.config.key, Authorization:`Bearer ${state.config.key}` } });
+      }
+    }catch(e){}
+  }
+  async function autoBackup(){
+    try{
+      if(state.offline || !state.data || !state.data.students.length) return;
+      const d = new Date(); d.setDate(d.getDate()-d.getDay());
+      const id = "backup-" + localDateStr(d);
+      const have = await sbGet(`derech_data?select=id&id=eq.${id}`);
+      if(have && have.length) return;
+      await makeBackup(id); pruneBackups();
+    }catch(e){}
+  }
+  async function openBackups(){
+    $("moreMenu").classList.add("hidden");
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">Backups</p><button class="ghost" id="bkClose">Close</button></div>
+      <p class="hint">A copy of everything (without photos) is saved automatically once a week, and the last ${BACKUP_KEEP} are kept.</p>
+      <button class="primary" id="bkNow" style="margin:6px 0 12px;">Back up now</button><div id="bkList"><p class="hint">Loading\u2026</p></div></div>`;
+    showOverlay(ov);
+    const close = ()=> closeOverlay(ov);
+    ov.querySelector("#bkClose").addEventListener("click", close);
+    ov.addEventListener("click", e=>{ if(e.target===ov) close(); });
+    const list = ov.querySelector("#bkList");
+    const load = async ()=>{
+      try{
+        const rows = await sbGet("derech_data?select=id,updated_at&id=like.backup-*&order=id.desc");
+        list.innerHTML = rows.length ? rows.map(r=>`<div class="nm-card" style="display:flex;align-items:center;gap:10px;"><div style="flex:1;"><div class="nm-name">Week of ${escapeHtml(r.id.slice(7))}</div><div class="nm-sub" style="margin:0;">Saved ${escapeHtml(new Date(r.updated_at).toLocaleString())}</div></div><button class="nm-btn" data-id="${escapeHtml(r.id)}" style="flex:none;">Restore</button></div>`).join("") : '<p class="hint">No backups yet \u2014 tap Back up now.</p>';
+        list.querySelectorAll("button[data-id]").forEach(b=> b.addEventListener("click", async ()=>{
+          if(!(await confirmDialog("Restore this backup? Your current data will be replaced (photos are kept).", {okLabel:"Restore"}))) return;
+          try{
+            const rr = await sbGet(`derech_data?select=data&id=eq.${encodeURIComponent(b.dataset.id)}`);
+            state.data = Object.assign(emptyData(), rr[0].data);
+            photoHolders(state.data).forEach(h=>{ if(h.obj.photo==="@") h.obj.photo = (state.photoStore && state.photoStore[h.key]) || ""; });
+            await persist(); close();
+            renderRoster(); renderGlobalSearch(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); updateAttentionBanner();
+            toast("Backup restored.", "success");
+          }catch(e){ toast("Couldn't restore: " + e.message, "error"); }
+        }));
+      }catch(e){ list.innerHTML = `<span class="err">${escapeHtml(e.message)}</span>`; }
+    };
+    ov.querySelector("#bkNow").addEventListener("click", async ()=>{
+      try{ await makeBackup("backup-" + localDateStr(new Date())); pruneBackups(); toast("Backup saved.", "success"); load(); }
+      catch(e){ toast("Couldn't back up: " + e.message, "error"); }
+    });
+    load();
+  }
+  $("backupsBtn").addEventListener("click", openBackups);
+
+  // ================= QUICK REVIEW (rate the guys one after another) =================
+  function openQuickReview(){
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.innerHTML = `<div class="drawer" id="qrBox"></div>`;
+    showOverlay(ov);
+    const box = ov.querySelector("#qrBox"), close = ()=>{ closeOverlay(ov); renderNeeds(); renderShiurim(); renderRoster(); updateAttentionBanner(); };
+    ov.addEventListener("click", e=>{ if(e.target===ov) close(); });
+    const unrated = list => list.filter(s=> !latestStanding(s.id)).sort((a,b)=> (a.classId||"").localeCompare(b.classId||"") || a.name.localeCompare(b.name));
+    function pick(){
+      const all = unrated(state.data.students);
+      box.innerHTML = `<div class="row" style="align-items:center;margin-bottom:8px;"><p class="setup-title" style="font-size:20px;margin:0;flex:1;">Quick review</p><button class="ghost" id="qrX">Close</button></div>
+        <p class="hint" style="margin-bottom:12px;">Go through the guys one by one and tap how each is doing. Takes a few seconds each.</p>
+        ${all.length?`<button class="qr-scope main" data-c="*"><b>Everyone</b><span>${all.length} to go</span></button>`:`<div class="nm-empty">\u2705 Everyone has been rated.</div>`}
+        ${state.data.classes.map(c=>{ const n = unrated(studentsInClass(c.id)).length; return n?`<button class="qr-scope" data-c="${escapeHtml(c.id)}"><b>${escapeHtml(c.name)}</b><span>${n} to go</span></button>`:""; }).join("")}`;
+      box.querySelector("#qrX").addEventListener("click", close);
+      box.querySelectorAll(".qr-scope").forEach(b=> b.addEventListener("click", ()=>{
+        const q = b.dataset.c==="*" ? all : unrated(studentsInClass(b.dataset.c)); run(q);
+      }));
+    }
+    function run(queue){
+      let i = 0, done = 0;
+      const show = ()=>{
+        if(i>=queue.length){
+          box.innerHTML = `<div class="nm-empty" style="padding-top:70px;"><div style="font-size:48px;">\ud83c\udf89</div><b style="font-size:20px;color:var(--ink);">All done</b><br>${done} guy${done===1?"":"s"} rated.<br><br><button class="nm-btn main" id="qrOk" style="padding:13px 30px;flex:none;">Finish</button></div>`;
+          box.querySelector("#qrOk").addEventListener("click", close); return;
+        }
+        const s = queue[i], c = classById(s.classId), st = studentStatus(s);
+        box.innerHTML = `<div class="row" style="align-items:center;"><span class="hint" style="margin:0;flex:1;">${i+1} of ${queue.length}</span><button class="ghost" id="qrX">Close</button></div>
+          <div class="qr-prog"><i style="width:${Math.round(i/queue.length*100)}%"></i></div>
+          <div class="qr-card"><div class="photo qr-photo ${st}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
+            <div class="qr-name">${escapeHtml(s.name)}</div><div class="nm-sub">${c?escapeHtml(c.name):"No shiur"}${c&&c.rebbi?" \u00b7 "+escapeHtml(c.rebbi):""}</div></div>
+          <button class="qr-btn thr" data-st="thriving">Thriving</button>
+          <button class="qr-btn ok" data-st="steady">Doing okay</button>
+          <button class="qr-btn str" data-st="struggling">Struggling</button>
+          <div class="row" style="margin-top:12px;gap:8px;"><button class="nm-btn" id="qrBack" ${i?"":"disabled"}>\u2039 Back</button><button class="nm-btn" id="qrNote">Add note</button><button class="nm-btn" id="qrSkip">Skip \u203a</button></div>`;
+        box.querySelector("#qrX").addEventListener("click", close);
+        box.querySelector("#qrBack").addEventListener("click", ()=>{ if(i>0){ i--; show(); } });
+        box.querySelector("#qrSkip").addEventListener("click", ()=>{ i++; show(); });
+        box.querySelector("#qrNote").addEventListener("click", ()=>{ close(); openStudentQuick(s.id, "check"); });
+        box.querySelectorAll(".qr-btn").forEach(b=> b.addEventListener("click", ()=>{ setStanding(s.id, b.dataset.st); done++; i++; show(); }));
+      };
+      show();
+    }
+    pick();
+  }
+
+  $("importBtn").addEventListener("click", openSmartImport);
 
   // ================= RECENTLY DELETED (soft-delete recovery) =================
   function daysAgoLabel(iso){
@@ -2513,7 +3012,7 @@
   // ================= WEEKLY REPORT (printable) =================
   function weeklyClassStats(classId){
     const cutoff = new Date(todayStr()+"T00:00:00"); cutoff.setDate(cutoff.getDate()-6);
-    const cutoffStr = cutoff.toISOString().slice(0,10);
+    const cutoffStr = localDateStr(cutoff);
     const sessions = state.data.attendance.filter(a=> a.classId===classId && a.date>=cutoffStr);
     let present=0, late=0, absent=0, total=0;
     sessions.forEach(s=> Object.values(s.records).forEach(v=>{
@@ -2606,6 +3105,38 @@
     const win = window.open("", "_blank");
     if(!win){ toast("Your browser blocked the pop-up \u2014 allow pop-ups for this site and try again.", "error"); return; }
     win.document.open(); win.document.write(html); win.document.close();
+  });
+
+  // ================= ADD PHONE NUMBERS FROM SPREADSHEET (Shana Alef) =================
+  // Fills in phone numbers on EXISTING students only. Never creates students; never overwrites a number already saved.
+  const PHONE_ROWS = [["Harel Achial", "818-748-5587", "747-774-2361"], ["Dvir Achial", "818-205-8036", "747-774-2361"], ["Emanuel Aguvayev", "929-580-3223", "917-402-8725"], ["Ezra Ahlers", "828-712-0862", "828-231-9837"], ["Itamar Azulay", "424-394-5410", "818-207-0507"], ["Michael Bamberger", "323-232-6465", "+32489990495"], ["Eliahu Behnam", "516-603-9910", ""], ["Elad Bell", "617-320-2840", "781-366-4393"], ["Binyamin Black", "+447591743456", "+447564244816"], ["Daniel Boruchov", "718-577-7258", "347-659-8576"], ["Asher Bressel", "617-935-6599", "617-821-4886"], ["Adam Brodsky", "717-315-1227", "717-421-8005"], ["Amitai Burack", "561-609-8805", "561-859-3062"], ["David Cairns", "587-336-6434", "780-718-7925"], ["David Cohen", "818-447-7232", "818-231-3622"], ["Yehuda Davidovici", "201-466-5950", "917-940-8649"], ["Dani Durbach", "647-917-7649", "647-404-1776"], ["Ori Edri", "954-549-6826", "954-870-2328"], ["Ari Ehrenreich", "305-889-8262", "516-993-0510"], ["Yosef Yisrael Eliezer", "818-822-8763", "818-282-0596"], ["Gavi Elkin", "347-395-9255", "847-830-7448"], ["Yosef Epstein", "561-332-0257", "951-515-7901"], ["Moshe Freedman", "667-273-3545", "443-310-1392"], ["Daniel Frieden", "516-603-7397", "646-752-6228"], ["Noah Fromen", "201-906-5402", "917-796-0222"], ["Jason Ganjian", "516-760-0374", "917-494-3858"], ["Jayden Gasner", "646-599-0052", "845-661-1053"], ["Eli Gelb", "847-863-5195", "847-452-4386"], ["Ezra Gelfand", "347-385-5492", "917-627-4400"], ["Yinnon Gellman", "929-372-2448", "718-986-4504"], ["Aviel Ginsbury", "+447908971743", "+447817256828"], ["Nathan Glatt", "+447498442307", "+447944039562"], ["Uriel Glatt", "+447498440307", "+447944039562"], ["Eli Gozarkhah", "818-618-0739", "310-383-5345"], ["Elishama Gross", "904-469-1615", "904-415-6731"], ["Samuel Hirshbein", "786-773-8348", "305-610-0010"], ["Michael Iliev", "647-804-3467", "647-705-6110"], ["Yoni Joseph", "+447553249017", "+447909976579"], ["Shlomo Kaganoff", "862-281-9226", "646-938-0471"], ["David Kempner", "240-601-9922", "240-505-0761"], ["Elliot Klein", "447-908-7369", "447-708-8234"], ["Noah Krupp", "647-284-6624", "647-347-7317"], ["Yehuda Lichaa", "310-729-0066", "310-988-9703"], ["Michael Lugassy", "954-516-3165", "954-243-1786"], ["David Lunski", "561-332-8461", "561-526-3586"], ["Nerya Maman", "971-280-9310", "971-300-6519"], ["Yoni Mason", "+447942284320", "+447968815271"], ["Yaakov Milgram", "917-544-8189", "917-561-1582"], ["Eitan Mirzakandov", "929-633-4554", "212-444-8933"], ["Netanel Murdakhayov", "347-632-7937", "718-664-3721"], ["Joseph Nassim", "+447367508268", "+447309880101"], ["Gavriel Perlman", "347-677-4041", "347-693-0928"], ["Micah Peyman", "310-595-8556", "310-804-2882"], ["Aaron Pshemish", "647-513-6405", "416-838-6404"], ["Moshe Robinson", "929-332-4964", "917-923-8432"], ["Joseph Sacks", "412-863-9332", "412-225-3231"], ["Wyatt Sanders", "513-212-5406", "513-460-4067"], ["Asher Schwartz", "317-515-4539", "317-728-6770"], ["Zevi Shnayderman", "469-901-3178", "214-609-0707"], ["Yaakov Shotkin", "973-493-4188", "973-330-6355"], ["Mendel Sklar", "347-466-6763", "86 704 3595"], ["Itai Sogaokar", "437-265-2244", "647-774-5718"], ["Daniel Solomon", "+447947496753", "+447968561321"], ["Mendy Stark", "646-988-4314", "718-960-9793"], ["Levi Suissa", "786-449-7871", "786-942-0966"], ["Binyamin Valdez", "323-901-3082", "323-901-3082"], ["Avishai Weiman", "314-973-1704", "314-814-6629"], ["Moishy Weinstein", "447-708-9064", "44784641483"], ["Matan Zagory", "954-249-3772", "954-253-4499"], ["Jonathan Zirkiyev", "347-472-7438", "347-753-1033"]];
+  const PHONE_ALIASES = {"Amitai Burack": "Ty Burack", "Yoni Joseph": "Jonathan (Yoni) Joseph", "Shlomo Kaganoff": "Solomon Kaganoff", "Netanel Murdakhayov": "Natanel Murdakhayev", "Mendel Sklar": "Menachem Sklar", "Mendy Stark": "Max Stark", "Binyamin Valdez": "Benyamin Valdez"};
+  function phoneNameKey(n){ return String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" "); }
+  $("addPhonesBtn").addEventListener("click", async ()=>{
+    $("moreMenu").classList.add("hidden");
+    const cls = state.data.classes.find(c=> /alef|aleph/i.test(c.name));
+    if(!cls){ toast("Couldn't find a Shana Alef class.", "error"); return; }
+    const pool = state.data.students.filter(s=> s.classId===cls.id);
+    const byKey = {}; pool.forEach(s=>{ byKey[phoneNameKey(s.name)] = s; });
+    const plan = [], missing = []; let viaAlias = 0;
+    PHONE_ROWS.forEach(([name, stu, par])=>{
+      let s = byKey[phoneNameKey(name)];
+      if(!s && PHONE_ALIASES[name]){ s = byKey[phoneNameKey(PHONE_ALIASES[name])]; if(s) viaAlias++; }
+      if(!s){ missing.push(name); return; }
+      const setPhone = stu && !s.phone, setParent = par && !s.parentPhone;
+      if(setPhone || setParent) plan.push({s, stu: setPhone?stu:null, par: setParent?par:null});
+    });
+    if(!plan.length){ toast("Nothing to add \u2014 all matching students already have numbers.", ""); return; }
+    const msg = `Add phone numbers to ${plan.length} Shana Alef students? Numbers already saved won't be changed and no new students will be created.`
+      + (viaAlias ? ` ${viaAlias} matched by similar spelling (e.g. Mendy Stark \u2192 Max Stark).` : "")
+      + (missing.length ? ` Not found in your roster: ${missing.join(", ")}.` : "");
+    if(!(await confirmDialog(msg, {okLabel:"Add numbers"}))) return;
+    plan.forEach(p=>{ if(p.stu) p.s.phone = p.stu; if(p.par) p.s.parentPhone = p.par; });
+    try{
+      await persist();
+      renderRoster(); renderGlobalSearch(); renderAttendanceTab(); updateAttentionBanner();
+      toast(`Added numbers to ${plan.length} students.`, "success");
+    }catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
   });
 
   boot();
