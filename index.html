@@ -542,7 +542,7 @@
           <input type="date" id="entryDate" />
           <label>How's he holding?</label>
           <div class="seg" id="entryStatusSeg">
-            <button class="a" data-st="struggling" style="flex:1;">Struggling</button>
+            <button class="a" data-st="struggling" style="flex:1;">Needs attention</button>
             <button class="l" data-st="steady" style="flex:1;">Steady</button>
             <button class="p" data-st="thriving" style="flex:1;">Thriving</button>
           </div>
@@ -1098,7 +1098,7 @@
     if(!li) reasons.push("no check-in logged yet");
     else if(days!==null && days>=CHECKIN_STALE_DAYS) reasons.push(`no check-in in ${days} days`);
     const stand = latestStanding(s.id);
-    if(stand && stand.status==="struggling") reasons.push("marked struggling");
+    if(stand && stand.status==="struggling") reasons.push("marked needs attention");
     return reasons;
   }
 
@@ -1216,7 +1216,7 @@
         <div class="name">${escapeHtml(s.name)}</div>
         <div class="card-sub">${escapeHtml(sub)}</div>
         <select class="quick-class-select">${classOptions}</select>
-        <span class="status-label ${status}">${status==="unknown"?"No data":status==="red"?"Needs attention":status==="yellow"?"Keep an eye on":"Doing great"}</span>
+        <span class="status-label ${status}">${status==="unknown"?"No data":status==="red"?"Needs attention":status==="yellow"?"Steady":"Thriving"}</span>
       `;
       card.addEventListener("click", ()=> openStudentQuick(s.id));
       const sel = card.querySelector(".quick-class-select");
@@ -1253,7 +1253,7 @@
   function standingHtml(studentId){
     const cur = latestStanding(studentId);
     return `<div class="seg qs-st" data-standing>
-        <button class="a ${cur&&cur.status==="struggling"?"active":""}" data-st="struggling">Struggling</button>
+        <button class="a ${cur&&cur.status==="struggling"?"active":""}" data-st="struggling">Needs attention</button>
         <button class="l ${cur&&cur.status==="steady"?"active":""}" data-st="steady">Steady</button>
         <button class="p ${cur&&cur.status==="thriving"?"active":""}" data-st="thriving">Thriving</button>
       </div>
@@ -1319,7 +1319,7 @@
         <label for="qsDate">Date</label><input type="date" id="qsDate" value="${todayStr()}" />
         <label>How's he holding?</label>
         <div class="qs-st" id="qsCkSt">
-          <button class="a" data-st="struggling">Struggling</button>
+          <button class="a" data-st="struggling">Needs attention</button>
           <button class="l" data-st="steady">Steady</button>
           <button class="p" data-st="thriving">Thriving</button>
         </div>
@@ -1626,7 +1626,7 @@
         ${!isNew && student.classId && classById(student.classId) && classById(student.classId).room ? `
         <div class="kv"><span class="k">Room</span><span class="v">${escapeHtml(classById(student.classId).room)}</span></div>` : ""}
         ${!isNew && student.classId && classById(student.classId) && classById(student.classId).rebbi ? `
-        <div class="kv"><span class="k">Rebbi</span><span class="v">${escapeHtml(classById(student.classId).rebbi)}</span></div>` : ""}
+        <div class="kv"><span class="k">Primary Rebbe</span><span class="v">${escapeHtml(classById(student.classId).rebbi)}</span></div>` : ""}
         <label for="stPhone">Student phone <span style="color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="stPhone" value="${escapeHtml(student.phone||"")}" />
         <label for="stParentPhone">Parent phone <span style="color:var(--ink-soft);">(optional)</span></label>
@@ -1808,7 +1808,7 @@
   function renderKpis(){
     const k = $("kpiStrip"); if(!k || !state.data) return;
     const c = {green:0,yellow:0,red:0}; state.data.students.forEach(s=>{ const t = studentStatus(s); if(c[t]!==undefined) c[t]++; });
-    k.innerHTML = `<div class="kpi k0"><b>${state.data.students.length}</b><span>Students</span></div><div class="kpi kg"><b>${c.green}</b><span>Green</span></div><div class="kpi ky"><b>${c.yellow}</b><span>Yellow</span></div><div class="kpi kr"><b>${c.red}</b><span>Red</span></div>`;
+    k.innerHTML = `<div class="kpi k0"><b>${state.data.students.length}</b><span>Students</span></div><div class="kpi kg"><b>${c.green}</b><span>Thriving</span></div><div class="kpi ky"><b>${c.yellow}</b><span>Steady</span></div><div class="kpi kr"><b>${c.red}</b><span>Needs attention</span></div>`;
   }
   function renderSederBar(){
     renderKpis();
@@ -2218,8 +2218,8 @@
             <option value="all">All statuses</option>
             <option value="attention">\u26a0 Needs attention (any reason)</option>
             <option value="red">Low attendance</option>
-            <option value="yellow">Keep an eye on</option>
-            <option value="green">Doing great</option>
+            <option value="yellow">Steady</option>
+            <option value="green">Thriving</option>
             <option value="unknown">No attendance data yet</option>
             <option value="missing">Missing contact info</option>
             <option value="stale">No recent check-in</option>
@@ -2798,13 +2798,13 @@
       const s = e.s, c = classById(s.classId), wa = waLink(s.phone), wp = waLink(s.parentPhone), tel = String(s.phone||s.parentPhone||"").replace(/[^\d+]/g,"");
       const tags = [];
       if(e.hot) tags.push(`<span class="nm-tag danger">Absent ${e.streak} in a row</span>`);
-      if(e.struggling) tags.push(`<span class="nm-tag danger">Struggling</span>`);
+      if(e.struggling) tags.push(`<span class="nm-tag danger">Needs attention</span>`);
       else if(e.low && !e.hot) tags.push(`<span class="nm-tag danger">Low attendance</span>`);
       if(e.overdue) tags.push(`<span class="nm-tag warn">${e.li?`No check-in in ${e.days} days`:"Never checked in"}</span>`);
       return `<div class="nm-card" data-id="${escapeHtml(s.id)}">
         <div class="nm-top"><div class="photo ${e.status}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
           <div class="nm-main"><div class="nm-name">${escapeHtml(s.name)}</div>
-            <div class="nm-sub">${c?escapeHtml(c.name):"No shiur"}${c&&c.rebbi?" \u00b7 "+escapeHtml(c.rebbi):""}</div>
+            <div class="nm-sub">${c?escapeHtml(c.name):"No shiur"}${c&&c.rebbi?" \u00b7 Primary Rebbe: "+escapeHtml(c.rebbi):""}</div>
             <div class="nm-tags">${tags.join("")}</div></div></div>
         <div class="nm-actions">
           ${wa?`<a class="nm-btn wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`:""}
@@ -2897,10 +2897,10 @@
     const rows = x.rows.slice().sort((a,b)=> order(a)-order(b) || a.s.name.localeCompare(b.s.name));
     body.innerHTML = `<div class="row" style="align-items:center;margin-bottom:8px;"><button class="ghost" id="shBack">\u2039 All shiurim</button><div style="flex:1"></div><button class="nm-btn main" id="shCopy" style="flex:none;">Copy summary</button></div>
       <div class="nm-head"><b>${escapeHtml(c.name)}</b><span>${c.rebbi?escapeHtml(c.rebbi):""}${c.room?" \u00b7 Room "+escapeHtml(c.room):""}</span></div>
-      <div class="pf-stats"><div><b>${pct(x.avg)}</b><span>Attendance</span></div><div><b class="${x.streaks?"r":""}">${x.streaks}</b><span>Absent ${STREAK_ALERT}+ in a row</span></div><div><b class="${x.struggling?"r":""}">${x.struggling}</b><span>Struggling</span></div></div>
+      <div class="pf-stats"><div><b>${pct(x.avg)}</b><span>Attendance</span></div><div><b class="${x.streaks?"r":""}">${x.streaks}</b><span>Absent ${STREAK_ALERT}+ in a row</span></div><div><b class="${x.struggling?"r":""}">${x.struggling}</b><span>Needs attention</span></div></div>
       ${rows.map(r=>`<div class="nm-card sh-row" data-id="${escapeHtml(r.s.id)}"><div class="nm-top"><div class="photo ${r.st}">${r.s.photo?`<img src="${r.s.photo}" alt="">`:initials(r.s.name)}</div>
         <div class="nm-main"><div class="nm-name">${escapeHtml(r.s.name)}</div><div class="nm-tags" style="margin-top:4px;">
-          <span class="nm-tag" style="background:var(--brand-soft);color:var(--brand);">${pct(r.rate)}</span>
+          <span class="nm-tag" style="background:var(--brand-soft);color:var(--brand);">${pct(r.rate)}</span>${window.__trendTag?window.__trendTag(r.s):""}
           ${r.streak>=STREAK_ALERT?`<span class="nm-tag danger">Absent ${r.streak} in a row</span>`:""}
           ${r.stand?`<span class="pf-st ${r.stand}">${r.stand}</span>`:""}
           ${r.overdue?`<span class="nm-tag warn">${r.li?"No check-in "+r.days+"d":"Never checked in"}</span>`:""}</div></div></div></div>`).join("")}`;
@@ -3004,7 +3004,7 @@
             <div class="qr-name">${escapeHtml(s.name)}</div><div class="nm-sub">${c?escapeHtml(c.name):"No shiur"}${c&&c.rebbi?" \u00b7 "+escapeHtml(c.rebbi):""}</div></div>
           <button class="qr-btn thr" data-st="thriving">Thriving</button>
           <button class="qr-btn ok" data-st="steady">Doing okay</button>
-          <button class="qr-btn str" data-st="struggling">Struggling</button>
+          <button class="qr-btn str" data-st="struggling">Needs attention</button>
           <div class="row" style="margin-top:12px;gap:8px;"><button class="nm-btn" id="qrBack" ${i?"":"disabled"}>\u2039 Back</button><button class="nm-btn" id="qrNote">Add note</button><button class="nm-btn" id="qrSkip">Skip \u203a</button></div>`;
         box.querySelector("#qrX").addEventListener("click", close);
         box.querySelector("#qrBack").addEventListener("click", ()=>{ if(i>0){ i--; show(); } });
@@ -3302,6 +3302,390 @@
       toast(`${plan.length} students placed in ${SHIUR_LISTS.length} shiurim.`, "success");
     }catch(e){ if(!e.shown) toast("Couldn't save: "+e.message, "error"); }
   });
+
+  // ================= SNAP ATTENDANCE: photo -> AI reads it -> review/edit -> saved =================
+  (function(){
+    const KEYK = "derech-ai-key", MODEL = "claude-haiku-4-5-20251001";
+    const getKey = ()=>{ try{ return localStorage.getItem(KEYK)||""; }catch(e){ return ""; } };
+    const norm = s=> String(s||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
+    const near = (a,b)=>{ if(a===b) return true; if(a.length<4||b.length<4||Math.abs(a.length-b.length)>1) return false; let i=0,j=0,d=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++d>1) return false; if(a.length>b.length) i++; else if(a.length<b.length) j++; else {i++;j++;} } return d+(a.length-i)+(b.length-j)<=1; };
+    const score = (n,s)=>{ const a=norm(n), b=norm(s.name); if(!a.length) return 0; let m=0; a.forEach(t=>{ if(b.some(u=> near(t,u) || (t.length>=2 && u.startsWith(t)) || (u.length>=3 && t.startsWith(u)))) m++; }); return m/Math.max(a.length,b.length); };
+    const style = document.createElement("style");
+    style.textContent = `#snapFab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;border-radius:999px;padding:13px 18px;font-size:14px;font-weight:600;box-shadow:0 6px 18px rgba(43,35,104,.35);}
+      .sn-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);} .sn-row .n{flex:1;min-width:0;font-size:14px;}
+      .sn-row.off{background:#FBF6E8;} .sn-sum{display:flex;gap:8px;font-size:12px;margin:8px 0;} .sn-sum b{font-size:16px;}
+      .sn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;} .sn-big{display:block;text-align:center;padding:16px 10px;border-radius:12px;border:1px solid var(--line);background:var(--brand-soft);cursor:pointer;font-size:14px;font-weight:600;color:var(--brand);}
+      .sn-save{position:sticky;bottom:0;background:var(--card);padding:10px 0 4px;margin-top:8px;}`;
+    document.head.appendChild(style);
+    const fab = document.createElement("button"); fab.id="snapFab"; fab.className="primary"; fab.innerHTML="&#128247; Snap attendance"; document.body.appendChild(fab);
+    const QK = "derech-snap-queue", getQ = ()=>{ try{ return JSON.parse(localStorage.getItem(QK)||"[]"); }catch(e){ return []; } }, setQ = q=>{ try{ localStorage.setItem(QK,JSON.stringify(q)); return true; }catch(e){ return false; } };
+    const badge = ()=>{ const n = getQ().length; fab.innerHTML = "&#128247; Snap attendance" + (n ? ` (${n} waiting)` : ""); }; badge();
+    window.addEventListener("online", ()=>{ const n = getQ().length; if(n) toast(`Back online \u2014 ${n} photo(s) waiting. Tap Snap attendance.`, "success"); });
+
+    async function askAI(img, note){
+      const cls = state.data.classes.map(c=> `${c.name}${c.rebbi&&c.rebbi!==c.name?" ("+c.rebbi+")":""}: ` + studentsInClass(c.id).map(s=>s.name).join(", ")).join("\n");
+      const prompt = `This is a photo of a yeshiva attendance sheet. Today is ${todayStr()}. Rosters:\n${cls}\n\nRead the sheet. Return ONLY JSON: {"date":"YYYY-MM-DD or null","shiur":"exact shiur name from rosters or null","seder":"m1|m2|a1|a2|n or null (1st/2nd morning, 1st/2nd afternoon, night)","mode":"marks|absent_only|present_only","entries":[{"name":"as written","status":"present|absent|late"}]}. mode=marks if each name has a mark; absent_only if the sheet only lists absent students; present_only if it only lists those present. Checkmark=present, X/circled=absent, L/late=late.`;
+      const r = await fetch("https://api.anthropic.com/v1/messages", {method:"POST", headers:{"content-type":"application/json","x-api-key":getKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body: JSON.stringify({model:MODEL, max_tokens:1800, messages:[{role:"user",content:[...(img?[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:img.split(",")[1]}}]:[]),{type:"text",text:(note?"No photo - this is a typed/dictated note (usually only the absent or late names, so use mode absent_only unless it says otherwise): "+note+"\n\n":"")+prompt}]}]})});
+      const j = await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message || r.status);
+      const t = j.content.map(x=>x.text||"").join(""); return JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}")+1));
+    }
+    function matchAll(entries, cid){
+      const roster = studentsInClass(cid), used = new Set(), hit = [], miss = [];
+      entries.forEach(e=>{
+        const sc = roster.filter(s=>!used.has(s.id)).map(s=>({s,v:score(e.name,s)})).sort((a,b)=>b.v-a.v);
+        if(sc[0] && sc[0].v>=0.6 && (!sc[1] || sc[0].v>sc[1].v)){ used.add(sc[0].s.id); hit.push({s:sc[0].s, st:e.status}); } else miss.push({name:e.name, st:e.status});
+      });
+      return {hit, miss};
+    }
+    function open(){
+      const ov = document.createElement("div"); ov.className="overlay";
+      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128247; Snap attendance sheet</p><button class="ghost" id="snX">Close</button></div><div id="snBody"></div></div>`;
+      showOverlay(ov); const body = ov.querySelector("#snBody");
+      ov.querySelector("#snX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+      const home = ()=>{
+        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<p class="hint">Take a photo of the attendance sheet. AI reads it, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
+          ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
+          <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="snCam" accept="image/*" capture="environment" hidden></label><label class="sn-big">&#128444; Choose image<input type="file" id="snPick" accept="image/*" hidden></label></div>
+          <label style="margin-top:14px;">Paste WhatsApp attendance text, or type it</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button id="snTxt">Read it</button></div>
+          ${getKey()?`<p class="hint" style="margin-top:12px;"><a href="#" id="snChg">Change API key</a></p>`:""}`;
+        const go = f=>{ if(!f) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
+        body.querySelector("#snCam").onchange = e=>go(e.target.files[0]); body.querySelector("#snPick").onchange = e=>go(e.target.files[0]);
+        const qb = body.querySelector("#snQ"); if(qb) qb.onclick = async ()=>{ if(!navigator.onLine){ toast("Still offline.","error"); return; } const q = getQ(), it = q[0]; body.innerHTML = '<p class="hint">Reading&hellip;</p>'; try{ const res = await askAI(it.img); window.__qTs = it.ts; review(res, it.img); }catch(err){ toast("Couldn\'t read it: "+(err.message||err),"error"); home(); } };
+        body.querySelector("#snTxt").onclick = ()=>{ const t = body.querySelector("#snNote").value.trim(); if(!t) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(null,t); };
+        const c = body.querySelector("#snChg"); if(c) c.onclick = e=>{ e.preventDefault(); try{ localStorage.removeItem(KEYK); }catch(_){} home(); };
+      };
+      async function run(file, note){
+        body.innerHTML = `<p class="hint"><span class="dot spin" style="display:inline-block"></span> Reading the sheet&hellip; a few seconds.</p>`;
+        window.__qTs = null; let img = null; try{ img = file ? await compressImage(file,1400,0.6) : null; if(img && !navigator.onLine) throw new TypeError("offline"); review(await askAI(img, note), img); }
+        catch(err){ if(img && (err instanceof TypeError || !navigator.onLine) && setQ(getQ().concat([{ts:Date.now(),img}]))){ badge(); body.innerHTML = '<p class="hint">&#128246; No connection. The photo is saved on this device and will be ready to read when you are back online.</p><div class="row" style="margin-top:10px;"><button id="snBack">OK</button></div>'; body.querySelector("#snBack").onclick = home; return; } body.innerHTML = `<span class="err">Couldn't read it: ${escapeHtml(err.message||String(err))}</span><div class="row" style="margin-top:10px;"><button id="snBack">Try again</button></div>`; body.querySelector("#snBack").onclick = home; }
+      }
+      function review(res, img){
+        const entries = (res.entries||[]).filter(e=>e&&e.name).map(e=>({name:String(e.name), status:/abs/i.test(e.status)?"absent":/late/i.test(e.status)?"late":"present"}));
+        const byName = res.shiur && state.data.classes.find(c=> [c.name,c.rebbi].some(x=> x && String(x).toLowerCase()===String(res.shiur).toLowerCase()));
+        let cid = byName ? byName.id : null;
+        if(!cid){ let best=-1; state.data.classes.forEach(c=>{ const n = matchAll(entries,c.id).hit.length; if(n>best){ best=n; cid=c.id; } }); }
+        let date = /^\d{4}-\d\d-\d\d$/.test(res.date||"") ? res.date : todayStr(), seder = SEDARIM.some(x=>x.id===res.seder) ? res.seder : state.activeSeder, st = {}, unm = [];
+        const mode = res.mode||"marks", dflt = mode==="present_only" ? "absent" : "present";
+        const build = ()=>{ const m = matchAll(entries,cid); st = {}; studentsInClass(cid).forEach(s=> st[s.id]=dflt); m.hit.forEach(h=> st[h.s.id]=h.st); unm = m.miss; };
+        const paint = ()=>{
+          const roster = studentsInClass(cid), ex = findAttendanceRecord(cid,date,seder), hitIds = new Set(); matchAll(entries,cid).hit.forEach(h=>hitIds.add(h.s.id));
+          const cnt = k=> roster.filter(s=>st[s.id]===k).length;
+          body.innerHTML = `<div class="row"><div style="flex:1"><label>Date</label><input type="date" id="snD" value="${date}"></div><div style="flex:1"><label>Seder</label><select id="snS">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select></div></div>
+            <label>Shiur</label><select id="snC">${state.data.classes.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${escapeHtml(c.name)}${c.rebbi&&c.rebbi!==c.name?" ("+escapeHtml(c.rebbi)+")":""}</option>`).join("")}</select>
+            <div class="sn-sum"><span><b style="color:var(--green)">${cnt("present")}</b> present</span><span><b style="color:var(--amber)">${cnt("late")}</b> late</span><span><b style="color:var(--red)">${cnt("absent")}</b> absent</span></div>
+            ${ex?`<p class="hint">Attendance already exists for this shiur, date and seder &mdash; saving updates it.</p>`:""}
+            ${roster.map(s=>`<div class="sn-row ${hitIds.has(s.id)?"":"off"}" data-id="${s.id}"><span class="n">${escapeHtml(s.name)}${hitIds.has(s.id)?"":' <span class="hint">(not on sheet)</span>'}</span><div class="seg">${[["present","p","P"],["late","l","L"],["absent","a","A"]].map(([v,c,t])=>`<button class="${c} ${st[s.id]===v?"active":""}" data-v="${v}">${t}</button>`).join("")}</div></div>`).join("")}
+            ${unm.length?`<p class="pf-lbl">Names I couldn't match</p>${unm.map((u,i)=>`<div class="sn-row"><span class="n">${escapeHtml(u.name)} <span class="hint">${u.st}</span></span><select data-u="${i}" style="width:48%"><option value="">Assign to&hellip;</option>${roster.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}</select></div>`).join("")}`:""}
+            <div class="sn-save row row-end"><button id="snRe">Retake</button><button class="primary" id="snGo">Save attendance</button></div>`;
+          body.querySelector("#snD").onchange = e=>{ date = e.target.value||todayStr(); paint(); };
+          body.querySelector("#snS").onchange = e=>{ seder = e.target.value; paint(); };
+          body.querySelector("#snC").onchange = e=>{ cid = e.target.value; build(); paint(); };
+          body.querySelectorAll(".sn-row[data-id] .seg button").forEach(b=> b.onclick = ()=>{ st[b.closest(".sn-row").dataset.id] = b.dataset.v; paint(); });
+          body.querySelectorAll("select[data-u]").forEach(sel=> sel.onchange = ()=>{ if(sel.value){ st[sel.value] = unm[+sel.dataset.u].st; unm.splice(+sel.dataset.u,1); paint(); } });
+          body.querySelector("#snRe").onclick = home;
+          body.querySelector("#snGo").onclick = async ()=>{
+            let rec = findAttendanceRecord(cid,date,seder); const created = !rec, prev = rec ? JSON.parse(JSON.stringify(rec.records||{})) : null;
+            if(!rec){ rec = {id:uid(), classId:cid, date, seder, records:{}, photo:""}; state.data.attendance.push(rec); }
+            rec.records = Object.assign(rec.records||{}, st);
+            window.__logUpload({id:uid(), ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries, result:JSON.parse(JSON.stringify(st))});
+            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); closeOverlay(ov); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } toast("Attendance saved \u2713","success"); }
+            catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
+          };
+        };
+        build(); paint();
+      }
+      home();
+    }
+    fab.addEventListener("click", open);
+    const mb = document.createElement("button"); mb.textContent = "\uD83D\uDCF7 Snap attendance sheet (AI)";
+    mb.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); open(); }); $("moreMenu").insertBefore(mb, $("moreMenu").firstChild);
+  })();
+
+  // ================= SETTINGS: edit shiurim + sedarim in-app =================
+  (function(){
+    const hm = v=>{ const h=Math.floor(v), m=Math.round((v-h)*60); return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"); };
+    const parse = t=>{ const [h,m]=String(t||"0:0").split(":").map(Number); return (h||0)+(m||0)/60; };
+    window.__applySedarim = function(){
+      const s = state.data.sedarim; if(!Array.isArray(s) || !s.length) return;
+      const sorted = s.slice().sort((a,b)=>a.start-b.start);
+      SEDARIM.length = 0; SEDER_STARTS.length = 0;
+      sorted.forEach((x,i)=>{ SEDARIM.push({id:x.id,label:x.label}); SEDER_STARTS.push([x.id, i===0?0:x.start]); });
+    };
+    const _rc = renderAttClassStrip; // apply saved sedarim before the strip draws
+    renderAttClassStrip = function(){ window.__applySedarim(); return _rc.apply(this, arguments); };
+    function open(){
+      const ov = document.createElement("div"); ov.className="overlay";
+      const sed = SEDARIM.map((x,i)=>({id:x.id,label:x.label,start:SEDER_STARTS[i]?SEDER_STARTS[i][1]:0}));
+      const cls = state.data.classes.map(c=>({...c}));
+      const paint = ()=>{
+        ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#9881; Shiurim &amp; sedarim</p><button class="ghost" id="stX">Close</button></div>
+          <p class="pf-lbl">Sedarim (name &middot; starts at)</p>
+          ${sed.map((x,i)=>`<div class="row" style="margin-bottom:6px;"><input type="text" data-k="sl" data-i="${i}" value="${escapeHtml(x.label)}" style="flex:2"><input type="time" data-k="ss" data-i="${i}" value="${hm(x.start)}" style="flex:1"><button class="ghost" data-del-s="${i}">&#10005;</button></div>`).join("")}
+          <button id="stAddS">+ Seder</button>
+          <p class="pf-lbl" style="margin-top:16px;">Shiurim (name &middot; rebbi &middot; room)</p>
+          ${cls.map((c,i)=>`<div class="row" style="margin-bottom:6px;"><input type="text" data-k="cn" data-i="${i}" value="${escapeHtml(c.name)}" placeholder="Shiur" style="flex:2"><input type="text" data-k="cr" data-i="${i}" value="${escapeHtml(c.rebbi||"")}" placeholder="Rebbi" style="flex:2"><input type="text" data-k="cm" data-i="${i}" value="${escapeHtml(c.room||"")}" placeholder="Room" style="flex:1"><button class="ghost" data-del-c="${i}">&#10005;</button></div>`).join("")}
+          <button id="stAddC">+ Shiur</button>
+          <p class="hint">Removing a shiur leaves its students unassigned. Students can be moved from the roster.</p>
+          <div class="sn-save row row-end"><button class="primary" id="stSave">Save</button></div></div>`;
+        const sync = ()=> ov.querySelectorAll("input[data-k]").forEach(el=>{ const i=+el.dataset.i, k=el.dataset.k; if(k==="sl") sed[i].label=el.value; else if(k==="ss") sed[i].start=parse(el.value); else if(k==="cn") cls[i].name=el.value; else if(k==="cr") cls[i].rebbi=el.value; else cls[i].room=el.value; });
+        ov.querySelector("#stX").onclick = ()=>closeOverlay(ov);
+        ov.querySelector("#stAddS").onclick = ()=>{ sync(); sed.push({id:"s"+Date.now().toString(36),label:"New seder",start:12}); paint(); };
+        ov.querySelector("#stAddC").onclick = ()=>{ sync(); cls.push({id:uid(),name:"",rebbi:"",room:""}); paint(); };
+        ov.querySelectorAll("[data-del-s]").forEach(b=>b.onclick=()=>{ sync(); if(sed.length>1){ sed.splice(+b.dataset.delS,1); paint(); } });
+        ov.querySelectorAll("[data-del-c]").forEach(b=>b.onclick=()=>{ sync(); cls.splice(+b.dataset.delC,1); paint(); });
+        ov.querySelector("#stSave").onclick = async ()=>{
+          sync(); const keep = cls.filter(c=>c.name.trim()), ids = new Set(keep.map(c=>c.id));
+          state.data.students.forEach(s=>{ if(s.classId && !ids.has(s.classId)) s.classId=null; });
+          state.data.classes = keep.map(c=>({...c,name:c.name.trim(),rebbi:(c.rebbi||"").trim(),room:(c.room||"").trim()}));
+          state.data.sedarim = sed.filter(x=>x.label.trim()).map(x=>({...x,label:x.label.trim()}));
+          window.__applySedarim(); if(!SEDARIM.some(x=>x.id===state.activeSeder)) state.activeSeder = SEDARIM[0].id;
+          try{ await persist(); closeOverlay(ov); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner(); toast("Saved \u2713","success"); }
+          catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
+        };
+      };
+      ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+      paint(); showOverlay(ov);
+    }
+    const b = document.createElement("button"); b.textContent = "\u2699 Edit shiurim & sedarim";
+    b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); open(); }); $("moreMenu").insertBefore(b, $("moreMenu").children[1]);
+  })();
+
+  // ================= OVERVIEW (home dashboard) =================
+  (function(){
+    const tabs = document.querySelector(".tabs"), first = tabs.firstElementChild;
+    const tb = document.createElement("button"); tb.className="tab"; tb.dataset.tab="home"; tb.textContent="Overview"; tabs.insertBefore(tb, first);
+    const pane = document.createElement("div"); pane.id="tab-home"; pane.className="hidden"; pane.innerHTML='<div id="homeBody"></div>';
+    $("tab-shiurim").parentNode.insertBefore(pane, $("tab-shiurim"));
+    window.__renderHome = function(){
+      const body = $("homeBody"); if(!body || !state.data || !state.data.students) return;
+      const sts = state.data.students, c = {green:0,yellow:0,red:0}; sts.forEach(s=>{ const t = studentStatus(s); if(c[t]!==undefined) c[t]++; });
+      const sed = sederLabel(state.activeSeder), td = todayStr();
+      const att = state.data.classes.map(k=>({k, n:studentsInClass(k.id).length, rec:findAttendanceRecord(k.id, td, state.activeSeder)})).filter(x=>x.n);
+      const todo = att.filter(x=>!x.rec), flagged = attentionList().slice(0,6);
+      const tile = (n,l,col,bg)=>`<div style="background:${bg};border-radius:14px;padding:14px 6px;text-align:center;"><b style="display:block;font-size:28px;color:${col};">${n}</b><span style="font-size:12px;color:var(--ink-soft);">${l}</span></div>`;
+      body.innerHTML = `<div class="nm-head"><b>${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}</b><span>${escapeHtml(sed)}</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">${tile(c.green,"Thriving","var(--green)","var(--green-bg)")}${tile(c.yellow,"Steady","var(--amber)","var(--amber-bg)")}${tile(c.red,"Needs attention","var(--red)","var(--red-bg)")}</div>
+        <div class="nm-card"><div class="nm-name">Attendance this seder</div>
+          <div class="nm-sub">${todo.length?`${todo.length} of ${att.length} shiurim not taken yet`:"All shiurim taken \u2713"}</div>
+          <div class="nm-tags">${att.map(x=>`<span class="nm-tag ${x.rec?"":"warn"}" style="${x.rec?"background:#E6F5EC;color:#14703c;":""}">${x.rec?"\u2713 ":""}${escapeHtml(x.k.rebbi||x.k.name)}</span>`).join("")}</div>
+          <div class="nm-actions"><button class="nm-btn main" id="hmSnap">\uD83D\uDCF7 Snap a sheet</button><button class="nm-btn" id="hmAtt">Take by hand</button></div></div>
+        <div class="nm-head" style="margin-top:16px;"><b>Needs you first</b><span>${flagged.length?"Tap a student":""}</span></div>
+        ${flagged.length?flagged.map(r=>`<div class="nm-card sh-row" data-id="${escapeHtml(r.student.id)}"><div class="nm-top"><div class="photo ${r.status}">${r.student.photo?`<img src="${r.student.photo}" alt="">`:initials(r.student.name)}</div><div class="nm-main"><div class="nm-name">${escapeHtml(r.student.name)}</div><div class="nm-sub">${escapeHtml(r.reasons.join(" \u00b7 "))}</div></div></div></div>`).join(""):'<div class="nm-empty">Nobody flagged \u2014 great.</div>'}
+        <div class="nm-head" style="margin-top:16px;"><b>By Primary Rebbe</b><span>Tap for details</span></div>
+        ${state.data.classes.map(k=>{ const x = shiurStats(k), t = x.green+x.yellow+x.red; return x.n?`<div class="nm-card sh-card" data-cid="${escapeHtml(k.id)}"><div class="sh-top"><div><div class="nm-name">${escapeHtml(k.rebbi||k.name)}</div><div class="nm-sub">${x.n} guys \u00b7 ${x.red} need attention</div></div><div class="sh-avg">${pct(x.avg)}<span>attendance</span></div></div><div class="sh-bar">${t?`<i class="g" style="flex:${x.green}"></i><i class="y" style="flex:${x.yellow}"></i><i class="r" style="flex:${x.red}"></i>`:'<i style="flex:1"></i>'}</div></div>`:"";}).join("")}`;
+      body.querySelector("#hmSnap").onclick = ()=>$("snapFab").click();
+      body.querySelector("#hmAtt").onclick = ()=>document.querySelector('.tab[data-tab="attendance"]').click();
+      body.querySelectorAll(".sh-row").forEach(el=>el.onclick=()=>openStudentQuick(el.dataset.id));
+      body.querySelectorAll(".sh-card").forEach(el=>el.onclick=()=>{ shiurOpen = el.dataset.cid; document.querySelector('.tab[data-tab="shiurim"]').click(); });
+    };
+    tb.addEventListener("click", ()=>{ ["roster","attendance","interviews","needs","shiurim"].forEach(t=>$("tab-"+t).classList.add("hidden")); pane.classList.remove("hidden"); window.__renderHome(); });
+    document.querySelectorAll(".tab").forEach(b=>{ if(b!==tb) b.addEventListener("click", ()=>pane.classList.add("hidden")); });
+    const _u = updateAttentionBanner; updateAttentionBanner = function(){ _u.apply(this,arguments); try{ window.__renderHome(); }catch(e){} };
+    tb.click();
+  })();
+
+  // ================= SMART IMPORT: photo / PDF / Excel of a roster -> AI -> review -> add/update =================
+  (function(){
+    const KEYK = "derech-ai-key", getKey = ()=>{ try{ return localStorage.getItem(KEYK)||""; }catch(e){ return ""; } };
+    const key = n=> String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
+    const b64 = f=> new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result.split(",")[1]); r.onerror=no; r.readAsDataURL(f); });
+    function open(){
+      const ov = document.createElement("div"); ov.className="overlay";
+      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128196; Smart import</p><button class="ghost" id="siX">Close</button></div><div id="siB"></div></div>`;
+      showOverlay(ov); const B = ov.querySelector("#siB");
+      ov.querySelector("#siX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+      const home = ()=>{
+        B.innerHTML = `<p class="hint">Photo, PDF, Excel or text of a class list or contact sheet. AI pulls out names, shiur and phone numbers; you review and edit before anything is saved. Existing students are updated, new ones added.</p>
+          ${getKey()?"":`<label>Anthropic API key (one-time)</label><input type="password" id="siKey" placeholder="sk-ant-..." />`}
+          <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="siCam" accept="image/*" capture="environment" hidden></label><label class="sn-big">&#128193; Choose file<input type="file" id="siPick" accept="image/*,.pdf,.xlsx,.xls,.csv,.txt" hidden></label></div>`;
+        const go = f=>{ if(!f) return; const k = B.querySelector("#siKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
+        B.querySelector("#siCam").onchange = e=>go(e.target.files[0]); B.querySelector("#siPick").onchange = e=>go(e.target.files[0]);
+      };
+      async function run(f){
+        B.innerHTML = `<p class="hint"><span class="dot spin" style="display:inline-block"></span> Reading&hellip;</p>`;
+        try{
+          let part;
+          if(/^image\//.test(f.type)) part = {type:"image",source:{type:"base64",media_type:"image/jpeg",data:(await compressImage(f,1800,0.7)).split(",")[1]}};
+          else if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)) part = {type:"document",source:{type:"base64",media_type:"application/pdf",data:await b64(f)}};
+          else if(/\.(xlsx|xls|csv)$/i.test(f.name)){ await ensureXLSX(); const wb = window.XLSX.read(await f.arrayBuffer(),{type:"array"}); part = {type:"text",text:wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n])).join("\n")}; }
+          else part = {type:"text",text:await f.text()};
+          const shiurim = state.data.classes.map(c=>c.name+(c.rebbi&&c.rebbi!==c.name?" ("+c.rebbi+")":"")).join("; ");
+          const r = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":getKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+            body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:4000,messages:[{role:"user",content:[part,{type:"text",text:`Extract every student from this document. Known shiurim: ${shiurim}. Return ONLY JSON: {"students":[{"name":"First Last","shiur":"shiur name or rebbi as shown, or empty","phone":"student phone or empty","parentPhone":"parent phone or empty"}]}`}]}]})});
+          const j = await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message||r.status);
+          const t = j.content.map(x=>x.text||"").join(""); review(JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1)).students||[]);
+        }catch(err){ B.innerHTML = `<span class="err">Couldn't read it: ${escapeHtml(err.message||String(err))}</span><div class="row" style="margin-top:10px;"><button id="siBk">Try again</button></div>`; B.querySelector("#siBk").onclick = home; }
+      }
+      function review(list){
+        const byKey = {}; state.data.students.forEach(s=>byKey[key(s.name)]=s);
+        const rows = list.filter(x=>x&&x.name).map(x=>{
+          const sh = String(x.shiur||"").toLowerCase().trim(), c = sh && state.data.classes.find(c=>[c.name,c.rebbi].some(v=>v&&(String(v).toLowerCase()===sh||sh.includes(String(v).toLowerCase()))));
+          return {name:x.name, shiur:c?c.id:(x.shiur?"new:"+x.shiur:""), phone:x.phone||"", parentPhone:x.parentPhone||"", ex:byKey[key(x.name)]||null, on:true};
+        });
+        if(!rows.length){ B.innerHTML = `<span class="err">No students found.</span><div class="row" style="margin-top:10px;"><button id="siBk">Back</button></div>`; B.querySelector("#siBk").onclick = home; return; }
+        const newShiurim = [...new Set(rows.map(r=>r.shiur).filter(v=>v.startsWith("new:")))];
+        const paint = ()=>{
+          B.innerHTML = `<p class="hint"><b>${rows.filter(r=>r.on&&!r.ex).length}</b> new &middot; <b>${rows.filter(r=>r.on&&r.ex).length}</b> updates. Edit anything, untick to skip.</p>
+            ${rows.map((r,i)=>`<div class="nm-card" style="padding:10px;"><div class="row" style="align-items:center;"><input type="checkbox" data-i="${i}" data-f="on" ${r.on?"checked":""} style="width:auto"><input type="text" data-i="${i}" data-f="name" value="${escapeHtml(r.name)}" style="flex:1"><span class="nm-tag ${r.ex?"warn":""}" style="${r.ex?"":"background:#E6F5EC;color:#14703c;"}">${r.ex?"Update":"New"}</span></div>
+              <div class="row" style="margin-top:6px;"><select data-i="${i}" data-f="shiur" style="flex:1"><option value="">No shiur</option>${state.data.classes.map(c=>`<option value="${c.id}" ${r.shiur===c.id?"selected":""}>${escapeHtml(c.name)}</option>`).join("")}${newShiurim.map(v=>`<option value="${escapeHtml(v)}" ${r.shiur===v?"selected":""}>+ New: ${escapeHtml(v.slice(4))}</option>`).join("")}</select></div>
+              <div class="row" style="margin-top:6px;"><input type="text" data-i="${i}" data-f="phone" value="${escapeHtml(r.phone)}" placeholder="Phone" style="flex:1"><input type="text" data-i="${i}" data-f="parentPhone" value="${escapeHtml(r.parentPhone)}" placeholder="Parent phone" style="flex:1"></div></div>`).join("")}
+            <div class="sn-save row row-end"><button id="siBk">Back</button><button class="primary" id="siGo">Save to roster</button></div>`;
+          B.querySelectorAll("[data-f]").forEach(el=> el.onchange = ()=>{ const r = rows[+el.dataset.i], f = el.dataset.f; r[f] = el.type==="checkbox" ? el.checked : el.value; if(f==="on"||f==="name"){ r.ex = byKey[key(r.name)]||null; paint(); } });
+          B.querySelector("#siBk").onclick = home;
+          B.querySelector("#siGo").onclick = async ()=>{
+            const made = {}; let n=0,u=0; const log = {id:uid(),ts:Date.now(),kind:"import",rows:rows.filter(r=>r.on).map(r=>({name:r.name,phone:r.phone})),addedIds:[],addedClassIds:[],prevs:[]};
+            rows.filter(r=>r.on&&r.name.trim()).forEach(r=>{
+              let cid = r.shiur; if(cid.startsWith("new:")){ const nm = cid.slice(4); made[nm] = made[nm] || (()=>{ const c = {id:uid(),name:nm,rebbi:"",room:""}; state.data.classes.push(c); log.addedClassIds.push(c.id); return c; })(); cid = made[nm].id; }
+              const s = r.ex || (()=>{ const s = {id:uid(),name:r.name.trim(),classId:null,photo:"",phone:"",parentPhone:""}; state.data.students.push(s); log.addedIds.push(s.id); n++; return s; })(); if(r.ex){ u++; log.prevs.push({id:s.id,classId:s.classId,phone:s.phone,parentPhone:s.parentPhone}); }
+              if(cid) s.classId = cid; if(r.phone) s.phone = r.phone; if(r.parentPhone) s.parentPhone = r.parentPhone;
+            });
+            window.__logUpload(log);
+            try{ await persist(); closeOverlay(ov); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); toast(`${n} added, ${u} updated \u2713`,"success"); }
+            catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
+          };
+        };
+        paint();
+      }
+      home();
+    }
+    const b = document.createElement("button"); b.textContent = "\uD83D\uDCC4 Smart import (photo, PDF, Excel)";
+    b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); open(); }); $("moreMenu").insertBefore(b, $("moreMenu").children[2]);
+  })();
+
+  // ================= REBBE REPORTS + UPLOAD HISTORY / UNDO / EDIT ATTENDANCE =================
+  (function(){
+    const LBL = {green:"Thriving",yellow:"Steady",red:"Needs attention",unknown:"No data"};
+    const fmt = ts=> new Date(ts).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+    const mk = html=>{ const ov = document.createElement("div"); ov.className="overlay"; ov.innerHTML = `<div class="drawer">${html}</div>`; ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); }); showOverlay(ov); const x = ov.querySelector("[data-x]"); if(x) x.onclick = ()=>closeOverlay(ov); return ov; };
+    const head = t=>`<div class="row" style="align-items:center;margin-bottom:8px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">${t}</p><button class="ghost" data-x>Close</button></div>`;
+
+    // ---------- per-rebbe data ----------
+    function rebbeData(c, days){
+      const from = localDateStr(new Date(Date.now()-days*864e5)), recs = state.data.attendance.filter(a=>a.date>=from);
+      const rows = studentsInClass(c.id).map(s=>{
+        let p=0,l=0,a=0; recs.forEach(r=>{ const v = r.records&&r.records[s.id]; if(v==="present")p++; else if(v==="late")l++; else if(v==="absent")a++; });
+        const t = p+l+a, ck = state.data.interviews.filter(i=>i.studentId===s.id).sort((x,y)=>y.date.localeCompare(x.date))[0];
+        return {s, p, l, a, t, rate:t?(p+l*0.5)/t:null, streak:absentStreak(s), st:studentStatus(s), ck};
+      }).sort((x,y)=>({red:0,yellow:1,unknown:2,green:3}[x.st]-{red:0,yellow:1,unknown:2,green:3}[y.st]) || x.s.name.localeCompare(y.s.name));
+      const rated = rows.filter(r=>r.rate!==null);
+      return {c, from, rows, avg:rated.length?rated.reduce((n,r)=>n+r.rate,0)/rated.length:null, cnt:k=>rows.filter(r=>r.st===k).length};
+    }
+    function reportHtml(list, days){
+      const today = todayStr();
+      const pages = list.map(d=>`<section><h1>${escapeHtml(d.c.rebbi||d.c.name)}</h1><div class="sub">${escapeHtml(d.c.name)}${d.c.room?" \u00b7 Room "+escapeHtml(d.c.room):""} \u00b7 ${escapeHtml(d.from)} to ${escapeHtml(today)} \u00b7 ${d.rows.length} students</div>
+        <div class="cards"><div class="card"><b>${pct(d.avg)}</b><span>Attendance</span></div><div class="card g"><b>${d.cnt("green")}</b><span>Thriving</span></div><div class="card y"><b>${d.cnt("yellow")}</b><span>Steady</span></div><div class="card r"><b>${d.cnt("red")}</b><span>Needs attention</span></div></div>
+        <table><thead><tr><th>Student</th><th>Status</th><th>Here</th><th>Late</th><th>Absent</th><th>Att.</th><th>Latest check-in</th></tr></thead><tbody>${d.rows.map(r=>`<tr><td><b>${escapeHtml(r.s.name)}</b>${r.streak>=3?`<br><small class="r">Absent ${r.streak} in a row</small>`:""}</td><td class="s-${r.st}">${LBL[r.st]}</td><td>${r.p}</td><td>${r.l}</td><td>${r.a}</td><td>${pct(r.rate)} ${window.__trendTxt?window.__trendTxt(r.s):""}</td><td>${r.ck?`<small>${escapeHtml(r.ck.date)}${r.ck.notes?": "+escapeHtml(r.ck.notes.length>110?r.ck.notes.slice(0,110)+"\u2026":r.ck.notes):""}</small>`:"<small>\u2014</small>"}</td></tr>`).join("")}</tbody></table></section>`).join("");
+      return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rebbe summary</title><style>
+        body{font-family:Georgia,serif;color:#241d4a;max-width:900px;margin:24px auto;padding:0 16px;} section{page-break-after:always;margin-bottom:40px;} h1{font-size:22px;margin:0;} .sub{color:#6b6480;font-size:13px;margin:2px 0 14px;}
+        .cards{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;} .card{border:1px solid #ddd;border-radius:10px;padding:8px 14px;min-width:90px;} .card b{display:block;font-size:20px;} .card span{font-size:11px;color:#6b6480;text-transform:uppercase;}
+        .g b{color:#47714B;} .y b{color:#B8791E;} .r b,.r{color:#A23B32;} table{width:100%;border-collapse:collapse;font-size:12.5px;} th{text-align:left;background:#f1effa;padding:6px;font-size:10.5px;text-transform:uppercase;color:#6b6480;} td{padding:6px;border-bottom:1px solid #eee;vertical-align:top;}
+        .s-green{color:#47714B;font-weight:700;} .s-yellow{color:#B8791E;font-weight:700;} .s-red{color:#A23B32;font-weight:700;} small{color:#6b6480;}
+        .np button{font:inherit;padding:8px 16px;border-radius:8px;border:0;background:#241d4a;color:#fff;} @media print{.np{display:none} body{margin:0}}</style></head><body><div class="np"><button onclick="window.print()">Print / Save as PDF</button></div>${pages}</body></html>`;
+    }
+    function reportText(list){
+      return list.map(d=>`*${d.c.rebbi||d.c.name}* \u2014 ${d.c.name}\nAttendance ${pct(d.avg)} \u00b7 ${d.cnt("green")} thriving, ${d.cnt("yellow")} steady, ${d.cnt("red")} need attention\n`+d.rows.map(r=>`\u2022 ${r.s.name}: ${LBL[r.st]}, ${r.p} here/${r.l} late/${r.a} absent${r.streak>=3?`, absent ${r.streak} in a row`:""}`).join("\n")).join("\n\n");
+    }
+    function openReports(){
+      const ov = mk(head("&#128424; Weekly summary per rebbe")+`<label>Rebbe</label><select id="rpC"><option value="">All rebbeim (one page each)</option>${state.data.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.rebbi||c.name)} \u2014 ${escapeHtml(c.name)}</option>`).join("")}</select>
+        <label>Period</label><select id="rpD"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option></select>
+        <div class="row" style="margin-top:14px;"><button class="primary" id="rpP" style="flex:1">Print / PDF</button><button id="rpT" style="flex:1">Copy for WhatsApp</button></div>`);
+      const get = ()=>{ const v = ov.querySelector("#rpC").value, days = +ov.querySelector("#rpD").value; return {days, list: state.data.classes.filter(c=>!v||c.id===v).map(c=>rebbeData(c,days)).filter(d=>d.rows.length)}; };
+      ov.querySelector("#rpP").onclick = ()=>{ const {days,list} = get(), w = window.open("","_blank"); if(!w){ toast("Allow pop-ups to print.","error"); return; } w.document.open(); w.document.write(reportHtml(list,days)); w.document.close(); };
+      ov.querySelector("#rpT").onclick = async ()=>{ try{ await navigator.clipboard.writeText(reportText(get().list)); toast("Copied \u2014 paste into WhatsApp.","success"); }catch(e){ toast("Couldn't copy on this device.","error"); } };
+    }
+
+    // ---------- edit one attendance record ----------
+    function editAtt(recId, after){
+      const rec = state.data.attendance.find(a=>a.id===recId); if(!rec) return;
+      let cid = rec.classId, date = rec.date, seder = recSeder(rec), st = Object.assign({}, rec.records||{});
+      const ov = mk(""); const D = ov.firstElementChild;
+      const paint = ()=>{
+        const roster = studentsInClass(cid);
+        D.innerHTML = head("Edit attendance")+`<div class="row"><div style="flex:1"><label>Date</label><input type="date" id="eaD" value="${date}"></div><div style="flex:1"><label>Seder</label><select id="eaS">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select></div></div>
+          <label>Shiur</label><select id="eaC">${state.data.classes.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${escapeHtml(c.name)}${c.rebbi&&c.rebbi!==c.name?" ("+escapeHtml(c.rebbi)+")":""}</option>`).join("")}</select>
+          ${roster.map(s=>`<div class="sn-row" data-id="${s.id}"><span class="n">${escapeHtml(s.name)}</span><div class="seg">${[["present","p","P"],["late","l","L"],["absent","a","A"]].map(([v,c,t])=>`<button class="${c} ${(st[s.id]||"present")===v?"active":""}" data-v="${v}">${t}</button>`).join("")}</div></div>`).join("")}
+          <div class="sn-save row row-end"><button class="danger" id="eaDel">Delete</button><button class="primary" id="eaSave">Save</button></div>`;
+        D.querySelector("[data-x]").onclick = ()=>closeOverlay(ov);
+        D.querySelector("#eaD").onchange = e=>{ date = e.target.value||date; };
+        D.querySelector("#eaS").onchange = e=>{ seder = e.target.value; };
+        D.querySelector("#eaC").onchange = e=>{ cid = e.target.value; paint(); };
+        D.querySelectorAll(".sn-row .seg button").forEach(b=>b.onclick=()=>{ st[b.closest(".sn-row").dataset.id] = b.dataset.v; paint(); });
+        D.querySelector("#eaDel").onclick = async ()=>{ if(!(await confirmDialog("Delete this attendance record?",{okLabel:"Delete",danger:true}))) return; state.data.attendance = state.data.attendance.filter(a=>a.id!==rec.id); await fin(); };
+        D.querySelector("#eaSave").onclick = async ()=>{
+          if(state.data.attendance.some(a=>a.id!==rec.id&&a.classId===cid&&a.date===date&&recSeder(a)===seder)){ toast("Attendance already exists for that shiur, date and seder.","error"); return; }
+          const ids = new Set(roster.map(s=>s.id)), out = {}; Object.keys(st).forEach(k=>{ if(ids.has(k)) out[k]=st[k]; }); roster.forEach(s=>{ if(!out[s.id]) out[s.id]="present"; });
+          rec.classId = cid; rec.date = date; rec.seder = seder; rec.records = out; await fin();
+        };
+      };
+      async function fin(){ try{ await persist(); closeOverlay(ov); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner(); toast("Saved \u2713","success"); if(after) after(); }catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); } }
+      paint();
+    }
+
+    // ---------- upload history ----------
+    function summ(u){
+      if(u.kind==="import") return `Import: ${u.addedIds.length} added, ${u.prevs.length} updated`;
+      const c = classById(u.classId), v = Object.values(u.result||{}); return `${c?escapeHtml(c.rebbi||c.name):"Shiur"} \u00b7 ${u.date} \u00b7 ${escapeHtml(sederLabel(u.seder))} \u00b7 ${v.filter(x=>x==="absent").length} absent, ${v.filter(x=>x==="late").length} late`;
+    }
+    async function undo(u){
+      if(!(await confirmDialog("Undo this upload? "+(u.kind==="import"?"Students it added are removed and updated ones restored.":"Attendance goes back to how it was before."),{okLabel:"Undo",danger:true}))) return false;
+      if(u.kind==="import"){
+        state.data.students = state.data.students.filter(s=>!u.addedIds.includes(s.id));
+        u.prevs.forEach(p=>{ const s = state.data.students.find(x=>x.id===p.id); if(s){ s.classId=p.classId; s.phone=p.phone; s.parentPhone=p.parentPhone; } });
+        state.data.classes = state.data.classes.filter(c=>!(u.addedClassIds||[]).includes(c.id) || studentsInClass(c.id).length);
+      } else if(u.created) state.data.attendance = state.data.attendance.filter(a=>a.id!==u.recId);
+      else { const r = state.data.attendance.find(a=>a.id===u.recId); if(r) r.records = u.prev||{}; }
+      u.undone = true;
+      try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); toast("Undone \u2713","success"); return true; }catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); return false; }
+    }
+    function openHistory(){
+      const ov = mk(""); const D = ov.firstElementChild;
+      const paint = ()=>{
+        const ups = state.data.uploads||[], recs = state.data.attendance.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+        D.innerHTML = head("Upload history &amp; attendance log")+`<p class="pf-lbl">Photo &amp; file uploads</p>`+(ups.length?ups.map((u,i)=>`<div class="nm-card" style="${u.undone?"opacity:.55":""}"><div class="nm-name">${u.kind==="import"?"&#128196;":"&#128247;"} ${summ(u)}</div><div class="nm-sub">${fmt(u.ts)}${u.undone?" \u00b7 undone":""}</div>
+          <details><summary class="hint">What was read</summary><div class="hint">${(u.entries||u.rows||[]).map(e=>escapeHtml(e.name)+(e.status?" \u2014 "+e.status:"")+(e.phone?" \u00b7 "+escapeHtml(e.phone):"")).join("<br>")}</div></details>
+          <div class="nm-actions">${u.undone?"":`<button class="nm-btn" data-u="${i}">Undo</button>`}${u.kind!=="import"&&state.data.attendance.some(a=>a.id===u.recId)?`<button class="nm-btn main" data-e="${u.recId}">Edit</button>`:""}</div></div>`).join(""):`<div class="nm-empty">Nothing uploaded yet.</div>`)
+          +`<p class="pf-lbl" style="margin-top:14px;">All attendance (tap to edit)</p>`+recs.map(a=>{ const c = classById(a.classId), v = Object.values(a.records||{}); return `<div class="nm-card sh-row" data-e="${a.id}"><div class="nm-name">${c?escapeHtml(c.rebbi||c.name):"?"} \u00b7 ${a.date}</div><div class="nm-sub">${escapeHtml(sederLabel(recSeder(a)))} \u00b7 ${v.filter(x=>x==="absent").length} absent, ${v.filter(x=>x==="late").length} late</div></div>`; }).join("");
+        D.querySelector("[data-x]").onclick = ()=>closeOverlay(ov);
+        D.querySelectorAll("[data-u]").forEach(b=>b.onclick=async ()=>{ if(await undo(ups[+b.dataset.u])) paint(); });
+        D.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editAtt(b.dataset.e, paint));
+      };
+      paint();
+    }
+    window.__logUpload = u=>{ (state.data.uploads = state.data.uploads||[]).unshift(u); state.data.uploads.length = Math.min(state.data.uploads.length, 60); };
+
+    // ---------- entry points ----------
+    [["\uD83D\uDDA8 Weekly summary per rebbe", openReports], ["\uD83D\uDDC2 Upload history, undo & edit attendance", openHistory]].forEach(([t,fn],i)=>{
+      const b = document.createElement("button"); b.textContent = t; b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); fn(); }); $("moreMenu").insertBefore(b, $("moreMenu").children[i]);
+    });
+    const _h = window.__renderHome; window.__renderHome = function(){ _h(); const body = $("homeBody"); if(!body||!state.data) return;
+      const last = (state.data.uploads||[]).find(u=>!u.undone);
+      const w = document.createElement("div"); w.className = "nm-actions"; w.style.marginTop = "16px";
+      w.innerHTML = `<button class="nm-btn main" id="hmRep">&#128424; Rebbe summaries</button><button class="nm-btn" id="hmLog">${last?"Last upload \u2014 undo / edit":"Attendance log"}</button>`;
+      body.appendChild(w); w.querySelector("#hmRep").onclick = openReports; w.querySelector("#hmLog").onclick = openHistory; };
+  })();
+
+  // ================= TRENDS + "ABSENT IN A ROW" ALERTS + QUICK CONTACT =================
+  (function(){
+    const rate = (s, d0, d1)=>{ const a = localDateStr(new Date(Date.now()-d1*864e5)), b = localDateStr(new Date(Date.now()-d0*864e5)); let t=0,g=0;
+      state.data.attendance.forEach(r=>{ if(r.date>=a && r.date<b){ const v = r.records&&r.records[s.id]; if(v){ t++; g += v==="present"?1:v==="late"?0.5:0; } } }); return t ? g/t : null; };
+    const trend = s=>{ const now = rate(s,-1,7), prev = rate(s,7,14); if(now===null||prev===null) return null; const d = now-prev; return d>=0.1 ? {a:"\u2191",l:"improving",c:"#1F9D55"} : d<=-0.1 ? {a:"\u2193",l:"declining",c:"#A23B32"} : {a:"\u2192",l:"steady",c:"#8B8779"}; };
+    window.__trendTag = s=>{ const t = trend(s); return t ? `<span class="nm-tag" style="background:#fff;border:1px solid ${t.c};color:${t.c};">${t.a} ${t.l}</span>` : ""; };
+    window.__trendTxt = s=>{ const t = trend(s); return t ? `<small style="color:${t.c}">${t.a}</small>` : ""; };
+    const _h = window.__renderHome;
+    window.__renderHome = function(){
+      _h(); const body = $("homeBody"); if(!body||!state.data) return;
+      body.querySelectorAll(".sh-row[data-id] .nm-sub").forEach(el=>{ const s = state.data.students.find(x=>x.id===el.closest(".sh-row").dataset.id); if(s) el.insertAdjacentHTML("afterend", `<div class="nm-tags" style="margin-bottom:4px;">${window.__trendTag(s)}</div>`); });
+      const streaks = state.data.students.map(s=>({s, n:absentStreak(s)})).filter(x=>x.n>=STREAK_ALERT).sort((a,b)=>b.n-a.n).slice(0,8);
+      if(!streaks.length || !body.children[1]) return;
+      const d = document.createElement("div");
+      d.innerHTML = `<div class="nm-card" style="border-color:var(--red);background:var(--red-bg);margin-bottom:14px;"><div class="nm-name" style="color:var(--red);">\u26a0 Missing ${STREAK_ALERT}+ sessions in a row</div>`+streaks.map(({s,n})=>{
+        const wa = waLink(s.phone), wp = waLink(s.parentPhone), tel = String(s.phone||"").replace(/[^\d+]/g,"");
+        return `<div style="padding:8px 0;border-top:1px solid rgba(162,59,50,.2);"><div class="nm-sub" style="margin:0;"><b>${escapeHtml(s.name)}</b> \u00b7 absent ${n} in a row</div><div class="nm-actions" style="margin-top:6px;">${wa?`<a class="nm-btn wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`:""}${wp?`<a class="nm-btn wa alt" href="${wp}" target="_blank" rel="noopener">Parent</a>`:""}${tel?`<a class="nm-btn" href="tel:${tel}">Call</a>`:""}<button class="nm-btn" data-q="${escapeHtml(s.id)}">Open</button></div></div>`; }).join("")+`</div>`;
+      body.children[1].after(d.firstElementChild);
+      body.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>openStudentQuick(b.dataset.q));
+    };
+  })();
 
   boot();
 })();
