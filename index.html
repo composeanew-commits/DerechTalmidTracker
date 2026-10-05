@@ -361,6 +361,25 @@
   .qr-btn.thr{background:#1F9D55;} .qr-btn.ok{background:var(--brand);} .qr-btn.str{background:var(--red);}
   .qr-scope{display:flex;justify-content:space-between;width:100%;padding:16px;margin-bottom:8px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;color:var(--ink);cursor:pointer;}
   .qr-scope.main{background:var(--brand-soft);border-color:var(--brand);} .qr-scope span{color:var(--ink-soft);font-size:13px;}
+
+  /* ---- v3 polish ---- */
+  :root{--rg:#2FA562;--ry:#E8A317;--rr:#D64545;}
+  .photo,.ov-card-photo,.gs-photo,.att-photo{box-shadow:0 0 0 4px var(--ring,var(--line)),0 8px 18px -6px var(--ring,transparent);transition:box-shadow .25s,transform .2s;}
+  .photo.red,.ov-card-photo.red{--ring:var(--rr);} .photo.yellow,.ov-card-photo.yellow{--ring:var(--ry);} .photo.green,.ov-card-photo.green{--ring:var(--rg);}
+  .gs-photo.red{border-color:var(--rr);} .gs-photo.yellow{border-color:var(--ry);} .gs-photo.green{border-color:var(--rg);}
+  .att-photo{border:2px solid var(--card);} .att-photo.ring-red{--ring:var(--rr);} .att-photo.ring-yellow{--ring:var(--ry);} .att-photo.ring-green{--ring:var(--rg);}
+  .card:hover .photo{transform:scale(1.06);} .card,.nm-card{animation:pop .4s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+  .topbar h1{background:linear-gradient(90deg,#2B2368,#6a4fd0 60%,#C9A24B);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:26px;}
+  .card{border-radius:18px;box-shadow:0 2px 10px rgba(36,29,74,.07);} .card:hover{box-shadow:0 14px 28px rgba(36,29,74,.16);}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+  .kpi{border-radius:16px;padding:12px 6px;text-align:center;color:#fff;box-shadow:0 8px 18px -8px rgba(36,29,74,.5);}
+  .kpi b{display:block;font-size:24px;line-height:1.1;} .kpi span{font-size:10px;letter-spacing:.04em;text-transform:uppercase;opacity:.9;}
+  .kpi.k0{background:linear-gradient(135deg,#3A2F86,#2B2368);} .kpi.kg{background:linear-gradient(135deg,#3DBE78,#2FA562);} .kpi.ky{background:linear-gradient(135deg,#F2B73A,#E8A317);} .kpi.kr{background:linear-gradient(135deg,#E2605F,#D64545);}
+  .dz-row{display:flex;gap:8px;} .dz{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 8px;border:2px dashed #b9b2e6;border-radius:16px;background:var(--brand-soft);color:var(--brand);font-weight:600;font-size:14px;text-align:center;cursor:pointer;margin:0;transition:all .15s;}
+  .dz small{font-weight:400;color:var(--ink-soft);font-size:11px;} .dz:hover,.dz.over{background:#e0dbf7;border-color:var(--brand);transform:translateY(-1px);} .dz .ic{font-size:26px;}
+  .sticky-save{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:10px 12px;border-radius:16px;box-shadow:0 8px 24px rgba(36,29,74,.2);border:1px solid var(--line);z-index:5;}
+  .sticky-save .primary{padding:12px 22px;font-size:15px;border-radius:12px;}
 </style>
 </head>
 <body>
@@ -374,6 +393,8 @@
         <button class="ghost" id="moreMenuBtn" title="More">&#8942;</button>
         <div class="menu-dropdown hidden" id="moreMenu">
           <button id="overviewBtn">Full school overview</button>
+          <button id="shiurListsBtn">Load class lists (Rabbi shiurim)</button>
+          <button id="shiurImportBtn">Import shiurim list (upload or paste)</button>
           <button id="importBtn">Import from Excel (phones, shiurim, rooms)</button>
           <button id="trashBtn">Recently deleted</button>
           <button id="weeklyReportBtn">Weekly report (printable)</button>
@@ -462,6 +483,7 @@
 
     <!-- ATTENDANCE TAB -->
     <div id="tab-attendance">
+      <div class="kpis" id="kpiStrip"></div>
       <div class="seder-bar" id="sederBar">
         <div class="seder-chips" id="sederChips"></div>
         <div class="seder-note" id="sederNote"></div>
@@ -488,11 +510,15 @@
           <button class="ghost" id="clearAllAttBtn" style="font-size:12px;">Reset everyone to Present</button>
         </div>
         <div id="attPhotoWrap" style="margin-top:14px;">
-          <label>Photo of attendance sheet (optional)</label>
-          <input type="file" id="attPhotoInput" accept="image/*" capture="environment" class="thumb-input" />
+          <label>Fill attendance from a sheet</label>
+          <div class="dz-row">
+            <label class="dz"><span class="ic">&#128247;</span>Snap a photo<small>reads names &amp; marks them</small><input type="file" id="attCamInput" accept="image/*" capture="environment" hidden /></label>
+            <label class="dz" id="attDz"><span class="ic">&#128196;</span>Upload file<small>photo, Excel, CSV or text &middot; or drop here</small><input type="file" id="attPhotoInput" accept="image/*,.csv,.xlsx,.xls,.txt" hidden /></label>
+          </div>
+          <p class="hint" id="attReadMsg"></p>
           <div id="attPhotoPreview" style="margin-top:8px;"></div>
         </div>
-        <div class="row row-end" style="margin-top:14px;">
+        <div class="row row-end sticky-save" style="margin-top:14px;">
           <span id="attSummary" class="hint" style="margin-right:auto;"></span>
           <button class="primary" id="saveAttendance">Save attendance</button>
         </div>
@@ -1036,12 +1062,21 @@
     return present/total;
   }
 
-  function studentStatus(student){
+  function attendanceStatus(student){
     const rate = classAttendanceRate(student.id, student.classId, 4);
     if(rate===null) return "unknown";
     if(rate >= 0.8) return "green";
     if(rate >= 0.5) return "yellow";
     return "red";
+  }
+  // Ring colour = attendance + how he's holding. Struggling => red. Thriving lifts one level (red->yellow, yellow->green).
+  // Steady leaves attendance as is (green if no attendance yet).
+  function studentStatus(student){
+    const att = attendanceStatus(student), st = latestStanding(student.id), v = st && st.status;
+    if(v==="struggling") return "red";
+    if(att==="unknown") return v==="thriving" ? "green" : v==="steady" ? "green" : "unknown";
+    if(v==="thriving") return att==="red" ? "yellow" : "green";
+    return att;
   }
 
   // ---------------- needs-attention tracking ----------------
@@ -1057,8 +1092,7 @@
 
   function attentionReasons(s){
     const reasons = [];
-    const status = studentStatus(s);
-    if(status==="red") reasons.push("attendance is low");
+    if(attendanceStatus(s)==="red") reasons.push("attendance is low");
     const li = lastInterviewDate(s.id);
     const days = li ? daysSince(li) : null;
     if(!li) reasons.push("no check-in logged yet");
@@ -1214,6 +1248,7 @@
     if(e) e.status = st;
     else state.data.interviews.push({ id:uid(), studentId, date:today, notes:"", status:st });
     persist().catch(()=>{});
+    try{ renderRoster(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); }catch(e){}
   }
   function standingHtml(studentId){
     const cur = latestStanding(studentId);
@@ -1770,7 +1805,13 @@
     const sd = seder || state.activeSeder;
     return state.data.attendance.find(a=> a.classId===classId && a.date===date && recSeder(a)===sd);
   }
+  function renderKpis(){
+    const k = $("kpiStrip"); if(!k || !state.data) return;
+    const c = {green:0,yellow:0,red:0}; state.data.students.forEach(s=>{ const t = studentStatus(s); if(c[t]!==undefined) c[t]++; });
+    k.innerHTML = `<div class="kpi k0"><b>${state.data.students.length}</b><span>Students</span></div><div class="kpi kg"><b>${c.green}</b><span>Green</span></div><div class="kpi ky"><b>${c.yellow}</b><span>Yellow</span></div><div class="kpi kr"><b>${c.red}</b><span>Red</span></div>`;
+  }
   function renderSederBar(){
+    renderKpis();
     if(!state.sederManual && $("attDate").value === todayStr()) state.activeSeder = guessSeder();
     const chips = $("sederChips"); chips.innerHTML = "";
     SEDARIM.forEach(sd=>{
@@ -1827,7 +1868,7 @@
       const row = document.createElement("div");
       row.className = "att-row att-row-tap";
       row.innerHTML = `
-        <div class="att-photo">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
+        <div class="att-photo ring-${studentStatus(s)}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div>
         <div class="att-name">${escapeHtml(s.name)}</div>
         <button class="att-status-pill"></button>
       `;
@@ -1871,12 +1912,63 @@
     updateAttSummary(currentAttRoster.length);
   });
 
-  $("attPhotoInput").addEventListener("change", async e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    currentAttRecord.photo = await compressImage(file, 1000, 0.6);
-    $("attPhotoPreview").innerHTML = `<img src="${currentAttRecord.photo}" style="max-width:160px;border-radius:8px;border:1px solid var(--line);">`;
-  });
+  function loadScript(src){ return new Promise((ok,no)=>{ const el=document.createElement("script"); el.src=src; el.onload=ok; el.onerror=()=>no(new Error("Couldn't load the reader \u2014 check your connection.")); document.head.appendChild(el); }); }
+  function matchLine(line, used){
+    const toks = normText(line).split(" ").filter(t=>t.length>1); if(toks.length<2) return null;
+    const tm = (a,b)=> a===b || phon(a)===phon(b) || (a.length>4 && lev(a,b)<=1);
+    for(const s of currentAttRoster){
+      if(used.has(s.id)) continue;
+      const nt = normText(s.name).split(" ").filter(t=>t.length>1), hit = nt.filter(n=>toks.some(t=>tm(n,t)));
+      if(nt.length && hit.length>=Math.min(2,nt.length) && hit.length>=nt.length-1) return {s, rest: toks.filter(t=>!nt.some(n=>tm(n,t))).join(" ")};
+    }
+    return null;
+  }
+  async function applyAttText(text){
+    const used = new Set(), found = [];
+    String(text).split(/\r?\n/).forEach(line=>{
+      const m = matchLine(line, used); if(!m) return; used.add(m.s.id);
+      let st = null;
+      if(/\u2717|\u2718|\u274c/.test(line) || /\b(absent|abs|no|x|a)\b/.test(m.rest)) st = "absent";
+      else if(/\b(late|tardy|l)\b/.test(m.rest)) st = "late";
+      else if(/\u2713|\u2714|\u2705/.test(line) || /\b(present|here|yes|p)\b/.test(m.rest)) st = "present";
+      found.push({s:m.s, st});
+    });
+    if(!found.length){ toast("Couldn't find any of this shiur's names in that file. Try a clearer photo or a spreadsheet.", "error"); return; }
+    if(!found.some(f=>f.st)){
+      const abs = await confirmDialog(`Found ${found.length} names with no Present/Absent marks. Are they the ABSENT ones? (Cancel = they're the ones who were here, everyone else absent)`, {okLabel:"They're absent", cancelLabel:"They're present"});
+      if(abs) found.forEach(f=> f.st="absent");
+      else { currentAttRoster.forEach(s=> currentAttRecord.records[s.id]="absent"); found.forEach(f=> f.st="present"); }
+    }
+    found.forEach(f=>{ if(f.st) currentAttRecord.records[f.s.id] = f.st; });
+    $("attRows").querySelectorAll(".att-row").forEach((row,i)=>{ const s = currentAttRoster[i]; if(s) renderAttRowState(row, currentAttRecord.records[s.id]); });
+    updateAttSummary(currentAttRoster.length);
+    const v = Object.values(currentAttRecord.records);
+    toast(`Matched ${found.length} names \u2014 ${v.filter(x=>x==="absent").length} absent, ${v.filter(x=>x==="late").length} late. Check, then Save.`, "success");
+  }
+  async function handleAttFile(file){
+    if(!file || !currentAttRecord) return;
+    const msg = $("attReadMsg"); msg.textContent = "Reading\u2026";
+    try{
+      let text = "";
+      if(/^image\//.test(file.type)){
+        currentAttRecord.photo = await compressImage(file, 1400, 0.6);
+        $("attPhotoPreview").innerHTML = `<img src="${currentAttRecord.photo}" style="max-width:160px;border-radius:8px;border:1px solid var(--line);">`;
+        msg.textContent = "Reading the photo (first time takes a few seconds)\u2026";
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js");
+        text = (await window.Tesseract.recognize(file, "eng")).data.text;
+      } else if(/\.(xlsx|xls|csv)$/i.test(file.name)){
+        await ensureXLSX();
+        const wb = window.XLSX.read(await file.arrayBuffer(), {type:"array"});
+        text = wb.SheetNames.map(n=> window.XLSX.utils.sheet_to_csv(wb.Sheets[n]).replace(/,/g," ")).join("\n");
+      } else text = await file.text();
+      await applyAttText(text); msg.textContent = "Photo attached to this attendance.";
+      if(!/^image\//.test(file.type)) msg.textContent = "Marked from " + file.name;
+    }catch(err){ msg.textContent = ""; toast("Couldn't read that file: " + (err.message||err), "error"); }
+  }
+  $("attPhotoInput").addEventListener("change", e=>{ handleAttFile(e.target.files[0]); e.target.value=""; });
+  $("attCamInput").addEventListener("change", e=>{ handleAttFile(e.target.files[0]); e.target.value=""; });
+  ["dragover","dragenter"].forEach(ev=> $("attDz").addEventListener(ev, e=>{ e.preventDefault(); $("attDz").classList.add("over"); }));
+  ["dragleave","drop"].forEach(ev=> $("attDz").addEventListener(ev, e=>{ e.preventDefault(); $("attDz").classList.remove("over"); if(ev==="drop") handleAttFile(e.dataTransfer.files[0]); }));
 
   $("saveAttendance").addEventListener("click", async ()=>{
     currentAttRecord.seder = currentAttRecord.seder || state.activeSeder;
@@ -1885,11 +1977,12 @@
     if(idx>=0) state.data.attendance[idx] = snapshot;
     else state.data.attendance.push(snapshot);
     $("saveAttendance").disabled = true;
-    try{ await persist(); renderRoster(); renderAttHistory(currentAttRecord.classId); renderAttClassStrip(); }
+    try{ await persist(); renderRoster(); renderAttHistory(currentAttRecord.classId); renderAttClassStrip(); toast(`${activeCls0()} saved \u2713`, "success"); $("attBackBtn").click(); }
     catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
     finally{ $("saveAttendance").disabled = false; }
   });
 
+  function activeCls0(){ const c = classById(currentAttRecord.classId); return c ? c.name : "Attendance"; }
   function renderAttHistory(classId){
     const sessions = state.data.attendance.filter(a=>a.classId===classId).sort((a,b)=> b.date.localeCompare(a.date) || SEDARIM.findIndex(x=>x.id===recSeder(b)) - SEDARIM.findIndex(x=>x.id===recSeder(a)));
     const el = $("attHistory");
@@ -2688,7 +2781,7 @@
   function needsEntries(){
     return state.data.students.map(s=>{
       const streak = absentStreak(s), status = studentStatus(s), li = lastInterviewDate(s.id), days = li ? daysSince(li) : null;
-      const stand = latestStanding(s.id), struggling = !!(stand && stand.status==="struggling"), low = status==="red" || struggling, overdue = !li || (days!==null && days>=CHECKIN_STALE_DAYS);
+      const stand = latestStanding(s.id), struggling = !!(stand && stand.status==="struggling"), low = attendanceStatus(s)==="red" || struggling, overdue = !li || (days!==null && days>=CHECKIN_STALE_DAYS);
       return {s, streak, status, li, days, low, struggling, overdue, hot: streak>=STREAK_ALERT};
     }).filter(e=> e.hot || e.low || e.overdue)
       .sort((a,b)=> (b.hot-a.hot) || (b.streak-a.streak) || (b.low-a.low) || ((b.days===null?9999:b.days)-(a.days===null?9999:a.days)) || a.s.name.localeCompare(b.s.name));
@@ -2814,7 +2907,7 @@
     body.querySelector("#shBack").addEventListener("click", ()=>{ shiurOpen = null; renderShiurim(); });
     body.querySelectorAll(".sh-row").forEach(el=> el.addEventListener("click", ()=> openStudentQuick(el.dataset.id)));
     body.querySelector("#shCopy").addEventListener("click", async ()=>{
-      const flag = rows.filter(r=> order(r)<4).map(r=> `- ${r.s.name}: ${[r.streak>=STREAK_ALERT?`absent ${r.streak} in a row`:"", r.stand||"", r.st==="red"?"low attendance":"", r.overdue?(r.li?`no check-in ${r.days}d`:"never checked in"):""].filter(Boolean).join(", ")}`);
+      const flag = rows.filter(r=> order(r)<4).map(r=> `- ${r.s.name}: ${[r.streak>=STREAK_ALERT?`absent ${r.streak} in a row`:"", r.stand||"", attendanceStatus(r.s)==="red"?"low attendance":"", r.overdue?(r.li?`no check-in ${r.days}d`:"never checked in"):""].filter(Boolean).join(", ")}`);
       const txt = `${c.name}${c.rebbi?" \u2014 "+c.rebbi:""}\n${x.n} guys \u00b7 attendance ${pct(x.avg)} \u00b7 ${x.thriving} thriving, ${x.struggling} struggling\n\nTo discuss:\n${flag.join("\n")||"- Nobody flagged"}`;
       try{ await navigator.clipboard.writeText(txt); toast("Summary copied \u2014 paste it anywhere.", "success"); }catch(e){ toast("Couldn't copy on this device.", "error"); }
     });
@@ -3137,6 +3230,77 @@
       renderRoster(); renderGlobalSearch(); renderAttendanceTab(); updateAttentionBanner();
       toast(`Added numbers to ${plan.length} students.`, "success");
     }catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
+  });
+
+  // ================= IMPORT SHIURIM LIST (upload or paste) =================
+  function parseShiurim(rows){
+    let hi=-1, col={};
+    for(let i=0;i<Math.min(rows.length,8)&&hi<0;i++){
+      const m = rows[i].map(c=>String(c).toLowerCase());
+      if(m.some(c=>/shiur|class|name|group/.test(c)) && m.some(c=>/rebbi|rabbi|teacher|room/.test(c))){
+        hi=i; m.forEach((c,j)=>{ if(/rebbi|rabbi|teacher|maggid/.test(c)) col.rebbi=j; else if(/room/.test(c)) col.room=j; else if(/shiur|class|name|group/.test(c) && col.name===undefined) col.name=j; });
+      }
+    }
+    const body = hi>=0 ? rows.slice(hi+1) : rows, g = (r,j)=> j===undefined ? "" : String(r[j]==null?"":r[j]).trim();
+    return body.map(r=> hi>=0 ? {name:g(r,col.name), rebbi:g(r,col.rebbi), room:g(r,col.room)} : {name:g(r,0), rebbi:g(r,1), room:g(r,2)}).filter(x=>x.name);
+  }
+  function openShiurImport(){
+    const ov = document.createElement("div"); ov.className="overlay";
+    ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">Import shiurim</p><button class="ghost" id="shX">Close</button></div>
+      <p class="hint">Upload your list (Excel, CSV or text) or paste it. One shiur per row: <b>Shiur, Rebbi, Room</b> (rebbi and room optional). Headers are detected automatically.</p>
+      <label class="dz" style="margin:10px 0;"><span class="ic">&#128196;</span>Choose file<input type="file" id="shFile" accept=".xlsx,.xls,.csv,.txt" hidden /></label>
+      <textarea id="shPaste" placeholder="Or paste here, e.g.&#10;Rabbi Cohen - Gemara Shiur - Room 210"></textarea>
+      <div class="row row-end" style="margin-top:8px;"><button id="shRead">Preview</button></div><div id="shOut" style="margin-top:10px;"></div></div>`;
+    showOverlay(ov); let list=[];
+    ov.querySelector("#shX").addEventListener("click", ()=>closeOverlay(ov)); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    const out = ov.querySelector("#shOut");
+    const show = rows=>{
+      list = parseShiurim(rows);
+      out.innerHTML = list.length ? `<p class="hint"><b>${list.length}</b> shiurim found. Existing ones (same name) get their rebbi/room updated.</p>`+list.map(x=>`<div class="kv"><span>${escapeHtml(x.name)}</span><span class="k">${escapeHtml([x.rebbi,x.room&&"Room "+x.room].filter(Boolean).join(" \u00b7 "))}</span></div>`).join("")+`<div class="row row-end" style="margin-top:12px;"><button class="primary" id="shGo">Add / update ${list.length}</button></div>` : '<span class="err">Nothing found \u2014 check the format.</span>';
+      const go = out.querySelector("#shGo");
+      if(go) go.addEventListener("click", async ()=>{
+        let n=0,u=0;
+        list.forEach(x=>{ const c = state.data.classes.find(c=>c.name.trim().toLowerCase()===x.name.toLowerCase());
+          if(c){ if(x.rebbi) c.rebbi=x.rebbi; if(x.room) c.room=x.room; u++; } else { state.data.classes.push({id:uid(), name:x.name, rebbi:x.rebbi, room:x.room}); n++; } });
+        try{ await persist(); closeOverlay(ov); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderShiurim(); toast(`${n} shiurim added, ${u} updated.`, "success"); }
+        catch(e){ if(!e.shown) toast("Couldn't save: "+e.message, "error"); }
+      });
+    };
+    ov.querySelector("#shRead").addEventListener("click", ()=> show(ov.querySelector("#shPaste").value.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(/\t|,|\s[-\u2013\u2014|]\s/).map(x=>x.trim()))));
+    ov.querySelector("#shFile").addEventListener("change", async e=>{
+      const f = e.target.files[0]; if(!f) return;
+      try{
+        if(/\.txt$/i.test(f.name)) show((await f.text()).split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(/\t|,|\s[-\u2013\u2014|]\s/).map(x=>x.trim())));
+        else { await ensureXLSX(); const wb = window.XLSX.read(await f.arrayBuffer(), {type:"array"}); show(window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:""})); }
+      }catch(err){ toast("Couldn't read that file: "+err.message, "error"); }
+    });
+  }
+  $("shiurImportBtn").addEventListener("click", openShiurImport);
+
+  // ================= CLASS LISTS: shiurim placements (from Class_Lists.docx) =================
+  const SHIUR_LISTS = [{"rebbi": "Rabbi Banin", "students": ["Harel Achial", "David Cohen", "Ezra Gelfand", "Nathan Glatt", "Michael Lugassy", "Nerya Maman", "Natan Murdakhayev", "Joseph Nassim", "Asher Schwartz", "Matan Zagory"]}, {"rebbi": "Rabbi Gordon", "students": ["Eliyahu Benham", "Daniel Boruchov", "Yosef Epstein", "Ari Ehrenreich", "Eitan Mirzakandov"]}, {"rebbi": "Rabbi Hoolin", "students": ["Ezra Ahlers", "Elad Bell", "Ely Gelb", "Micah Peyman", "Mendel Sklar", "Itai Sogaokar"]}, {"rebbi": "Rabbi Lieber", "students": ["Yehuda Davidovici", "Binyamin Black", "Yehuda Lichaa", "Moshe Freedman", "Daniel Frieden", "Aviel Ginsbury", "Daniel Rakhmanov", "Jonathan Zirkiyev", "Binyamin Valdez"]}, {"rebbi": "Rabbi Lavon", "students": ["Michael Bamberger", "Shlomo Kaganoff", "Yoni Mason", "Joseph Sacks", "Gavriel Perlman", "Michael Iliyev", "Elliot Klein"]}, {"rebbi": "Rabbi Stern", "students": ["Gavi Elkin", "Wyatt Sanders", "Asher Bressel", "Avishai Weiman", "Yosef Eliezer", "Amitai Burack", "Yinnon Gellman"]}, {"rebbi": "Rabbi Topaz", "students": ["Levi Suissa", "Yakov Milgram", "Aaron Pshemish", "Dani Durbach", "Mendy Stark", "Daniel Solomon", "Yaakov Shotkin", "Uriel Isaac Saul", "Moshe Robinson", "Jason Gangian"]}, {"rebbi": "Rabbi Traub", "students": ["David Lunski", "Yoni Joseph", "David Kempner", "Adam Brodsky", "Moishy Weinstein", "Nosh Fromen"]}, {"rebbi": "Rabbi Zwick", "students": ["Emanuel Aguvayev", "Zevi Shnayderman", "David Cairns", "Elishama Gross", "Jayden Gasner", "Ori Edri", "Dvir Achial", "Sam Hirshbein"]}];
+  const SHIUR_ALIASES = {"Natan Murdakhayev": "Natanel Murdakhayev", "Eliyahu Benham": "Eliahu Behnam", "Ely Gelb": "Eli Gelb", "Mendel Sklar": "Menachem Sklar", "Binyamin Valdez": "Benyamin Valdez", "Shlomo Kaganoff": "Solomon Kaganoff", "Michael Iliyev": "Michael Iliev", "Yosef Eliezer": "Yosef Yisrael Eliezer", "Amitai Burack": "Ty Burack", "Yakov Milgram": "Yaakov Milgram", "Mendy Stark": "Max Stark", "Uriel Isaac Saul": "Uriel yehoshua Isaac-Saul", "Jason Gangian": "Jason Ganjian", "Yoni Joseph": "Jonathan (Yoni) Joseph", "Nosh Fromen": "noah fromen", "Sam Hirshbein": "Samuel Hirshbein"};
+  $("shiurListsBtn").addEventListener("click", async ()=>{
+    $("moreMenu").classList.add("hidden");
+    const key = n=> String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
+    const byKey = {}; state.data.students.forEach(s=>{ byKey[key(s.name)] = s; });
+    const plan = [], missing = [];
+    SHIUR_LISTS.forEach(sh=> sh.students.forEach(n=>{
+      const st = byKey[key(n)] || byKey[key(SHIUR_ALIASES[n]||"")];
+      if(st) plan.push({st, sh}); else missing.push(n+" ("+sh.rebbi+")");
+    }));
+    if(!plan.length){ toast("No students matched \u2014 restore or import your roster first.", "error"); return; }
+    if(!(await confirmDialog(`Create ${SHIUR_LISTS.length} shiurim (${SHIUR_LISTS.map(x=>x.rebbi.replace("Rabbi ","")).join(", ")}) and place ${plan.length} students in them? Each student moves from Shana Alef into his shiur, so attendance is taken per shiur from now on.`+(missing.length?` Not found in roster: ${missing.join(", ")}.`:""), {okLabel:"Place students"}))) return;
+    SHIUR_LISTS.forEach(sh=>{
+      let c = state.data.classes.find(c=> c.name.trim().toLowerCase()===sh.rebbi.toLowerCase());
+      if(!c){ c = {id:uid(), name:sh.rebbi, rebbi:sh.rebbi, room:""}; state.data.classes.push(c); }
+      sh.cid = c.id;
+    });
+    plan.forEach(p=>{ p.st.classId = p.sh.cid; });
+    try{
+      await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); updateAttentionBanner(); renderKpis();
+      toast(`${plan.length} students placed in ${SHIUR_LISTS.length} shiurim.`, "success");
+    }catch(e){ if(!e.shown) toast("Couldn't save: "+e.message, "error"); }
   });
 
   boot();
