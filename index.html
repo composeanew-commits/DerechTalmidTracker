@@ -131,6 +131,26 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;
     cursor:pointer;transition:border-color .12s ease,transform .12s ease;position:relative;}
   .card:hover{border-color:var(--ink-soft);transform:translateY(-1px);}
+  .str-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}
+  .menu-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);padding:8px 10px 2px;}
+  .menu-setup{border-top:1px solid var(--line);margin-top:6px;}
+  .menu-setup summary{cursor:pointer;font-size:13px;color:var(--ink-soft);padding:10px;list-style:none;}
+  .menu-setup summary::-webkit-details-marker{display:none;}
+  .menu-setup[open] summary{color:var(--brand);}
+  .menu-setup button{display:block;width:100%;}
+  .nav-seg{display:flex;gap:4px;background:var(--brand-soft);border-radius:999px;padding:3px;margin-bottom:12px;width:fit-content;max-width:100%;}
+  .nav-seg button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font-size:13px;color:var(--ink-soft);box-shadow:none;}
+  .nav-seg button.on{background:#fff;color:var(--brand);font-weight:600;box-shadow:0 2px 6px rgba(36,29,74,.15);}
+  .yr-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;} .yr-bar button.on{background:var(--brand);color:#fff;}
+  .yr-sec{background:#fff;border-radius:16px;padding:10px 12px;margin-bottom:10px;box-shadow:0 4px 14px -8px rgba(36,29,74,.35);}
+  .yr-h{display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:8px;}
+  .yr-pct{font-weight:700;} .yr-pct.green{color:#1F9D55;} .yr-pct.yellow{color:#C98A00;} .yr-pct.red{color:var(--red);} .yr-pct.unknown{color:var(--ink-soft);}
+  .yr-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);cursor:pointer;}
+  .yr-row .yn{flex:1;min-width:0;font-size:14px;} .yr-row .yc{font-size:11px;color:var(--ink-soft);}
+  .yr-row .pf-dots{margin:0;max-width:110px;gap:2px;} .yr-row .pf-dot{width:9px;height:9px;}
+  .str-chip{background:var(--brand-soft);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;}
+  .str-chip.add{background:transparent;border:1px dashed var(--ink-soft);color:var(--ink-soft);}
+  .str-x{margin-left:6px;cursor:pointer;}
   .photo{width:60px;height:60px;border-radius:50%;margin:0 auto 8px;object-fit:cover;background:var(--brand-soft);
     display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:18px;color:var(--brand);
     border:3px solid var(--card);box-shadow:0 0 0 3px var(--ring,var(--gray));overflow:hidden;}
@@ -392,16 +412,23 @@
       <div class="menu-wrap hidden" id="moreMenuWrap">
         <button class="ghost" id="moreMenuBtn" title="More">&#8942;</button>
         <div class="menu-dropdown hidden" id="moreMenu">
+          <div class="menu-label">Reports</div>
           <button id="overviewBtn">Full school overview</button>
-          <button id="shiurListsBtn">Load class lists (Rabbi shiurim)</button>
-          <button id="shiurImportBtn">Import shiurim list (upload or paste)</button>
-          <button id="importBtn">Import from Excel (phones, shiurim, rooms)</button>
-          <button id="trashBtn">Recently deleted</button>
+          <button id="missingToggleBtn">Show missing-info dots: Off</button>
           <button id="weeklyReportBtn">Weekly report (printable)</button>
+          <div class="menu-label">Safety</div>
           <button id="backupBtn">Download full backup</button>
           <button id="backupsBtn">Backups</button>
-          <button id="addPhonesBtn">Add Shana Alef phone numbers</button>
+          <button id="trashBtn">Recently deleted</button>
           <button id="refreshMenuBtn">Sync now</button>
+          <details class="menu-setup">
+            <summary>Setup tools (rarely needed)</summary>
+            <button id="importBtn">Import from Excel (phones, shiurim, rooms)</button>
+            <button id="dormBtn">Load dorm rooms (2026-27)</button>
+            <button id="shiurListsBtn">Load class lists (Rabbi shiurim)</button>
+            <button id="shiurImportBtn">Import shiurim list (upload or paste)</button>
+            <button id="addPhonesBtn">Add Shana Alef phone numbers</button>
+          </details>
         </div>
       </div>
     </div>
@@ -459,12 +486,14 @@
     </div>
     <div class="tabs">
       <button class="tab active" data-tab="attendance">Attendance</button>
+      <button class="tab hidden" data-tab="year" data-parent="shiurim">Whole yeshiva</button>
       <button class="tab" data-tab="needs">Needs me <span class="tab-badge hidden" id="needsBadge"></span></button>
       <button class="tab" data-tab="shiurim">Shiurim</button>
-      <button class="tab" data-tab="interviews">Check-ins</button>
-      <button class="tab" data-tab="roster">Classes &amp; Students</button>
+      <button class="tab hidden" data-tab="interviews" data-parent="roster">Check-ins</button>
+      <button class="tab" data-tab="roster">Talmidim</button>
     </div>
 
+    <div id="tab-year" class="hidden"><div id="yearBody"></div></div>
     <div id="tab-shiurim" class="hidden"><div id="shiurimBody"></div></div>
     <div id="tab-needs" class="hidden"><div id="needsBody"></div></div>
 
@@ -977,10 +1006,12 @@
     btn.addEventListener("click", ()=>{
       document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
-      ["roster","attendance","interviews","needs","shiurim"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t !== btn.dataset.tab));
+      if(btn.dataset.parent){ const pb = document.querySelector('.tab[data-tab="'+btn.dataset.parent+'"]'); if(pb) pb.classList.add("active"); }
+      ["roster","attendance","interviews","needs","shiurim","year"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t !== btn.dataset.tab));
       if(btn.dataset.tab === "attendance") renderAttendanceTab();
       if(btn.dataset.tab === "interviews") renderInterviewPicker();
       if(btn.dataset.tab === "needs") renderNeeds();
+      if(btn.dataset.tab === "year") renderYear();
       if(btn.dataset.tab === "shiurim") renderShiurim();
     });
   });
@@ -1182,11 +1213,11 @@
     }
   }
 
+  function showMissingDots(){ try{ return localStorage.getItem("showMissing")==="1"; }catch(e){ return false; } }
   function missingFields(s){
     const cls = s.classId ? classById(s.classId) : null;
     const missing = [];
     if(!s.classId) missing.push("shiur");
-    if(s.classId && (!cls || !cls.room)) missing.push("room");
     if(!s.phone) missing.push("phone");
     if(!s.parentPhone) missing.push("parent phone");
     return missing;
@@ -1204,14 +1235,14 @@
     list.forEach(s=>{
       const status = studentStatus(s);
       const cls = s.classId ? classById(s.classId) : null;
-      const sub = [cls ? cls.name : "No shiur", cls && cls.room ? "Room "+cls.room : null].filter(Boolean).join(" \u00b7 ");
+      const sub = [cls ? cls.name : "No shiur", cls && cls.room ? "Room "+cls.room : null, s.dorm ? "Dorm "+s.dorm : null].filter(Boolean).join(" \u00b7 ");
       const missing = missingFields(s);
       const classOptions = `<option value="">No class</option>` + state.data.classes.map(c=>`<option value="${c.id}" ${s.classId===c.id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
         ${s.phone ? `<a href="tel:${escapeHtml(s.phone)}" class="quick-call" title="Call ${escapeHtml(s.name)}" onclick="event.stopPropagation()">&#9742;</a>` : ""}
-        ${missing.length ? `<span class="card-flag" title="Missing: ${escapeHtml(missing.join(', '))}"></span>` : ""}
+        ${missing.length && showMissingDots() ? `<span class="card-flag" title="Missing: ${escapeHtml(missing.join(', '))}"></span>` : ""}
         <div class="photo ${status}">${s.photo ? `<img src="${s.photo}" alt="">` : initials(s.name)}</div>
         <div class="name">${escapeHtml(s.name)}</div>
         <div class="card-sub">${escapeHtml(sub)}</div>
@@ -1264,12 +1295,62 @@
       setStanding(studentId, b.dataset.st);
       root.querySelectorAll("[data-standing] button").forEach(x=> x.classList.toggle("active", x.dataset.st===b.dataset.st));
       const h = root.querySelector("[data-standing-hint]"); if(h) h.textContent = "Saved for today";
+      const st0 = state.data.students.find(x=>x.id===studentId);
+      if(st0){ const ph = root.querySelector(".drawer .photo"); if(ph){ ph.classList.remove("red","yellow","green","unknown"); ph.classList.add(studentStatus(st0)); } }
       toast("Marked " + b.dataset.st, "success");
       if(after) after();
     }));
   }
 
   // ================= QUICK STUDENT SHEET (tap any student) =================
+  // ---- Strengths ----
+  const STRENGTH_PRESETS = ["Hockey","Basketball","Soccer","Music","Piano","Guitar","History","Writing","Cooking","Enjoys helping"];
+  function allStrengthOptions(){
+    const seen = new Set(), out = [];
+    STRENGTH_PRESETS.concat(...state.data.students.map(x=>x.strengths||[])).forEach(t=>{ const k=t.toLowerCase(); if(!seen.has(k)){ seen.add(k); out.push(t); } });
+    return out;
+  }
+  function strengthChipsHtml(s, editable){
+    const list = s.strengths||[];
+    if(!list.length && !editable) return "";
+    return `<div class="str-wrap" data-str-wrap>${list.map(t=>`<span class="str-chip" data-str="${escapeHtml(t)}">${escapeHtml(t)}${editable?`<b class="str-x" data-x="${escapeHtml(t)}" title="Remove">&times;</b>`:""}</span>`).join("")}</div>`;
+  }
+  function openDormList(d){
+    const people = state.data.students.filter(x=>x.dorm && x.dorm.toLowerCase()===d.toLowerCase()).sort((a,b)=>a.name.localeCompare(b.name));
+    const ov = document.createElement("div"); ov.className="overlay";
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">Dorm ${escapeHtml(d)}</b><div class="hint" style="margin:0;">${people.length} in the room</div></div><button class="ghost" id="dmClose">Close</button></div>
+      ${people.map(x=>`<div class="kv str-person" data-id="${x.id}" style="cursor:pointer;"><span class="k">${escapeHtml(x.name)}</span><span class="v">${escapeHtml(x.classId&&classById(x.classId)?classById(x.classId).name:"")}</span></div>`).join("")||`<p class="hint">Nobody yet.</p>`}</div>`;
+    showOverlay(ov);
+    ov.querySelector("#dmClose").addEventListener("click", ()=>closeOverlay(ov));
+    ov.querySelectorAll(".str-person").forEach(r=>r.addEventListener("click", ()=>{ closeOverlay(ov); openStudentQuick(r.dataset.id); }));
+  }
+  function openStrengthList(tag, onlyClass){
+    const key = tag.toLowerCase();
+    const people = state.data.students.filter(x=>(!onlyClass || x.classId===onlyClass) && (x.strengths||[]).some(t=>t.toLowerCase()===key)).sort((a,b)=>a.name.localeCompare(b.name));
+    const ov = document.createElement("div"); ov.className="overlay";
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">${escapeHtml(tag)}</b><div class="hint" style="margin:0;">${people.length} student${people.length===1?"":"s"}</div></div><button class="ghost" id="strClose">Close</button></div>
+      ${people.map(x=>`<div class="kv str-person" data-id="${x.id}" style="cursor:pointer;"><span class="k">${escapeHtml(x.name)}</span><span class="v">${escapeHtml(x.classId&&classById(x.classId)?classById(x.classId).name:"")}</span></div>`).join("")||`<p class="hint">Nobody yet.</p>`}</div>`;
+    showOverlay(ov);
+    ov.querySelector("#strClose").addEventListener("click", ()=>closeOverlay(ov));
+    ov.querySelectorAll(".str-person").forEach(r=>r.addEventListener("click", ()=>{ closeOverlay(ov); openStudentQuick(r.dataset.id); }));
+  }
+  function wireStrengthChips(root){
+    root.querySelectorAll(".dorm-chip").forEach(c=>c.addEventListener("click", ()=>openDormList(c.dataset.dorm)));
+    root.querySelectorAll(".str-chip").forEach(c=>c.addEventListener("click", e=>{ if(e.target.classList.contains("str-x")) return; openStrengthList(c.dataset.str); }));
+  }
+  function wireStrengthEditor(root, student){
+    const box = root.querySelector("#strBox"), inp = root.querySelector("#strInput");
+    const redraw = ()=>{ box.innerHTML = strengthChipsHtml(student,true)+`<div class="str-wrap">${allStrengthOptions().filter(p=>!(student.strengths||[]).some(t=>t.toLowerCase()===p.toLowerCase())).map(p=>`<span class="str-chip add" data-add="${escapeHtml(p)}">+ ${escapeHtml(p)}</span>`).join("")}</div>`;
+      box.querySelectorAll(".str-x").forEach(x=>x.addEventListener("click", ()=>{ student.strengths = student.strengths.filter(t=>t!==x.dataset.x); persist().catch(()=>{}); redraw(); }));
+      box.querySelectorAll("[data-add]").forEach(a=>a.addEventListener("click", ()=>add(a.dataset.add)));
+      wireStrengthChips(box); };
+    const add = v=>{ v=(v||"").trim(); if(!v) return; student.strengths = student.strengths||[]; if(!student.strengths.some(t=>t.toLowerCase()===v.toLowerCase())){ student.strengths.push(v); if(state.data.students.includes(student)) persist().catch(()=>{}); } inp.value=""; redraw(); };
+    root.querySelector("#strAdd").addEventListener("click", ()=>add(inp.value));
+    inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); add(inp.value); } });
+    redraw();
+  }
   function openStudentQuick(studentId, startMode){
     const student = state.data.students.find(x=>x.id===studentId);
     if(!student) return;
@@ -1290,6 +1371,7 @@
           <button class="ghost" id="qsClose">Close</button>
         </div>
         ${profileSummaryHtml(student)}
+        ${strengthChipsHtml(student,false)}
         <label style="margin-top:2px;">How's he doing?</label>
         ${standingHtml(student.id)}
         <div class="qs-actions">
@@ -1304,6 +1386,7 @@
     showOverlay(overlay);
     const body = overlay.querySelector("#qsBody");
     wireStanding(overlay, student.id, ()=>{ renderInterviewPanel(); });
+    wireStrengthChips(overlay);
     const close = ()=>{ stopAllDictation(); closeOverlay(overlay); };
     overlay.querySelector("#qsClose").addEventListener("click", close);
     overlay.querySelector("#qsProfile").addEventListener("click", ()=>{ close(); openStudentDrawer(student.id); });
@@ -1517,6 +1600,8 @@
         </div>
         <label for="clsName">Class name</label>
         <input type="text" id="clsName" value="${escapeHtml(cls.name)}" placeholder="e.g. Shiur Aleph" />
+        <label for="clsYear">Year</label>
+        <select id="clsYear"><option value="alef" ${classYear(cls)==="alef"?"selected":""}>Shana Alef</option><option value="bet" ${classYear(cls)==="bet"?"selected":""}>Shana Beis</option></select>
         <label for="clsRebbi">Rebbi</label>
         <input type="text" id="clsRebbi" value="${escapeHtml(cls.rebbi||"")}" placeholder="e.g. Rabbi Cohen" />
         <label for="clsRoom">Room</label>
@@ -1534,6 +1619,7 @@
       if(!name){ toast("Please enter a class name.", "error"); return; }
       cls.name = name;
       cls.rebbi = overlay.querySelector("#clsRebbi").value.trim();
+      cls.year = overlay.querySelector("#clsYear").value;
       cls.room = overlay.querySelector("#clsRoom").value.trim();
       if(isNew) state.data.classes.push(cls);
       await persist();
@@ -1629,6 +1715,8 @@
         <div class="kv"><span class="k">Primary Rebbe</span><span class="v">${escapeHtml(classById(student.classId).rebbi)}</span></div>` : ""}
         <label for="stPhone">Student phone <span style="color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="stPhone" value="${escapeHtml(student.phone||"")}" />
+        <label for="stDorm">Dorm room</label>
+        <input type="text" id="stDorm" value="${escapeHtml(student.dorm||"")}" placeholder="e.g. 17a or Mili 2b" />
         <label for="stParentPhone">Parent phone <span style="color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="stParentPhone" value="${escapeHtml(student.parentPhone||"")}" />
         ${!isNew && (student.phone || student.parentPhone) ? `
@@ -1636,6 +1724,9 @@
           ${student.parentPhone ? `<a href="tel:${escapeHtml(student.parentPhone)}" class="link-btn">Call parent</a>` : ""}
           ${student.phone ? `<a href="tel:${escapeHtml(student.phone)}" class="link-btn">Call student</a>` : ""}
         </div>` : ""}
+        <label style="margin-top:14px;">Strengths <span style="color:var(--ink-soft);">(tap one to see everyone with it)</span></label>
+        <div id="strBox"></div>
+        <div class="row" style="gap:8px;margin-top:6px;"><input type="text" id="strInput" placeholder="Add a strength…" style="flex:1;margin:0;" /><button type="button" id="strAdd">Add</button></div>
         ${!isNew ? `
         <label style="margin-top:14px;">How's he doing?</label>
         ${standingHtml(student.id)}` : ""}
@@ -1655,6 +1746,7 @@
     `;
     showOverlay(overlay);
     overlay.querySelector("#closeDrawer").addEventListener("click", ()=> closeOverlay(overlay));
+    wireStrengthEditor(overlay, student);
     if(!isNew) renderStudentTimeline(overlay, student.id);
     if(!isNew) wireStanding(overlay, student.id, ()=>{ renderStudentTimeline(overlay, student.id); renderInterviewPanel(); });
 
@@ -1690,6 +1782,7 @@
       student.name = name;
       student.classId = overlay.querySelector("#stClass").value || null;
       student.phone = overlay.querySelector("#stPhone").value.trim();
+      student.dorm = overlay.querySelector("#stDorm").value.trim();
       student.parentPhone = overlay.querySelector("#stParentPhone").value.trim();
       if(isNew && !state.data.students.includes(student)) state.data.students.push(student);
       persist().catch(()=>{});
@@ -1805,10 +1898,22 @@
     const sd = seder || state.activeSeder;
     return state.data.attendance.find(a=> a.classId===classId && a.date===date && recSeder(a)===sd);
   }
+  function openStatusList(k){
+    const label = k==="green"?"Thriving":k==="yellow"?"Steady":"Needs attention";
+    const people = state.data.students.filter(x=>studentStatus(x)===k).sort((a,b)=>a.name.localeCompare(b.name));
+    const ov = document.createElement("div"); ov.className="overlay";
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">${label}</b><div class="hint" style="margin:0;">${people.length} student${people.length===1?"":"s"}</div></div><button class="ghost" id="stlClose">Close</button></div>
+      ${people.map(x=>`<div class="kv str-person" data-id="${x.id}" style="cursor:pointer;"><span class="k">${escapeHtml(x.name)}</span><span class="v">${escapeHtml(x.classId&&classById(x.classId)?classById(x.classId).name:"")}</span></div>`).join("")||`<p class="hint">Nobody here.</p>`}</div>`;
+    showOverlay(ov);
+    ov.querySelector("#stlClose").addEventListener("click", ()=>closeOverlay(ov));
+    ov.querySelectorAll(".str-person").forEach(r=>r.addEventListener("click", ()=>{ closeOverlay(ov); openStudentQuick(r.dataset.id); }));
+  }
   function renderKpis(){
     const k = $("kpiStrip"); if(!k || !state.data) return;
     const c = {green:0,yellow:0,red:0}; state.data.students.forEach(s=>{ const t = studentStatus(s); if(c[t]!==undefined) c[t]++; });
-    k.innerHTML = `<div class="kpi k0"><b>${state.data.students.length}</b><span>Students</span></div><div class="kpi kg"><b>${c.green}</b><span>Thriving</span></div><div class="kpi ky"><b>${c.yellow}</b><span>Steady</span></div><div class="kpi kr"><b>${c.red}</b><span>Needs attention</span></div>`;
+    k.innerHTML = `<div class="kpi k0"><b>${state.data.students.length}</b><span>Students</span></div><div class="kpi kg" data-k="green" style="cursor:pointer;"><b>${c.green}</b><span>Thriving</span></div><div class="kpi ky" data-k="yellow" style="cursor:pointer;"><b>${c.yellow}</b><span>Steady</span></div><div class="kpi kr" data-k="red" style="cursor:pointer;"><b>${c.red}</b><span>Needs attention</span></div>`;
+    k.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("click", ()=>openStatusList(el.dataset.k)));
   }
   function renderSederBar(){
     renderKpis();
@@ -2849,6 +2954,7 @@
         <div><b class="${rate===null?"":rate>=0.8?"g":rate>=0.5?"y":"r"}">${rate===null?"\u2014":Math.round(rate*100)+"%"}</b><span>Recent attendance</span></div>
         <div><b class="${streak>=STREAK_ALERT?"r":""}">${streak}</b><span>Absent in a row</span></div>
         <div><b class="${d===null||d>=CHECKIN_STALE_DAYS?"y":""}">${d===null?"\u2014":d===0?"Today":d+"d"}</b><span>Last check-in</span></div></div>
+      ${s.dorm?`<div class="str-wrap"><span class="str-chip dorm-chip" data-dorm="${escapeHtml(s.dorm)}">\ud83c\udfe0 Dorm ${escapeHtml(s.dorm)}</span></div>`:""}
       ${dots?`<div class="pf-dots" title="Oldest \u2192 newest">${dots}</div>`:""}
       ${contact?`<div class="nm-actions" style="margin:10px 0;">${contact}</div>`:""}
       ${recent?`<div class="pf-recent"><div class="pf-lbl">Recent check-ins</div>${recent}</div>`:""}`;
@@ -2870,6 +2976,53 @@
       streaks: rows.filter(r=>r.streak>=STREAK_ALERT).length, overdue: rows.filter(r=>r.overdue).length };
   }
   const pct = v => v===null ? "\u2014" : Math.round(v*100)+"%";
+  // ================= WHOLE YESHIVA ATTENDANCE =================
+  function classYear(c){ if(c.year) return c.year; return /bet|beis|bais/i.test(c.name||"") ? "bet" : "alef"; }
+  let yrYear = "all", yrDays = 30, yrOpen = {};
+  function studentAtt(s, cutoff){
+    const sess = state.data.attendance.filter(a=> a.records && a.records[s.id] && (!cutoff || a.date >= cutoff))
+      .sort((a,b)=> (a.date+(a.seder||"")).localeCompare(b.date+(b.seder||"")));
+    let p=0,l=0,ab=0; sess.forEach(a=>{ const v=a.records[s.id]; if(v==="present")p++; else if(v==="late")l++; else if(v==="absent")ab++; });
+    const t=p+l+ab;
+    return { p,l,ab,t, rate: t? (p+l*0.5)/t : null, dots: sess.slice(-14).map(a=>a.records[s.id]) };
+  }
+  function rateCls(r){ return r===null?"unknown": r>=0.8?"green": r>=0.5?"yellow":"red"; }
+  function pctTxt(r){ return r===null ? "\u2014" : Math.round(r*100)+"%"; }
+  function renderYear(){
+    const body = $("yearBody"); if(!body || !state.data) return;
+    let cutoff = null;
+    if(yrDays){ const d = new Date(); d.setDate(d.getDate()-yrDays); cutoff = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+    const tab = (k,l)=>`<button data-y="${k}" class="${yrYear===k?"on":""}">${l}</button>`;
+    let html = `<div class="yr-bar">${tab("all","Everyone")}${tab("alef","Shana Alef")}${tab("bet","Shana Beis")}
+      <select id="yrDays" style="margin-left:auto;"><option value="14" ${yrDays===14?"selected":""}>Last 2 weeks</option><option value="30" ${yrDays===30?"selected":""}>Last month</option><option value="0" ${!yrDays?"selected":""}>Whole year</option></select></div>`;
+    let secs = "";
+    ["alef","bet"].forEach(y=>{
+      if(yrYear!=="all" && yrYear!==y) return;
+      const cs = state.data.classes.filter(c=>classYear(c)===y).sort((a,b)=>a.name.localeCompare(b.name));
+      if(!cs.length) return;
+      let yAll = [];
+      const ySecs = cs.map(c=>{
+        const rows = studentsInClass(c.id).map(st=>({st, a:studentAtt(st,cutoff)}));
+        yAll = yAll.concat(rows);
+        const wd = rows.filter(r=>r.a.rate!==null), avg = wd.length ? wd.reduce((x,r)=>x+r.a.rate,0)/wd.length : null;
+        const low = wd.filter(r=>r.a.rate<0.8).length, open = yrOpen[c.id];
+        rows.sort((a,b)=> (a.a.rate===null)-(b.a.rate===null) || (a.a.rate||0)-(b.a.rate||0) || a.st.name.localeCompare(b.st.name));
+        return `<div class="yr-sec"><div class="yr-h" data-c="${escapeHtml(c.id)}"><div><b>${escapeHtml(c.name)}</b><div class="hint" style="margin:0;">${c.rebbi?escapeHtml(c.rebbi)+" \u00b7 ":""}${rows.length} talmidim${low?` \u00b7 <span style="color:var(--red);">${low} below 80%</span>`:""}</div></div>
+          <span class="yr-pct ${rateCls(avg)}">${pctTxt(avg)} ${open?"\u25b2":"\u25bc"}</span></div>
+          ${open ? (rows.map(r=>`<div class="yr-row" data-id="${r.st.id}"><div class="yn">${escapeHtml(r.st.name)}<div class="yc">${r.a.t?`${r.a.ab} absent \u00b7 ${r.a.l} late \u00b7 ${r.a.p} present`:"no attendance yet"}</div></div>
+            <div class="pf-dots">${r.a.dots.map(v=>`<span class="pf-dot ${v}"></span>`).join("")}</div>
+            <span class="yr-pct ${rateCls(r.a.rate)}" style="width:42px;text-align:right;">${pctTxt(r.a.rate)}</span></div>`).join("")||`<p class="hint">No students.</p>`) : ""}</div>`;
+      }).join("");
+      const wd = yAll.filter(r=>r.a.rate!==null), avgY = wd.length ? wd.reduce((x,r)=>x+r.a.rate,0)/wd.length : null;
+      secs += `<div class="nm-head"><b>${y==="alef"?"Shana Alef":"Shana Beis"}</b><span><span class="yr-pct ${rateCls(avgY)}">${pctTxt(avgY)}</span> \u00b7 ${yAll.length} talmidim \u00b7 ${wd.filter(r=>r.a.rate<0.8).length} below 80%</span></div>${ySecs}`;
+    });
+    body.innerHTML = html + (secs || `<div class="nm-empty">No shiurim in this year yet.</div>`) + `<p class="hint">Tap a shiur to see each talmid (lowest attendance first). Tap a name for his sheet. Dots = last 14 sessions. Set a shiur's year under Classes &amp; Students.</p>`;
+    body.querySelectorAll("[data-y]").forEach(b=>b.addEventListener("click", ()=>{ yrYear=b.dataset.y; renderYear(); }));
+    body.querySelector("#yrDays").addEventListener("change", e=>{ yrDays=parseInt(e.target.value,10); renderYear(); });
+    body.querySelectorAll(".yr-h").forEach(h=>h.addEventListener("click", ()=>{ yrOpen[h.dataset.c]=!yrOpen[h.dataset.c]; renderYear(); }));
+    body.querySelectorAll(".yr-row").forEach(r=>r.addEventListener("click", ()=> openStudentQuick(r.dataset.id)));
+  }
+
   function renderShiurim(){
     const body = $("shiurimBody"); if(!body || !state.data) return;
     const classes = state.data.classes;
@@ -2895,20 +3048,25 @@
     const c = classById(shiurOpen), x = shiurStats(c);
     const order = r => (r.streak>=STREAK_ALERT?0:r.stand==="struggling"?1:r.st==="red"?2:r.overdue?3:4);
     const rows = x.rows.slice().sort((a,b)=> order(a)-order(b) || a.s.name.localeCompare(b.s.name));
+    const strCount = {}; rows.forEach(r=>(r.s.strengths||[]).forEach(t=>{ const k=t.toLowerCase(); (strCount[k]=strCount[k]||{t,n:0}).n++; }));
+    const strList = Object.values(strCount).sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t)).map(o=>[o.t,o.n]);
     body.innerHTML = `<div class="row" style="align-items:center;margin-bottom:8px;"><button class="ghost" id="shBack">\u2039 All shiurim</button><div style="flex:1"></div><button class="nm-btn main" id="shCopy" style="flex:none;">Copy summary</button></div>
       <div class="nm-head"><b>${escapeHtml(c.name)}</b><span>${c.rebbi?escapeHtml(c.rebbi):""}${c.room?" \u00b7 Room "+escapeHtml(c.room):""}</span></div>
       <div class="pf-stats"><div><b>${pct(x.avg)}</b><span>Attendance</span></div><div><b class="${x.streaks?"r":""}">${x.streaks}</b><span>Absent ${STREAK_ALERT}+ in a row</span></div><div><b class="${x.struggling?"r":""}">${x.struggling}</b><span>Needs attention</span></div></div>
+      ${strList.length?`<div class="pf-lbl" style="margin:10px 0 2px;">Strengths in this shiur (tap to see who)</div><div class="str-wrap">${strList.map(([t,n])=>`<span class="str-chip" data-sh-str="${escapeHtml(t)}">${escapeHtml(t)} \u00b7 ${n}</span>`).join("")}</div>`:""}
       ${rows.map(r=>`<div class="nm-card sh-row" data-id="${escapeHtml(r.s.id)}"><div class="nm-top"><div class="photo ${r.st}">${r.s.photo?`<img src="${r.s.photo}" alt="">`:initials(r.s.name)}</div>
         <div class="nm-main"><div class="nm-name">${escapeHtml(r.s.name)}</div><div class="nm-tags" style="margin-top:4px;">
           <span class="nm-tag" style="background:var(--brand-soft);color:var(--brand);">${pct(r.rate)}</span>${window.__trendTag?window.__trendTag(r.s):""}
           ${r.streak>=STREAK_ALERT?`<span class="nm-tag danger">Absent ${r.streak} in a row</span>`:""}
           ${r.stand?`<span class="pf-st ${r.stand}">${r.stand}</span>`:""}
-          ${r.overdue?`<span class="nm-tag warn">${r.li?"No check-in "+r.days+"d":"Never checked in"}</span>`:""}</div></div></div></div>`).join("")}`;
+          ${r.overdue?`<span class="nm-tag warn">${r.li?"No check-in "+r.days+"d":"Never checked in"}</span>`:""}</div>
+          ${(r.s.strengths&&r.s.strengths.length)||r.s.dorm?`<div class="nm-sub" style="margin-top:4px;">${[(r.s.strengths||[]).join(", "), r.s.dorm?"Dorm "+r.s.dorm:""].filter(Boolean).map(escapeHtml).join(" \u00b7 ")}</div>`:""}</div></div></div>`).join("")}`;
+    body.querySelectorAll("[data-sh-str]").forEach(el=>el.addEventListener("click", ()=>openStrengthList(el.dataset.shStr, c.id)));
     body.querySelector("#shBack").addEventListener("click", ()=>{ shiurOpen = null; renderShiurim(); });
     body.querySelectorAll(".sh-row").forEach(el=> el.addEventListener("click", ()=> openStudentQuick(el.dataset.id)));
     body.querySelector("#shCopy").addEventListener("click", async ()=>{
       const flag = rows.filter(r=> order(r)<4).map(r=> `- ${r.s.name}: ${[r.streak>=STREAK_ALERT?`absent ${r.streak} in a row`:"", r.stand||"", attendanceStatus(r.s)==="red"?"low attendance":"", r.overdue?(r.li?`no check-in ${r.days}d`:"never checked in"):""].filter(Boolean).join(", ")}`);
-      const txt = `${c.name}${c.rebbi?" \u2014 "+c.rebbi:""}\n${x.n} guys \u00b7 attendance ${pct(x.avg)} \u00b7 ${x.thriving} thriving, ${x.struggling} struggling\n\nTo discuss:\n${flag.join("\n")||"- Nobody flagged"}`;
+      const txt = `${c.name}${c.rebbi?" \u2014 "+c.rebbi:""}\n${x.n} guys \u00b7 attendance ${pct(x.avg)} \u00b7 ${x.thriving} thriving, ${x.struggling} struggling\n\nTo discuss:\n${flag.join("\n")||"- Nobody flagged"}\n\nThriving:\n${rows.filter(r=>r.stand==="thriving").map(r=>"- "+r.s.name+((r.s.strengths||[]).length?" ("+r.s.strengths.join(", ")+")":"")).join("\n")||"- None marked yet"}\n\nStrengths: ${strList.map(([t,n])=>t+" "+n).join(", ")||"none logged yet"}`;
       try{ await navigator.clipboard.writeText(txt); toast("Summary copied \u2014 paste it anywhere.", "success"); }catch(e){ toast("Couldn't copy on this device.", "error"); }
     });
   }
@@ -3280,6 +3438,43 @@
   // ================= CLASS LISTS: shiurim placements (from Class_Lists.docx) =================
   const SHIUR_LISTS = [{"rebbi": "Rabbi Banin", "students": ["Harel Achial", "David Cohen", "Ezra Gelfand", "Nathan Glatt", "Michael Lugassy", "Nerya Maman", "Natan Murdakhayev", "Joseph Nassim", "Asher Schwartz", "Matan Zagory"]}, {"rebbi": "Rabbi Gordon", "students": ["Eliyahu Benham", "Daniel Boruchov", "Yosef Epstein", "Ari Ehrenreich", "Eitan Mirzakandov"]}, {"rebbi": "Rabbi Hoolin", "students": ["Ezra Ahlers", "Elad Bell", "Ely Gelb", "Micah Peyman", "Mendel Sklar", "Itai Sogaokar"]}, {"rebbi": "Rabbi Lieber", "students": ["Yehuda Davidovici", "Binyamin Black", "Yehuda Lichaa", "Moshe Freedman", "Daniel Frieden", "Aviel Ginsbury", "Daniel Rakhmanov", "Jonathan Zirkiyev", "Binyamin Valdez"]}, {"rebbi": "Rabbi Lavon", "students": ["Michael Bamberger", "Shlomo Kaganoff", "Yoni Mason", "Joseph Sacks", "Gavriel Perlman", "Michael Iliyev", "Elliot Klein"]}, {"rebbi": "Rabbi Stern", "students": ["Gavi Elkin", "Wyatt Sanders", "Asher Bressel", "Avishai Weiman", "Yosef Eliezer", "Amitai Burack", "Yinnon Gellman"]}, {"rebbi": "Rabbi Topaz", "students": ["Levi Suissa", "Yakov Milgram", "Aaron Pshemish", "Dani Durbach", "Mendy Stark", "Daniel Solomon", "Yaakov Shotkin", "Uriel Isaac Saul", "Moshe Robinson", "Jason Gangian"]}, {"rebbi": "Rabbi Traub", "students": ["David Lunski", "Yoni Joseph", "David Kempner", "Adam Brodsky", "Moishy Weinstein", "Nosh Fromen"]}, {"rebbi": "Rabbi Zwick", "students": ["Emanuel Aguvayev", "Zevi Shnayderman", "David Cairns", "Elishama Gross", "Jayden Gasner", "Ori Edri", "Dvir Achial", "Sam Hirshbein"]}];
   const SHIUR_ALIASES = {"Natan Murdakhayev": "Natanel Murdakhayev", "Eliyahu Benham": "Eliahu Behnam", "Ely Gelb": "Eli Gelb", "Mendel Sklar": "Menachem Sklar", "Binyamin Valdez": "Benyamin Valdez", "Shlomo Kaganoff": "Solomon Kaganoff", "Michael Iliyev": "Michael Iliev", "Yosef Eliezer": "Yosef Yisrael Eliezer", "Amitai Burack": "Ty Burack", "Yakov Milgram": "Yaakov Milgram", "Mendy Stark": "Max Stark", "Uriel Isaac Saul": "Uriel yehoshua Isaac-Saul", "Jason Gangian": "Jason Ganjian", "Yoni Joseph": "Jonathan (Yoni) Joseph", "Nosh Fromen": "noah fromen", "Sam Hirshbein": "Samuel Hirshbein"};
+
+  // ---- simpler navigation: related screens share one visible tab with a small switch ----
+  (function(){
+    const goTab = t=>{ const b=document.querySelector('.tab[data-tab="'+t+'"]'); if(b) b.click(); };
+    const mk = (paneId, items, active)=>{
+      const pane=$(paneId); if(!pane) return;
+      const d=document.createElement("div"); d.className="nav-seg";
+      d.innerHTML=items.map(([t,l])=>`<button type="button" class="${t===active?"on":""}" data-go="${t}">${l}</button>`).join("");
+      d.querySelectorAll("button").forEach(b=>b.addEventListener("click", ()=>{ if(!b.classList.contains("on")) goTab(b.dataset.go); }));
+      pane.insertBefore(d, pane.firstChild);
+    };
+    const sh=[["shiurim","By shiur"],["year","Whole yeshiva attendance"]], st=[["roster","Students & classes"],["interviews","Check-ins"]];
+    mk("tab-shiurim",sh,"shiurim"); mk("tab-year",sh,"year"); mk("tab-roster",st,"roster"); mk("tab-interviews",st,"interviews");
+  })();
+
+  (function(){
+    const b = $("missingToggleBtn"); if(!b) return;
+    const label = ()=>{ b.textContent = "Show missing-info dots: " + (showMissingDots() ? "On" : "Off"); };
+    label();
+    b.addEventListener("click", ()=>{
+      try{ localStorage.setItem("showMissing", showMissingDots() ? "0" : "1"); }catch(e){}
+      label(); renderRoster();
+    });
+  })();
+
+  const DORM_LIST = {"Harel Achial": "18e", "dvir achial": "18e", "Emanuel Aguvayev": "17a", "Ezra Ahlers": "Mili 2a", "Itamar Azulay": "17e", "Michael Bamberger": "17e", "Eliahu Behnam": "17e", "Elad Bell": "19f", "Binyamin Black": "Mili 2b", "Daniel Boruchov": "16a", "Asher Bressel": "16b", "Adam Brodsky": "16b", "Ty Burack": "Mili 4a", "David Cairns": "19a", "David Cohen": "18a", "Yehuda Davidovici": "19c", "Dani Durbach": "19a", "Ori Edri": "19b", "Ari Ehrenreich": "Mili 2a", "Yosef Yisrael Eliezer": "18e", "Gavi Elkin": "Mili 4d", "Yosef Epstein": "17b", "Moshe Freedman": "19c", "Daniel Frieden": "18d", "noah fromen": "17b", "Jason Ganjian": "19a", "Jayden Gasner": "19e", "Eli Gelb": "Mili 2a", "Ezra Gelfand": "17a", "Yinnon Gellman": "Mili 2a", "Aviel Ginsbury": "Mili 2c", "Nathan Glatt": "16d", "Uriel Glatt": "18c", "Elishama Gross": "17a", "Samuel Hirshbein": "19b", "Michael Iliev": "19a", "Uriel yehoshua Isaac-Saul": "17d", "Jonathan (Yoni) Joseph": "18a", "Solomon Kaganoff": "Mili 2b", "David Kempner": "17a", "Elliot Klein": "19f", "Yehuda Lichaa": "Mili 2b", "Michael Lugassy": "19b", "David Lunski": "Mili 4a", "nerya maman": "18a", "Yoni Mason": "19f", "Yaakov Milgram": "Mili 4c", "Eitan Mirzakandov": "16a", "Natanel Murdakhayev": "16a", "Joseph Nassim": "18a", "Gavriel Perlman": "19f", "Micah Peyman": "16d", "aaron pshemish": "18b", "Daniel Rakhmanov": "16b", "Moshe Robinson": "Mili 2c", "JOSEPH SACKS": "17e", "Wyatt Sanders": "Mili 4a", "Asher Schwartz": "18b", "Zevi Shnayderman": "16d", "Yaakov Shotkin": "18d", "Menachem Sklar": "18b", "itai sogaokar": "17c", "Daniel solomon": "17d", "Max Stark": "17b", "Levi Suissa": "16d", "Benyamin Valdez": "Mili 4c", "avishai weiman": "Mili 4a", "Moishy Weinstein": "18c", "Matan Zagory": "17c", "Jonathan Zirkiyev": "16a", "noah krupp": "18e"};
+  $("dormBtn").addEventListener("click", async ()=>{
+    $("moreMenu").classList.add("hidden");
+    const key = n=> String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
+    const byKey = {}; state.data.students.forEach(x=>{ byKey[key(x.name)] = x; });
+    const plan = [], missing = [];
+    Object.keys(DORM_LIST).forEach(n=>{ const st = byKey[key(n)]; if(st) plan.push({st, d:DORM_LIST[n]}); else missing.push(n); });
+    if(!plan.length){ toast("No matching students found.", "error"); return; }
+    if(!(await confirmDialog(`Set dorm rooms for ${plan.length} students? Shana Beis dorms weren't in the sheet yet, so they stay blank.`+(missing.length?` Not found in roster: ${missing.join(", ")}.`:""), {okLabel:"Add dorms"}))) return;
+    plan.forEach(p=>{ p.st.dorm = p.d; });
+    try{ await persist(); renderRoster(); toast(`Dorm rooms added for ${plan.length} students.`, "success"); }catch(e){ toast("Couldn't save.", "error"); }
+  });
   $("shiurListsBtn").addEventListener("click", async ()=>{
     $("moreMenu").classList.add("hidden");
     const key = n=> String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
@@ -3479,7 +3674,7 @@
       body.querySelectorAll(".sh-row").forEach(el=>el.onclick=()=>openStudentQuick(el.dataset.id));
       body.querySelectorAll(".sh-card").forEach(el=>el.onclick=()=>{ shiurOpen = el.dataset.cid; document.querySelector('.tab[data-tab="shiurim"]').click(); });
     };
-    tb.addEventListener("click", ()=>{ ["roster","attendance","interviews","needs","shiurim"].forEach(t=>$("tab-"+t).classList.add("hidden")); pane.classList.remove("hidden"); window.__renderHome(); });
+    tb.addEventListener("click", ()=>{ ["roster","attendance","interviews","needs","shiurim","year"].forEach(t=>$("tab-"+t).classList.add("hidden")); pane.classList.remove("hidden"); window.__renderHome(); });
     document.querySelectorAll(".tab").forEach(b=>{ if(b!==tb) b.addEventListener("click", ()=>pane.classList.add("hidden")); });
     const _u = updateAttentionBanner; updateAttentionBanner = function(){ _u.apply(this,arguments); try{ window.__renderHome(); }catch(e){} };
     tb.click();
