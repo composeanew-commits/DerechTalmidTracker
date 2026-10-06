@@ -412,9 +412,11 @@
       <div class="menu-wrap hidden" id="moreMenuWrap">
         <button class="ghost" id="moreMenuBtn" title="More">&#8942;</button>
         <div class="menu-dropdown hidden" id="moreMenu">
+          <button id="importBtn" style="font-weight:600;">&#128196; Add from a document (Excel / CSV)</button>
           <div class="menu-label">Reports</div>
           <button id="overviewBtn">Full school overview</button>
           <button id="missingToggleBtn">Show missing-info dots: Off</button>
+          <button id="strBrowseBtn">Strengths &amp; interests</button>
           <button id="weeklyReportBtn">Weekly report (printable)</button>
           <div class="menu-label">Safety</div>
           <button id="backupBtn">Download full backup</button>
@@ -423,7 +425,6 @@
           <button id="refreshMenuBtn">Sync now</button>
           <details class="menu-setup">
             <summary>Setup tools (rarely needed)</summary>
-            <button id="importBtn">Import from Excel (phones, shiurim, rooms)</button>
             <button id="dormBtn">Load dorm rooms (2026-27)</button>
             <button id="shiurListsBtn">Load class lists (Rabbi shiurim)</button>
             <button id="shiurImportBtn">Import shiurim list (upload or paste)</button>
@@ -1141,7 +1142,7 @@
         if(aRed!==bRed) return aRed-bRed;
         const ad = a.days===null ? 9999 : a.days, bd = b.days===null ? 9999 : b.days;
         if(ad!==bd) return bd-ad;
-        return a.student.name.localeCompare(b.student.name);
+        return byName(a.student,b.student);
       });
   }
 
@@ -1213,6 +1214,13 @@
     }
   }
 
+  function lastNameOf(n){
+    const w = String(n||"").replace(/\([^)]*\)/g," ").trim().split(/\s+/).filter(Boolean);
+    return (w.length ? w[w.length-1] : "").toLowerCase();
+  }
+  function byName(a,b){
+    return lastNameOf(a.name).localeCompare(lastNameOf(b.name)) || String(a.name||"").toLowerCase().localeCompare(String(b.name||"").toLowerCase());
+  }
   function showMissingDots(){ try{ return localStorage.getItem("showMissing")==="1"; }catch(e){ return false; } }
   function missingFields(s){
     const cls = s.classId ? classById(s.classId) : null;
@@ -1228,7 +1236,7 @@
     const q = ($("rosterSearch").value||"").trim();
     let list = state.activeClass===null ? state.data.students.slice() : studentsInClass(state.activeClass);
     if(q) list = searchStudents(list, q).map(r=>r.student);
-    else list.sort((a,b)=> a.name.localeCompare(b.name));
+    else list.sort((a,b)=> byName(a,b));
     const grid = $("rosterGrid");
     grid.innerHTML = "";
     $("rosterEmpty").classList.toggle("hidden", list.length!==0);
@@ -1304,7 +1312,7 @@
 
   // ================= QUICK STUDENT SHEET (tap any student) =================
   // ---- Strengths ----
-  const STRENGTH_PRESETS = ["Hockey","Basketball","Soccer","Music","Piano","Guitar","History","Writing","Cooking","Enjoys helping"];
+  const STRENGTH_PRESETS = ["Hockey","Basketball","Soccer","Music","Piano","Guitar","History","Writing","Reading","Gaming","Cooking","Art","Chess","Enjoys helping"];
   function allStrengthOptions(){
     const seen = new Set(), out = [];
     STRENGTH_PRESETS.concat(...state.data.students.map(x=>x.strengths||[])).forEach(t=>{ const k=t.toLowerCase(); if(!seen.has(k)){ seen.add(k); out.push(t); } });
@@ -1315,8 +1323,19 @@
     if(!list.length && !editable) return "";
     return `<div class="str-wrap" data-str-wrap>${list.map(t=>`<span class="str-chip" data-str="${escapeHtml(t)}">${escapeHtml(t)}${editable?`<b class="str-x" data-x="${escapeHtml(t)}" title="Remove">&times;</b>`:""}</span>`).join("")}</div>`;
   }
+  function openStrengthsBrowser(){
+    const cnt = {}; state.data.students.forEach(x=>(x.strengths||[]).forEach(t=>{ const k=t.toLowerCase(); (cnt[k]=cnt[k]||{t,n:0}).n++; }));
+    const list = Object.values(cnt).sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t));
+    const ov = document.createElement("div"); ov.className="overlay";
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">Strengths &amp; interests</b><div class="hint" style="margin:0;">Tap one to see everyone in the school</div></div><button class="ghost" id="sbClose">Close</button></div>
+      ${list.length?`<div class="str-wrap">${list.map(o=>`<span class="str-chip" data-t="${escapeHtml(o.t)}">${escapeHtml(o.t)} \u00b7 ${o.n}</span>`).join("")}</div>`:`<p class="hint">No strengths logged yet. Open any student and add some.</p>`}</div>`;
+    showOverlay(ov);
+    ov.querySelector("#sbClose").addEventListener("click", ()=>closeOverlay(ov));
+    ov.querySelectorAll(".str-chip").forEach(c=>c.addEventListener("click", ()=>openStrengthList(c.dataset.t)));
+  }
   function openDormList(d){
-    const people = state.data.students.filter(x=>x.dorm && x.dorm.toLowerCase()===d.toLowerCase()).sort((a,b)=>a.name.localeCompare(b.name));
+    const people = state.data.students.filter(x=>x.dorm && x.dorm.toLowerCase()===d.toLowerCase()).sort((a,b)=>byName(a,b));
     const ov = document.createElement("div"); ov.className="overlay";
     ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
     ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">Dorm ${escapeHtml(d)}</b><div class="hint" style="margin:0;">${people.length} in the room</div></div><button class="ghost" id="dmClose">Close</button></div>
@@ -1327,7 +1346,7 @@
   }
   function openStrengthList(tag, onlyClass){
     const key = tag.toLowerCase();
-    const people = state.data.students.filter(x=>(!onlyClass || x.classId===onlyClass) && (x.strengths||[]).some(t=>t.toLowerCase()===key)).sort((a,b)=>a.name.localeCompare(b.name));
+    const people = state.data.students.filter(x=>(!onlyClass || x.classId===onlyClass) && (x.strengths||[]).some(t=>t.toLowerCase()===key)).sort((a,b)=>byName(a,b));
     const ov = document.createElement("div"); ov.className="overlay";
     ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
     ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">${escapeHtml(tag)}</b><div class="hint" style="margin:0;">${people.length} student${people.length===1?"":"s"}</div></div><button class="ghost" id="strClose">Close</button></div>
@@ -1371,7 +1390,9 @@
           <button class="ghost" id="qsClose">Close</button>
         </div>
         ${profileSummaryHtml(student)}
-        ${strengthChipsHtml(student,false)}
+        <label style="margin-top:10px;">Strengths <span style="color:var(--ink-soft);">(tap one to see everyone with it)</span></label>
+        <div id="strBox"></div>
+        <div class="row" style="gap:8px;margin-top:6px;"><input type="text" id="strInput" placeholder="Add a strength\u2026" style="flex:1;margin:0;" /><button type="button" id="strAdd">Add</button></div>
         <label style="margin-top:2px;">How's he doing?</label>
         ${standingHtml(student.id)}
         <div class="qs-actions">
@@ -1386,6 +1407,7 @@
     showOverlay(overlay);
     const body = overlay.querySelector("#qsBody");
     wireStanding(overlay, student.id, ()=>{ renderInterviewPanel(); });
+    wireStrengthEditor(overlay, student);
     wireStrengthChips(overlay);
     const close = ()=>{ stopAllDictation(); closeOverlay(overlay); };
     overlay.querySelector("#qsClose").addEventListener("click", close);
@@ -1534,10 +1556,10 @@
   }
   function searchStudents(list, query){
     const qTokens = normText(query).split(" ").filter(Boolean);
-    if(!qTokens.length) return list.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(student=>({student,score:0}));
+    if(!qTokens.length) return list.slice().sort((a,b)=>byName(a,b)).map(student=>({student,score:0}));
     return list.map(student=>({student, score: scoreStudent(student, qTokens)}))
       .filter(r=>r.score>0)
-      .sort((a,b)=> b.score-a.score || a.student.name.localeCompare(b.student.name));
+      .sort((a,b)=> b.score-a.score || byName(a.student,b.student));
   }
   function highlightName(name, query){
     const toks = String(query).trim().split(/\s+/).filter(t=>t.length>0).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
@@ -1900,7 +1922,7 @@
   }
   function openStatusList(k){
     const label = k==="green"?"Thriving":k==="yellow"?"Steady":"Needs attention";
-    const people = state.data.students.filter(x=>studentStatus(x)===k).sort((a,b)=>a.name.localeCompare(b.name));
+    const people = state.data.students.filter(x=>studentStatus(x)===k).sort((a,b)=>byName(a,b));
     const ov = document.createElement("div"); ov.className="overlay";
     ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
     ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><b style="font-size:18px;">${label}</b><div class="hint" style="margin:0;">${people.length} student${people.length===1?"":"s"}</div></div><button class="ghost" id="stlClose">Close</button></div>
@@ -1959,7 +1981,7 @@
     const existing = findAttendanceRecord(classId, date);
     currentAttRecord = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(), classId, date, seder:state.activeSeder, records:{}, photo:""};
 
-    const roster = studentsInClass(classId).sort((a,b)=>a.name.localeCompare(b.name));
+    const roster = studentsInClass(classId).sort((a,b)=>byName(a,b));
     currentAttRoster = roster;
     // Default everyone to Present; fill any gaps (new record, or students added since a saved record).
     roster.forEach(s=>{ if(!currentAttRecord.records[s.id]) currentAttRecord.records[s.id] = "present"; });
@@ -2110,7 +2132,7 @@
   function renderInterviewPicker(){
     const wrap = $("interviewPicker");
     wrap.innerHTML = "";
-    const list = state.data.students.slice().sort((a,b)=>a.name.localeCompare(b.name));
+    const list = state.data.students.slice().sort((a,b)=>byName(a,b));
     if(state.activeInterviewStudent && !list.some(s=>s.id===state.activeInterviewStudent)) state.activeInterviewStudent = null;
     list.forEach(s=>{
       const pill = document.createElement("div");
@@ -2366,7 +2388,7 @@
       if(ovFilter.status === "attention") return r.reasons.length > 0;
       if(ovFilter.status !== "all") return r.status === ovFilter.status;
       return true;
-    }).sort((a,b)=> (b.reasons.length>0)-(a.reasons.length>0) || STATUS_ORDER_OV[a.status]-STATUS_ORDER_OV[b.status] || a.student.name.localeCompare(b.student.name));
+    }).sort((a,b)=> (b.reasons.length>0)-(a.reasons.length>0) || STATUS_ORDER_OV[a.status]-STATUS_ORDER_OV[b.status] || byName(a.student,b.student));
   }
   const STATUS_ORDER_OV = { red:0, yellow:1, unknown:2, green:3 };
 
@@ -2749,6 +2771,144 @@
     return k==="alef"?"1":k==="bet"?"2":k;
   }
 
+  // ================= ADD FROM A DOCUMENT (no AI / no API key) =================
+  // Reads Excel/CSV right on this device, finds the columns by their headings, matches people by name,
+  // and only writes the kinds of information you tick.
+  function openDocImport(){
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    ov.innerHTML = `<div class="drawer drawer-wide"><div class="drawer-head"><div><b style="font-size:18px;">Add from a document</b><div class="hint" style="margin:0;">Excel or CSV. Nothing changes until you tap Add.</div></div><button class="ghost" id="diClose">Close</button></div>
+      <label class="dz"><span class="ic">&#128196;</span>Choose a file<small>.xlsx, .xls or .csv</small><input type="file" id="diFile" accept=".xlsx,.xls,.csv" hidden /></label>
+      <div id="diBody"></div></div>`;
+    showOverlay(ov);
+    ov.querySelector("#diClose").addEventListener("click", ()=>closeOverlay(ov));
+    const body = ov.querySelector("#diBody");
+    const FIELDS = [["phone","Student phone"],["parentPhone","Parent phone"],["shiur","Shiur"],["dorm","Dorm room"],["strengths","Strengths & interests"]];
+    const tk = n=> String(n||"").toLowerCase().replace(/\([^)]*\)/g," ").replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
+    const key = n=> tk(n).sort().join(" ");
+    const cell = v=> (v===null||v===undefined) ? "" : String(v).replace(/\s+/g," ").trim();
+    const isTextish = v=> cell(v) && !/^[\d\s().+-]+$/.test(cell(v));
+    let sheets = [], cur = null;
+
+    function detect(rows){
+      let h = 0;
+      for(let i=0;i<Math.min(rows.length,12);i++){
+        const hits = rows[i].filter(c=> /name|phone|cell|mobile|whatsapp|dorm|room|shiur|class|strength|skill|interest|hobby|parent/i.test(cell(c))).length;
+        if(hits>=2){ h=i; break; }
+      }
+      const head = (rows[h]||[]).map(c=>cell(c).toLowerCase());
+      const find = re=> head.findIndex(x=> x && re.test(x));
+      const col = {};
+      const last = find(/^(last|surname|family)/), first = find(/^(first|given)/);
+      let nameCol = find(/^(full )?name|^student|^talmid/);
+      col.mode = null;
+      if(last>=0 && first>=0){ col.mode="lf"; col.last=last; col.first=first; }
+      else if(nameCol>=0){
+        const nx = nameCol+1, data = rows.slice(h+1,h+20);
+        if(!head[nx] && data.filter(r=>isTextish(r[nx])).length >= Math.max(2, data.filter(r=>cell(r[nameCol])).length/2)){ col.mode="split"; col.last=nameCol; col.first=nx; }
+        else { col.mode="one"; col.name=nameCol; }
+      }
+      const parent = find(/parent|mother|father|mom|dad|home/);
+      col.parentPhone = parent;
+      col.phone = head.findIndex((x,i)=> x && i!==parent && /phone|cell|mobile|whatsapp/.test(x) && !/parent|mother|father|mom|dad|home/.test(x));
+      col.shiur = find(/shiur|class/);
+      col.dorm = find(/dorm|room/);
+      col.strengths = find(/strength|skill|interest|hobb/);
+      const recs = [];
+      rows.slice(h+1).forEach(r=>{
+        let name = "";
+        if(col.mode==="lf"||col.mode==="split") name = (cell(r[col.first])+" "+cell(r[col.last])).trim();
+        else if(col.mode==="one"){ name = cell(r[col.name]); if(name.includes(",")){ const [a,b]=name.split(","); name=(b+" "+a).trim(); } }
+        if(!name || !/[a-z]/i.test(name)) return;
+        const rec = { name };
+        FIELDS.forEach(([f])=>{ if(col[f]>=0){ const v = cell(r[col[f]]); if(v) rec[f]=v; } });
+        recs.push(rec);
+      });
+      return { col, recs };
+    }
+
+    function matchStudent(name){
+      const k = key(name), ts = tk(name);
+      const all = state.data.students;
+      let m = all.filter(x=> key(x.name)===k);
+      if(m.length===1) return m[0];
+      if(ts.length>=2){
+        m = all.filter(x=>{ const xs = tk(x.name); const small = xs.length<=ts.length?xs:ts, big = xs.length<=ts.length?ts:xs; return small.length>=2 && small.every(w=>big.includes(w)); });
+        if(m.length===1) return m[0];
+      }
+      return null;
+    }
+    function findClass(v){
+      const q = v.toLowerCase().trim();
+      return state.data.classes.find(c=> c.name.toLowerCase().trim()===q) || state.data.classes.find(c=> c.name.toLowerCase().includes(q) || q.includes(c.name.toLowerCase()));
+    }
+
+    function render(){
+      const d = cur;
+      if(!d.col.mode){ body.innerHTML = `<p class="hint" style="margin-top:12px;">I couldn't find a Name column on this sheet${sheets.length>1?" - try another sheet above":""}. Add a heading like "Name" (or "First name" and "Last name") and try again.</p>`; return; }
+      const found = FIELDS.filter(([f])=> d.col[f]>=0 && d.recs.some(r=>r[f]));
+      const matched = [], unmatched = [];
+      d.recs.forEach(r=>{ const st = matchStudent(r.name); (st?matched:unmatched).push({r,st}); });
+      body.innerHTML = `
+        ${sheets.length>1?`<label style="margin-top:12px;">Sheet</label><select id="diSheet">${sheets.map((x,i)=>`<option value="${i}" ${x===d?"selected":""}>${escapeHtml(x.name)}</option>`).join("")}</select>`:""}
+        <p style="margin:12px 0 4px;"><b>${d.recs.length}</b> people found &middot; <b>${matched.length}</b> matched to your students${unmatched.length?` &middot; <b>${unmatched.length}</b> not found`:""}</p>
+        ${found.length? `<label style="margin-top:10px;">What do you want to add? <span style="color:var(--ink-soft);">(only ticked items are saved)</span></label>
+          ${found.map(([f,l])=>`<label class="row" style="gap:8px;align-items:center;margin:6px 0;font-weight:500;"><input type="checkbox" data-f="${f}" checked style="width:auto;margin:0;" /> ${l} <span style="color:var(--ink-soft);font-weight:400;">(${d.recs.filter(r=>r[f]).length} in file)</span></label>`).join("")}`
+          : `<p class="hint">I found names but no phone, shiur, dorm or strengths columns. Check the column headings.</p>`}
+        <label class="row" style="gap:8px;align-items:center;margin:10px 0 4px;font-weight:500;"><input type="checkbox" id="diOver" style="width:auto;margin:0;" /> Replace info that's already filled in <span style="color:var(--ink-soft);font-weight:400;">(off = only fill blanks)</span></label>
+        ${unmatched.length?`<label class="row" style="gap:8px;align-items:center;margin:4px 0;font-weight:500;"><input type="checkbox" id="diNew" style="width:auto;margin:0;" /> Also add the ${unmatched.length} not-found people as new students</label>
+        <details style="margin:6px 0;"><summary style="cursor:pointer;color:var(--ink-soft);font-size:13px;">See who wasn't found</summary><div class="hint">${unmatched.map(u=>escapeHtml(u.r.name)).join(", ")}</div></details>`:""}
+        <p class="hint" id="diCount" style="margin:10px 0 6px;"></p>
+        <button id="diGo" ${found.length?"":"disabled"}>Add to database</button>`;
+      const sel = body.querySelector("#diSheet");
+      if(sel) sel.addEventListener("change", ()=>{ cur = sheets[+sel.value]; render(); });
+      const opts = ()=>({ fields:[...body.querySelectorAll("[data-f]")].filter(c=>c.checked).map(c=>c.dataset.f), over: body.querySelector("#diOver").checked, mk: !!(body.querySelector("#diNew")&&body.querySelector("#diNew").checked) });
+      const apply = (o, dry)=>{
+        let n = 0;
+        const setIf = (st,f,v)=>{ if(v && (o.over || !st[f]) && st[f]!==v){ n++; if(!dry) st[f]=v; } };
+        matched.forEach(({r,st})=>{
+          o.fields.forEach(f=>{
+            if(!r[f]) return;
+            if(f==="phone"||f==="parentPhone"||f==="dorm") setIf(st,f,r[f]);
+            else if(f==="shiur"){ const c = findClass(r[f]); if(c && (o.over || !st.classId) && st.classId!==c.id){ n++; if(!dry) st.classId=c.id; } }
+            else if(f==="strengths"){
+              const have = (st.strengths||[]).map(t=>t.toLowerCase());
+              r[f].split(/[,;\n]/).map(t=>t.trim()).filter(Boolean).forEach(t=>{ if(!have.includes(t.toLowerCase())){ have.push(t.toLowerCase()); n++; if(!dry){ st.strengths = st.strengths||[]; st.strengths.push(t); } } });
+            }
+          });
+        });
+        if(o.mk) unmatched.forEach(({r})=>{
+          n++;
+          if(dry) return;
+          const c = o.fields.includes("shiur") && r.shiur ? findClass(r.shiur) : null;
+          const st = { id: uid(), name: r.name, classId: c?c.id:null, photo:"", phone:"", parentPhone:"" };
+          o.fields.forEach(f=>{ if(!r[f]) return; if(f==="phone"||f==="parentPhone"||f==="dorm") st[f]=r[f]; else if(f==="strengths") st.strengths = r[f].split(/[,;\n]/).map(t=>t.trim()).filter(Boolean); });
+          state.data.students.push(st);
+        });
+        return n;
+      };
+      const upd = ()=>{ const n = apply(opts(), true); body.querySelector("#diCount").textContent = n ? `${n} change${n===1?"":"s"} will be made.` : "Nothing new to add with these choices."; body.querySelector("#diGo").disabled = !n; };
+      body.querySelectorAll("input[type=checkbox]").forEach(c=>c.addEventListener("change", upd)); upd();
+      body.querySelector("#diGo").addEventListener("click", async ()=>{
+        const n = apply(opts(), false);
+        try{ await persist(); renderRoster(); renderKpis(); toast(`Added ${n} change${n===1?"":"s"}.`, "success"); closeOverlay(ov); }
+        catch(e){ toast("Couldn't save. Try again.", "error"); }
+      });
+    }
+
+    ov.querySelector("#diFile").addEventListener("change", async e=>{
+      const f = e.target.files[0]; if(!f) return;
+      body.innerHTML = `<p class="hint" style="margin-top:12px;">Reading ${escapeHtml(f.name)}...</p>`;
+      try{
+        await ensureXLSX();
+        const wb = window.XLSX.read(await f.arrayBuffer(), {type:"array"});
+        sheets = wb.SheetNames.map(n=>{ const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:""}); const d = detect(rows); d.name = n; return d; });
+        cur = sheets.find(d=>d.col.mode && FIELDS.some(([x])=>d.col[x]>=0) && d.recs.length) || sheets.find(d=>d.col.mode) || sheets[0];
+        render();
+      }catch(err){ body.innerHTML = `<p class="hint" style="margin-top:12px;color:var(--red);">Couldn't read that file. Try saving it as .xlsx or .csv.</p>`; }
+    });
+  }
+
   async function openSmartImport(){
     $("moreMenu").classList.add("hidden");
     const ov = document.createElement("div"); ov.className = "overlay";
@@ -2889,7 +3049,7 @@
       const stand = latestStanding(s.id), struggling = !!(stand && stand.status==="struggling"), low = attendanceStatus(s)==="red" || struggling, overdue = !li || (days!==null && days>=CHECKIN_STALE_DAYS);
       return {s, streak, status, li, days, low, struggling, overdue, hot: streak>=STREAK_ALERT};
     }).filter(e=> e.hot || e.low || e.overdue)
-      .sort((a,b)=> (b.hot-a.hot) || (b.streak-a.streak) || (b.low-a.low) || ((b.days===null?9999:b.days)-(a.days===null?9999:a.days)) || a.s.name.localeCompare(b.s.name));
+      .sort((a,b)=> (b.hot-a.hot) || (b.streak-a.streak) || (b.low-a.low) || ((b.days===null?9999:b.days)-(a.days===null?9999:a.days)) || byName(a.s,b.s));
   }
   function renderNeeds(){
     const body = $("needsBody"); if(!body || !state.data) return;
@@ -3006,7 +3166,7 @@
         yAll = yAll.concat(rows);
         const wd = rows.filter(r=>r.a.rate!==null), avg = wd.length ? wd.reduce((x,r)=>x+r.a.rate,0)/wd.length : null;
         const low = wd.filter(r=>r.a.rate<0.8).length, open = yrOpen[c.id];
-        rows.sort((a,b)=> (a.a.rate===null)-(b.a.rate===null) || (a.a.rate||0)-(b.a.rate||0) || a.st.name.localeCompare(b.st.name));
+        rows.sort((a,b)=> (a.a.rate===null)-(b.a.rate===null) || (a.a.rate||0)-(b.a.rate||0) || byName(a.st,b.st));
         return `<div class="yr-sec"><div class="yr-h" data-c="${escapeHtml(c.id)}"><div><b>${escapeHtml(c.name)}</b><div class="hint" style="margin:0;">${c.rebbi?escapeHtml(c.rebbi)+" \u00b7 ":""}${rows.length} talmidim${low?` \u00b7 <span style="color:var(--red);">${low} below 80%</span>`:""}</div></div>
           <span class="yr-pct ${rateCls(avg)}">${pctTxt(avg)} ${open?"\u25b2":"\u25bc"}</span></div>
           ${open ? (rows.map(r=>`<div class="yr-row" data-id="${r.st.id}"><div class="yn">${escapeHtml(r.st.name)}<div class="yc">${r.a.t?`${r.a.ab} absent \u00b7 ${r.a.l} late \u00b7 ${r.a.p} present`:"no attendance yet"}</div></div>
@@ -3047,7 +3207,7 @@
     }
     const c = classById(shiurOpen), x = shiurStats(c);
     const order = r => (r.streak>=STREAK_ALERT?0:r.stand==="struggling"?1:r.st==="red"?2:r.overdue?3:4);
-    const rows = x.rows.slice().sort((a,b)=> order(a)-order(b) || a.s.name.localeCompare(b.s.name));
+    const rows = x.rows.slice().sort((a,b)=> order(a)-order(b) || byName(a.s,b.s));
     const strCount = {}; rows.forEach(r=>(r.s.strengths||[]).forEach(t=>{ const k=t.toLowerCase(); (strCount[k]=strCount[k]||{t,n:0}).n++; }));
     const strList = Object.values(strCount).sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t)).map(o=>[o.t,o.n]);
     body.innerHTML = `<div class="row" style="align-items:center;margin-bottom:8px;"><button class="ghost" id="shBack">\u2039 All shiurim</button><div style="flex:1"></div><button class="nm-btn main" id="shCopy" style="flex:none;">Copy summary</button></div>
@@ -3136,7 +3296,7 @@
     showOverlay(ov);
     const box = ov.querySelector("#qrBox"), close = ()=>{ closeOverlay(ov); renderNeeds(); renderShiurim(); renderRoster(); updateAttentionBanner(); };
     ov.addEventListener("click", e=>{ if(e.target===ov) close(); });
-    const unrated = list => list.filter(s=> !latestStanding(s.id)).sort((a,b)=> (a.classId||"").localeCompare(b.classId||"") || a.name.localeCompare(b.name));
+    const unrated = list => list.filter(s=> !latestStanding(s.id)).sort((a,b)=> (a.classId||"").localeCompare(b.classId||"") || byName(a,b));
     function pick(){
       const all = unrated(state.data.students);
       box.innerHTML = `<div class="row" style="align-items:center;margin-bottom:8px;"><p class="setup-title" style="font-size:20px;margin:0;flex:1;">Quick review</p><button class="ghost" id="qrX">Close</button></div>
@@ -3175,7 +3335,7 @@
     pick();
   }
 
-  $("importBtn").addEventListener("click", openSmartImport);
+  $("importBtn").addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); openDocImport(); });
 
   // ================= RECENTLY DELETED (soft-delete recovery) =================
   function daysAgoLabel(iso){
@@ -3446,13 +3606,14 @@
       const pane=$(paneId); if(!pane) return;
       const d=document.createElement("div"); d.className="nav-seg";
       d.innerHTML=items.map(([t,l])=>`<button type="button" class="${t===active?"on":""}" data-go="${t}">${l}</button>`).join("");
-      d.querySelectorAll("button").forEach(b=>b.addEventListener("click", ()=>{ if(!b.classList.contains("on")) goTab(b.dataset.go); }));
+      d.querySelectorAll("button").forEach(b=>b.addEventListener("click", ()=>{ if(b.dataset.go==="__str") return openStrengthsBrowser(); if(!b.classList.contains("on")) goTab(b.dataset.go); }));
       pane.insertBefore(d, pane.firstChild);
     };
-    const sh=[["shiurim","By shiur"],["year","Whole yeshiva attendance"]], st=[["roster","Students & classes"],["interviews","Check-ins"]];
+    const sh=[["shiurim","By shiur"],["year","Whole yeshiva attendance"]], st=[["roster","Students & classes"],["interviews","Check-ins"],["__str","\u2605 Strengths"]];
     mk("tab-shiurim",sh,"shiurim"); mk("tab-year",sh,"year"); mk("tab-roster",st,"roster"); mk("tab-interviews",st,"interviews");
   })();
 
+  $("strBrowseBtn").addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); openStrengthsBrowser(); });
   (function(){
     const b = $("missingToggleBtn"); if(!b) return;
     const label = ()=>{ b.textContent = "Show missing-info dots: " + (showMissingDots() ? "On" : "Off"); };
@@ -3762,7 +3923,7 @@
         let p=0,l=0,a=0; recs.forEach(r=>{ const v = r.records&&r.records[s.id]; if(v==="present")p++; else if(v==="late")l++; else if(v==="absent")a++; });
         const t = p+l+a, ck = state.data.interviews.filter(i=>i.studentId===s.id).sort((x,y)=>y.date.localeCompare(x.date))[0];
         return {s, p, l, a, t, rate:t?(p+l*0.5)/t:null, streak:absentStreak(s), st:studentStatus(s), ck};
-      }).sort((x,y)=>({red:0,yellow:1,unknown:2,green:3}[x.st]-{red:0,yellow:1,unknown:2,green:3}[y.st]) || x.s.name.localeCompare(y.s.name));
+      }).sort((x,y)=>({red:0,yellow:1,unknown:2,green:3}[x.st]-{red:0,yellow:1,unknown:2,green:3}[y.st]) || byName(x.s,y.s));
       const rated = rows.filter(r=>r.rate!==null);
       return {c, from, rows, avg:rated.length?rated.reduce((n,r)=>n+r.rate,0)/rated.length:null, cnt:k=>rows.filter(r=>r.st===k).length};
     }
