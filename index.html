@@ -402,6 +402,15 @@
   .sticky-save .primary{padding:12px 22px;font-size:15px;border-radius:12px;}
   #attnBanner{display:none !important;}
   .tab[data-tab="needs"]{display:none !important;}
+
+  /* --- v2 cleanup --- */
+  #kpiStrip, #attnBanner, #hmTiles>div:first-child, #hmUp, .quick-call, #rosterGrid .status-label{display:none !important;}
+  .aa-g{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--card);}
+  .aa-gh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 12px;cursor:pointer;}
+  .aa-gb{padding:0 10px 10px;}
+  .aa-hit{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .aa-hit .nm{flex:1;font-size:14px;}
+  .aa-hit button{padding:6px 10px;font-size:12px;}
 </style>
 </head>
 <body>
@@ -466,6 +475,7 @@
         <span class="gs-icon">&#128269;</span>
         <input type="search" id="gsInput" placeholder="Search any student by name, class or phone" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
         <button type="button" class="gs-clear hidden" id="gsClear" aria-label="Clear search">&#10005;</button>
+        <button type="button" class="pill" id="gsScope" style="flex:none;cursor:pointer;margin-left:6px;">Alef</button>
       </div>
       <div class="gs-results hidden" id="gsResults"></div>
     </div>
@@ -537,7 +547,7 @@
             <input type="date" id="attDate" style="padding:6px 8px;font-size:13px;" />
           </div>
         </div>
-        <p class="hint" style="margin-top:10px;">Everyone defaults to <b>Present</b>. Tap a student once for <b>Absent</b>, tap again for <b>Late</b>, tap again to go back to Present.</p>
+        <p class="hint" style="margin-top:10px;">Changes save automatically. Everyone defaults to <b>Present</b>. Tap a student once for <b>Absent</b>, tap again for <b>Late</b>, tap again to go back to Present.</p>
         <div id="attRows" style="margin-top:12px;"></div>
         <div class="row" style="margin-top:10px;">
           <button class="ghost" id="clearAllAttBtn" style="font-size:12px;">Reset everyone to Present</button>
@@ -553,7 +563,7 @@
         </div>
         <div class="row row-end sticky-save" style="margin-top:14px;">
           <span id="attSummary" class="hint" style="margin-right:auto;"></span>
-          <button class="primary" id="saveAttendance">Save attendance</button>
+          <button class="primary" id="saveAttendance">Done &#10003;</button>
         </div>
         <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:14px;">
           <p class="setup-title" style="font-size:14px;">History</p>
@@ -932,9 +942,7 @@
     $("mainView").classList.remove("hidden");
     $("moreMenuWrap").classList.remove("hidden");
     purgeOldTrash();
-    if(!state.activeClass && state.data.classes.length) state.activeClass = defaultClassId();
-    if(!state.activeAttClass) state.activeAttClass = defaultClassId();
-    renderRoster();
+            renderRoster();
     renderAttClassStrip();
     $("attDate").value = todayStr();
     renderAttendanceTab();
@@ -1199,9 +1207,14 @@
     strip.innerHTML = "";
     const allChip = document.createElement("div");
     allChip.className = "class-chip" + (state.activeClass===null?" active":"");
-    allChip.textContent = "All students";
+    allChip.textContent = "Shana Alef";
     allChip.addEventListener("click", ()=>{ state.activeClass = null; renderRoster(); });
     strip.appendChild(allChip);
+    const everyChip = document.createElement("div");
+    everyChip.className = "class-chip" + (state.activeClass==="__all"?" active":"");
+    everyChip.textContent = "All students";
+    everyChip.addEventListener("click", ()=>{ state.activeClass = "__all"; renderRoster(); });
+    strip.appendChild(everyChip);
     state.data.classes.forEach(c=>{
       const chip = document.createElement("div");
       chip.className = "class-chip" + (state.activeClass===c.id ? " active":"");
@@ -1246,7 +1259,7 @@
   function renderRoster(){
     renderClassStrip();
     const q = ($("rosterSearch").value||"").trim();
-    let list = state.activeClass===null ? state.data.students.slice() : studentsInClass(state.activeClass);
+    let list = state.activeClass===null ? yearScope() : state.activeClass==="__all" ? state.data.students.slice() : studentsInClass(state.activeClass);
     if(q) list = searchStudents(list, q).map(r=>r.student);
     else list.sort((a,b)=> byName(a,b));
     const grid = $("rosterGrid");
@@ -1397,17 +1410,11 @@
           <div class="qs-head">
             <div class="photo ${status}">${student.photo?`<img src="${student.photo}" alt="">`:initials(student.name)}</div>
             <div><div class="name">${escapeHtml(student.name)}</div>
-              <div class="hint" style="margin:0;">${escapeHtml([cls?cls.name:"No class", student.phone||""].filter(Boolean).join(" \u00b7 "))}</div></div>
+              <div class="hint" style="margin:0;">${escapeHtml(quickSub(student))}</div></div>
           </div>
           <button class="ghost" id="qsClose">Close</button>
         </div>
-        ${profileSummaryHtml(student)}
-        <label style="margin-top:10px;">Strengths <span style="color:var(--ink-soft);">(tap one to see everyone with it)</span></label>
-        <div id="strBox"></div>
-        <div class="row" style="gap:8px;margin-top:6px;"><input type="text" id="strInput" placeholder="Add a strength\u2026" style="flex:1;margin:0;" /><button type="button" id="strAdd">Add</button></div>
-        <label style="margin-top:2px;">How's he doing?</label>
-        ${standingHtml(student.id)}
-        <div id="qsExtra"></div>
+        ${quickTopHtml(student)}
         <div class="qs-actions">
           <button id="qsModeCheck">Check-in</button>
           <button id="qsModeAtt" ${cls?"":"disabled title='Assign a class first'"}>Attendance</button>
@@ -1419,10 +1426,6 @@
       </div>`;
     showOverlay(overlay);
     const body = overlay.querySelector("#qsBody");
-    try{ window.__renderStudentBoxes && window.__renderStudentBoxes(student, overlay.querySelector("#qsExtra")); }catch(e){}
-    wireStanding(overlay, student.id, ()=>{ renderInterviewPanel(); });
-    wireStrengthEditor(overlay, student);
-    wireStrengthChips(overlay);
     const close = ()=>{ stopAllDictation(); closeOverlay(overlay); };
     overlay.querySelector("#qsClose").addEventListener("click", close);
     overlay.querySelector("#qsProfile").addEventListener("click", ()=>{ close(); openStudentDrawer(student.id); });
@@ -1449,6 +1452,7 @@
         <textarea id="qsNotes" rows="6" placeholder="How is he doing? What did you talk about? (optional if you picked a status)"></textarea>
         <p class="hint" style="margin-top:4px;">Tip: for the best accuracy, tap the box and use the &#127908; on your keyboard.</p>
         <div class="row row-end" style="margin-top:12px;"><button class="primary" id="qsSaveCheck">Save check-in</button></div>`;
+      { const sw = document.createElement("div"); body.appendChild(sw); try{ renderSwitchBox(student, sw, false); }catch(e){} }
       body.querySelectorAll("#qsCkSt button").forEach(b=> b.addEventListener("click", ()=>{
         st = (st===b.dataset.st) ? "" : b.dataset.st;
         body.querySelectorAll("#qsCkSt button").forEach(x=> x.classList.toggle("active", x.dataset.st===st));
@@ -1587,10 +1591,10 @@
     const box = $("gsResults");
     $("gsClear").classList.toggle("hidden", !q);
     if(!q){ box.classList.add("hidden"); box.innerHTML=""; gsHits=[]; return; }
-    gsHits = searchStudents(state.data.students, q).slice(0, 25);
+    gsHits = searchStudents(state.gsAll ? state.data.students : yearScope(), q).slice(0, 25);
     gsSel = 0;
     box.classList.remove("hidden");
-    if(!gsHits.length){ box.innerHTML = '<div class="gs-none">No student found for \u201c'+escapeHtml(q)+'\u201d</div>'; return; }
+    if(!gsHits.length){ box.innerHTML = '<div class="gs-none">No student found for \u201c'+escapeHtml(q)+'\u201d'+(state.gsAll?'':' in Shana Alef \u2014 tap Alef to search everyone')+'</div>'; return; }
     box.innerHTML = "";
     gsHits.forEach((r,idx)=>{
       const s = r.student, status = studentStatus(s), cls = s.classId ? classById(s.classId) : null;
@@ -1720,7 +1724,7 @@
 
   function openStudentDrawer(studentId){
     const isNew = !studentId;
-    const student = isNew ? {id:uid(), name:"", classId: (state.activeClass && state.activeClass!=="__none") ? state.activeClass : null, photo:"", phone:"", parentPhone:""} : state.data.students.find(s=>s.id===studentId);
+    const student = isNew ? {id:uid(), name:"", classId: (state.activeClass && state.activeClass!=="__none" && state.activeClass!=="__all") ? state.activeClass : null, photo:"", phone:"", parentPhone:""} : state.data.students.find(s=>s.id===studentId);
     const overlay = document.createElement("div");
     overlay.className = "overlay";
     overlay.addEventListener("click", e=>{ if(e.target===overlay) closeOverlay(overlay); });
@@ -1747,19 +1751,14 @@
         <select id="stClass"><option value="">No class</option>${classOptions}</select>
         ${!isNew && student.classId && classById(student.classId) && classById(student.classId).room ? `
         <div class="kv"><span class="k">Room</span><span class="v">${escapeHtml(classById(student.classId).room)}</span></div>` : ""}
-        ${!isNew && student.classId && classById(student.classId) && classById(student.classId).rebbi ? `
-        <div class="kv"><span class="k">Primary Rebbe</span><span class="v">${escapeHtml(classById(student.classId).rebbi)}</span></div>` : ""}
+        ${!isNew ? rebbiRowsHtml(student) : ""}
         <label for="stPhone">Student phone <span style="color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="stPhone" value="${escapeHtml(student.phone||"")}" />
         <label for="stDorm">Dorm room</label>
         <input type="text" id="stDorm" value="${escapeHtml(student.dorm||"")}" placeholder="e.g. 17a or Mili 2b" />
         <label for="stParentPhone">Parent phone <span style="color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="stParentPhone" value="${escapeHtml(student.parentPhone||"")}" />
-        ${!isNew && (student.phone || student.parentPhone) ? `
-        <div class="row" style="margin-top:8px;gap:8px;">
-          ${student.parentPhone ? `<a href="tel:${escapeHtml(student.parentPhone)}" class="link-btn">Call parent</a>` : ""}
-          ${student.phone ? `<a href="tel:${escapeHtml(student.phone)}" class="link-btn">Call student</a>` : ""}
-        </div>` : ""}
+        ${!isNew && (student.phone || student.parentPhone) ? `<div class="row" style="margin-top:8px;gap:8px;">${student.phone ? `<a href="${waLink(student.phone)}" target="_blank" rel="noopener" class="link-btn">WhatsApp ${escapeHtml((student.name||"").split(" ")[0])}</a>` : ""}${student.parentPhone ? `<a href="${waLink(student.parentPhone)}" target="_blank" rel="noopener" class="link-btn">WhatsApp parent</a>` : ""}</div>` : ""}
         <label style="margin-top:14px;">Strengths <span style="color:var(--ink-soft);">(tap one to see everyone with it)</span></label>
         <div id="strBox"></div>
         <div class="row" style="gap:8px;margin-top:6px;"><input type="text" id="strInput" placeholder="Add a strength…" style="flex:1;margin:0;" /><button type="button" id="strAdd">Add</button></div>
@@ -1776,12 +1775,13 @@
         ` : ""}
         <div class="row row-end" style="margin-top:18px;">
           ${!isNew ? `<button class="danger" id="deleteStudent">Delete</button>` : ""}
-          <button class="primary" id="saveStudent">${isNew?"Add student":"Save"}</button>
+          <button class="primary" id="saveStudent">${isNew?"Add student":"Done"}</button>
         </div>
       </div>
     `;
     showOverlay(overlay);
     overlay.querySelector("#closeDrawer").addEventListener("click", ()=> closeOverlay(overlay));
+    autoSaveStudentFields(overlay, student, isNew);
     wireStrengthEditor(overlay, student);
     if(!isNew) renderStudentTimeline(overlay, student.id);
     if(!isNew) wireStanding(overlay, student.id, ()=>{ renderStudentTimeline(overlay, student.id); renderInterviewPanel(); });
@@ -2018,6 +2018,7 @@
         currentAttRecord.records[s.id] = nextAttStatus(currentAttRecord.records[s.id]);
         renderAttRowState(row, currentAttRecord.records[s.id]);
         updateAttSummary(roster.length);
+        window.__autoSaveAtt();
       };
       row.querySelector(".att-status-pill").addEventListener("click", e=>{ e.stopPropagation(); cycle(); });
       row.querySelector(".att-photo").addEventListener("click", e=>{ e.stopPropagation(); openStudentQuick(s.id); });
@@ -2051,6 +2052,7 @@
     currentAttRoster.forEach(s=>{ currentAttRecord.records[s.id] = "present"; });
     $("attRows").querySelectorAll(".att-row").forEach(row=> renderAttRowState(row, "present"));
     updateAttSummary(currentAttRoster.length);
+    window.__autoSaveAtt();
   });
 
   function loadScript(src){ return new Promise((ok,no)=>{ const el=document.createElement("script"); el.src=src; el.onload=ok; el.onerror=()=>no(new Error("Couldn't load the reader \u2014 check your connection.")); document.head.appendChild(el); }); }
@@ -2146,15 +2148,15 @@
   function renderInterviewPicker(){
     const wrap = $("interviewPicker");
     wrap.innerHTML = "";
-    if(state.ciClass===undefined) state.ciClass = defaultClassId();
+    if(state.ciClass===undefined) state.ciClass = "__alef";
     const sel = document.createElement("select"); sel.style.cssText = "width:100%;margin-bottom:8px;";
-    sel.innerHTML = `<option value="">All students</option>` + state.data.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+    sel.innerHTML = `<option value="__alef">Shana Alef</option><option value="">All students</option>` + state.data.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
     sel.value = state.ciClass || "";
     sel.addEventListener("change", ()=>{ state.ciClass = sel.value || null; renderInterviewPicker(); });
     wrap.appendChild(sel);
     let list = state.data.students.slice().sort((a,b)=>byName(a,b));
     if(state.activeInterviewStudent && !list.some(s=>s.id===state.activeInterviewStudent)) state.activeInterviewStudent = null;
-    if(state.ciClass) list = list.filter(s=>s.classId===state.ciClass);
+    if(state.ciClass==="__alef") list = list.filter(s=>studentYear(s)==="alef"); else if(state.ciClass) list = list.filter(s=>s.classId===state.ciClass);
     list.forEach(s=>{
       const pill = document.createElement("div");
       pill.className = "student-pill" + (state.activeInterviewStudent===s.id ? " active":"");
@@ -3619,7 +3621,7 @@
   $("shiurImportBtn").addEventListener("click", openShiurImport);
 
   // ================= CLASS LISTS: shiurim placements (from Class_Lists.docx) =================
-  const SHIUR_LISTS = [{"rebbi": "Rabbi Banin", "students": ["Harel Achial", "David Cohen", "Ezra Gelfand", "Nathan Glatt", "Michael Lugassy", "Nerya Maman", "Natan Murdakhayev", "Joseph Nassim", "Asher Schwartz", "Matan Zagory"]}, {"rebbi": "Rabbi Gordon", "students": ["Eliyahu Benham", "Daniel Boruchov", "Yosef Epstein", "Ari Ehrenreich", "Eitan Mirzakandov"]}, {"rebbi": "Rabbi Hoolin", "students": ["Ezra Ahlers", "Elad Bell", "Ely Gelb", "Micah Peyman", "Mendel Sklar", "Itai Sogaokar"]}, {"rebbi": "Rabbi Lieber", "students": ["Yehuda Davidovici", "Binyamin Black", "Yehuda Lichaa", "Moshe Freedman", "Daniel Frieden", "Aviel Ginsbury", "Daniel Rakhmanov", "Jonathan Zirkiyev", "Binyamin Valdez"]}, {"rebbi": "Rabbi Lavon", "students": ["Michael Bamberger", "Shlomo Kaganoff", "Yoni Mason", "Joseph Sacks", "Gavriel Perlman", "Michael Iliyev", "Elliot Klein"]}, {"rebbi": "Rabbi Stern", "students": ["Gavi Elkin", "Wyatt Sanders", "Asher Bressel", "Avishai Weiman", "Yosef Eliezer", "Amitai Burack", "Yinnon Gellman"]}, {"rebbi": "Rabbi Topaz", "students": ["Levi Suissa", "Yakov Milgram", "Aaron Pshemish", "Dani Durbach", "Mendy Stark", "Daniel Solomon", "Yaakov Shotkin", "Uriel Isaac Saul", "Moshe Robinson", "Jason Gangian"]}, {"rebbi": "Rabbi Traub", "students": ["David Lunski", "Yoni Joseph", "David Kempner", "Adam Brodsky", "Moishy Weinstein", "Nosh Fromen"]}, {"rebbi": "Rabbi Zwick", "students": ["Emanuel Aguvayev", "Zevi Shnayderman", "David Cairns", "Elishama Gross", "Jayden Gasner", "Ori Edri", "Dvir Achial", "Sam Hirshbein"]}];
+  const SHIUR_LISTS = [{"rebbi": "Rabbi Banin", "students": ["Harel Achial", "David Cohen", "Ezra Gelfand", "Nathan Glatt", "Michael Lugassy", "Nerya Maman", "Natan Murdakhayev", "Joseph Nassim", "Matan Zagory", "Jonathan Zirkiyev"]}, {"rebbi": "Rabbi Gordon", "students": ["Eliyahu Benham", "Daniel Boruchov", "Yosef Epstein", "Ari Ehrenreich", "Eitan Mirzakandov"]}, {"rebbi": "Rabbi Hoolin", "students": ["Ezra Ahlers", "Elad Bell", "Binyamin Black", "Ely Gelb", "Zecharya Leitner", "Micah Peyman", "Itai Sogaokar"]}, {"rebbi": "Rabbi Lieber", "students": ["Yehuda Davidovici", "Yehuda Lichaa", "Moshe Freedman", "Daniel Frieden", "Aviel Ginsbury", "Daniel Rakhmanov", "Binyamin Valdez", "Asher Bressel", "Yoni Mason"]}, {"rebbi": "Rabbi Lavon", "students": ["Shlomo Kaganoff", "Joseph Sacks", "Gavriel Perlman", "Michael Iliyev", "Elliot Klein"]}, {"rebbi": "Rabbi Stern", "students": ["Gavi Elkin", "Wyatt Sanders", "Uriel Glatt", "Mendel Sklar", "Avishai Weiman", "Yosef Eliezer", "Amitai Burack", "Yinnon Gellman"]}, {"rebbi": "Rabbi Topaz", "students": ["Levi Suissa", "Yakov Milgram", "Aaron Pshemish", "Dani Durbach", "Mendy Stark", "Daniel Solomon", "Uriel Isaac Saul", "Moshe Robinson", "Jason Gangian", "Moishy Weinstein"]}, {"rebbi": "Rabbi Traub", "students": ["David Lunski", "Yoni Joseph", "David Kempner", "Adam Brodsky", "Yaakov Shotkin", "Nosh Fromen"]}, {"rebbi": "Rabbi Zwick", "students": ["Emanuel Aguvayev", "Zevi Shnayderman", "David Cairns", "Elishama Gross", "Jayden Gasner", "Ori Edri", "Dvir Achial", "Sam Hirshbein"]}];
   const SHIUR_ALIASES = {"Natan Murdakhayev": "Natanel Murdakhayev", "Eliyahu Benham": "Eliahu Behnam", "Ely Gelb": "Eli Gelb", "Mendel Sklar": "Menachem Sklar", "Binyamin Valdez": "Benyamin Valdez", "Shlomo Kaganoff": "Solomon Kaganoff", "Michael Iliyev": "Michael Iliev", "Yosef Eliezer": "Yosef Yisrael Eliezer", "Amitai Burack": "Ty Burack", "Yakov Milgram": "Yaakov Milgram", "Mendy Stark": "Max Stark", "Uriel Isaac Saul": "Uriel yehoshua Isaac-Saul", "Jason Gangian": "Jason Ganjian", "Yoni Joseph": "Jonathan (Yoni) Joseph", "Nosh Fromen": "noah fromen", "Sam Hirshbein": "Samuel Hirshbein"};
 
   // ---- simpler navigation: related screens share one visible tab with a small switch ----
@@ -3665,14 +3667,14 @@
     const byKey = {}; state.data.students.forEach(s=>{ byKey[key(s.name)] = s; });
     const plan = [], missing = [];
     SHIUR_LISTS.forEach(sh=> sh.students.forEach(n=>{
-      const st = byKey[key(n)] || byKey[key(SHIUR_ALIASES[n]||"")];
+      const st = byKey[key(n)] || byKey[key(SHIUR_ALIASES[n]||"")] || fuzzyStudent(n);
       if(st) plan.push({st, sh}); else missing.push(n+" ("+sh.rebbi+")");
     }));
     if(!plan.length){ toast("No students matched \u2014 restore or import your roster first.", "error"); return; }
     if(!(await confirmDialog(`Create ${SHIUR_LISTS.length} shiurim (${SHIUR_LISTS.map(x=>x.rebbi.replace("Rabbi ","")).join(", ")}) and place ${plan.length} students in them? Each student moves from Shana Alef into his shiur, so attendance is taken per shiur from now on.`+(missing.length?` Not found in roster: ${missing.join(", ")}.`:""), {okLabel:"Place students"}))) return;
     SHIUR_LISTS.forEach(sh=>{
       let c = state.data.classes.find(c=> c.name.trim().toLowerCase()===sh.rebbi.toLowerCase());
-      if(!c){ c = {id:uid(), name:sh.rebbi, rebbi:sh.rebbi, room:""}; state.data.classes.push(c); }
+      if(!c){ c = {id:uid(), name:sh.rebbi, rebbi:sh.rebbi, room:"", year:"alef"}; state.data.classes.push(c); }
       sh.cid = c.id;
     });
     plan.forEach(p=>{ p.st.classId = p.sh.cid; });
@@ -4497,6 +4499,196 @@
     const mb = document.createElement("button"); mb.textContent = "\uD83D\uDD00 Shiur switch requests (morning / afternoon)"; mb.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); openSwitch("m"); }); $("moreMenu").insertBefore(mb, $("moreMenu").firstChild);
     try{ window.__renderRoomBar(); window.__renderHome(); }catch(e){}
   })();
+
+  // ================= v2: year scope, quick profile, autosave, whole-yeshiva attendance =================
+  state.gsAll = false; state.attMode = "rebbe"; state.attAllDate = null; state.attAllScopeAll = false; state.attAllOpen = {};
+  function studentYear(s){ const c = s.classId ? classById(s.classId) : null; return c ? classYear(c) : "alef"; }
+  function yearScope(){ return state.data.students.filter(s=> studentYear(s)==="alef"); }
+  function fuzzyStudent(n){
+    const tk = x=> String(x||"").toLowerCase().replace(/\([^)]*\)/g," ").replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
+    const t0 = tk(n); if(t0.length<2) return null;
+    const f = t0[0], l = t0[t0.length-1]; let best = null, bs = 99;
+    state.data.students.forEach(st=>{ const t = tk(st.name); if(t.length<2) return;
+      const sf = t[0], sl = t[t.length-1], dl = lev(l, sl), df = lev(f, sf);
+      if((dl<=1 || (dl<=2 && l.length>=7)) && (df<=2 || sf[0]===f[0])){ const sc = dl*2+df; if(sc<bs){ bs = sc; best = st; } } });
+    return best;
+  }
+  function quickSub(s){
+    const c = s.classId ? classById(s.classId) : null, rb = c ? rebbiFor(c,"m1") : "";
+    return [s.phone||"", studentYear(s)==="alef" ? "Shana Alef" : "Shana Bet", rb ? "Rebbe: "+rb : "", s.dorm ? "Dorm "+s.dorm : ""].filter(Boolean).join(" \u00b7 ");
+  }
+  function rebbiRowsHtml(s){
+    const c = s.classId ? classById(s.classId) : null; if(!c) return "";
+    return SEDARIM.map(sd=>{ const r = rebbiFor(c, sd.id); return r ? `<div class="kv"><span class="k">${escapeHtml(sd.label)} Rebbe</span><span class="v">${escapeHtml(r)}</span></div>` : ""; }).join("");
+  }
+  function trajectoryHtml(s){
+    const recs = state.data.attendance.filter(a=> a.records && a.records[s.id]).sort((a,b)=> (a.date+(recSeder(a)||"")).localeCompare(b.date+(recSeder(b)||"")));
+    const dots = recs.slice(-20).map(a=>`<span class="pf-dot ${a.records[s.id]}" title="${escapeHtml(a.date+" \u00b7 "+sederLabel(recSeder(a))+" \u00b7 "+a.records[s.id])}"></span>`).join("");
+    const pct = arr=>{ if(!arr.length) return null; let p = 0; arr.forEach(a=>{ const v = a.records[s.id]; p += v==="present" ? 1 : v==="late" ? 0.5 : 0; }); return Math.round(p/arr.length*100); };
+    const cls = p=> p===null ? "" : p>=80 ? "g" : p>=50 ? "y" : "r";
+    const overall = pct(recs.slice(-20)), streak = absentStreak(s);
+    const cks = state.data.interviews.filter(i=>i.studentId===s.id).sort((a,b)=> b.date.localeCompare(a.date));
+    const d = cks.length ? daysSince(cks[0].date) : null;
+    const bySeder = SEDARIM.map(sd=>{ const p = pct(recs.filter(a=>recSeder(a)===sd.id).slice(-10)); return p===null ? "" : `<div><b class="${cls(p)}">${p}%</b><span>${escapeHtml(sd.label)}</span></div>`; }).join("");
+    const sc = {thriving:2, steady:1, struggling:0}, withSt = cks.filter(i=>i.status && sc[i.status]!==undefined);
+    let trend = "";
+    if(withSt.length>=2){ const prev = withSt.slice(1,4), avg = prev.reduce((t,i)=>t+sc[i.status],0)/prev.length, df = sc[withSt[0].status]-avg;
+      trend = df>=0.5 ? "\u2197 Improving" : df<=-0.5 ? "\u2198 Slipping" : "\u2192 Holding steady"; }
+    const stDots = withSt.slice(0,8).reverse().map(i=>`<span class="pf-dot ${i.status==="thriving"?"present":i.status==="steady"?"late":"absent"}" title="${escapeHtml(i.date+" \u00b7 "+i.status)}"></span>`).join("");
+    const notes = cks.slice(0,5).map(i=>`<div class="pf-ck"><b>${escapeHtml(i.date)}</b>${i.status?` <span class="pf-st ${escapeHtml(i.status)}">${escapeHtml(i.status)}</span>`:""}${i.notes?`<div>${escapeHtml(i.notes.length>200?i.notes.slice(0,200)+"\u2026":i.notes)}</div>`:""}</div>`).join("");
+    const flags = [s.wantsSwitch?"wants room switch":"", s.swM?"wants morning shiur switch":"", s.swA?"wants afternoon shiur switch":""].filter(Boolean);
+    return `<div class="pf-stats">
+        <div><b class="${cls(overall)}">${overall===null?"\u2014":overall+"%"}</b><span>Attendance</span></div>
+        <div><b class="${streak>=STREAK_ALERT?"r":""}">${streak}</b><span>Absent in a row</span></div>
+        <div><b class="${d===null||d>=CHECKIN_STALE_DAYS?"y":""}">${d===null?"\u2014":d===0?"Today":d+"d"}</b><span>Last check-in</span></div></div>
+      ${bySeder?`<div class="pf-lbl">By seder</div><div class="pf-stats" style="margin-top:0;">${bySeder}</div>`:""}
+      ${dots?`<div class="pf-lbl">Attendance trail (oldest \u2192 newest)</div><div class="pf-dots">${dots}</div>`:""}
+      ${stDots?`<div class="pf-lbl">How he's been holding${trend?" \u00b7 "+trend:""}</div><div class="pf-dots">${stDots}</div>`:""}
+      ${flags.length?`<div class="nm-tags" style="margin:6px 0;">${flags.map(f=>`<span class="nm-tag warn">${f}</span>`).join("")}</div>`:""}
+      ${notes?`<div class="pf-lbl">Recent check-ins</div>${notes}`:`<p class="hint">No check-ins yet.</p>`}`;
+  }
+  function quickTopHtml(s){
+    const wa = s.phone ? waLink(s.phone) : "";
+    return `<div class="nm-actions" style="margin:10px 0;">${wa?`<a class="nm-btn wa" href="${wa}" target="_blank" rel="noopener">WhatsApp ${escapeHtml((s.name||"").split(" ")[0])}</a>`:`<span class="hint">No number saved yet (add it in Profile)</span>`}</div>` + trajectoryHtml(s);
+  }
+
+  // wants-to-switch box (room + morning/afternoon shiur) lives in Check-in
+  function renderSwitchBox(s, el, withWA){
+    if(!el) return; if(!s){ el.innerHTML = ""; return; }
+    const F = [["wantsSwitch","switchNote","Wants to switch rooms","Move to / with whom / why (optional)"],["swM","swMNote","Wants to switch morning shiur","Which rebbe / why (optional)"],["swA","swANote","Wants to switch afternoon shiur","Which rebbe / why (optional)"]];
+    const wa = withWA && s.phone ? `<div class="nm-actions" style="margin-top:12px;"><a class="nm-btn wa" href="${waLink(s.phone)}" target="_blank" rel="noopener">WhatsApp ${escapeHtml((s.name||"").split(" ")[0])}</a></div>` : "";
+    el.innerHTML = wa + `<div class="nm-card" style="margin-top:10px;"><div class="nm-name">Wants to switch</div>${s.dorm?`<div class="nm-sub">Room now: <b>${escapeHtml(s.dorm)}</b></div>`:""}`
+      + F.map(f=>`<label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px;"><input type="checkbox" data-f="${f[0]}" ${s[f[0]]?"checked":""} style="width:auto"> ${f[2]}</label><input type="text" data-n="${f[0]}" class="${s[f[0]]?"":"hidden"}" value="${escapeHtml(s[f[1]]||"")}" placeholder="${f[3]}" style="margin-top:4px;">`).join("") + `</div>`;
+    const sv = msg=>{ persist().then(()=>{ if(msg) toast(msg,"success"); }).catch(()=>{}); try{ window.__renderRoomBar(); }catch(e){} };
+    el.querySelectorAll("[data-f]").forEach(c=> c.onchange = ()=>{ const f = F.find(x=>x[0]===c.dataset.f); s[f[0]] = c.checked; if(!c.checked) s[f[1]] = ""; el.querySelector(`[data-n="${f[0]}"]`).classList.toggle("hidden", !c.checked); sv(c.checked ? "Noted \u2014 saved" : "Cleared"); });
+    el.querySelectorAll("[data-n]").forEach(i=> i.onchange = ()=>{ const f = F.find(x=>x[0]===i.dataset.n); s[f[1]] = i.value.trim(); sv(); });
+  }
+  window.__renderSwitchBox = renderSwitchBox;
+  window.__renderStudentBoxes = function(s, el){ renderSwitchBox(s, el || $("stuBoxes"), !el); };
+
+  // profile autosave
+  function autoSaveStudentFields(overlay, student, isNew){
+    if(isNew) return;
+    const g = id=> overlay.querySelector(id); let t = null;
+    const save = ()=>{ clearTimeout(t); t = setTimeout(()=>{
+      const name = g("#stName").value.trim(); if(!name) return;
+      student.name = name; student.classId = g("#stClass").value || null; student.phone = g("#stPhone").value.trim();
+      student.dorm = g("#stDorm").value.trim(); student.parentPhone = g("#stParentPhone").value.trim();
+      persist().then(()=>{ try{ renderRoster(); }catch(e){} }).catch(()=>{});
+    }, 700); };
+    ["#stName","#stClass","#stPhone","#stDorm","#stParentPhone"].forEach(id=>{ const el = g(id); if(el){ el.addEventListener("change", save); el.addEventListener("input", save); } });
+    const ph = g("#stPhotoInput"); if(ph) ph.addEventListener("change", ()=> setTimeout(save, 1200));
+  }
+
+  // attendance autosave (by-rebbe screen)
+  window.__autoSaveAtt = function(){
+    const rec = currentAttRecord; clearTimeout(window.__attT);
+    window.__attT = setTimeout(()=>{
+      if(!rec) return; rec.seder = rec.seder || state.activeSeder;
+      const snap = JSON.parse(JSON.stringify(rec));
+      const idx = state.data.attendance.findIndex(a=> a.classId===snap.classId && a.date===snap.date && recSeder(a)===snap.seder);
+      if(idx>=0) state.data.attendance[idx] = snap; else state.data.attendance.push(snap);
+      persist().then(()=>{ try{ renderAttHistory(snap.classId); }catch(e){} }).catch(()=>{});
+    }, 500);
+  };
+
+  // search scope toggle
+  (function(){
+    const b = $("gsScope"); if(!b) return;
+    const lab = ()=>{ b.textContent = state.gsAll ? "All" : "Alef"; };
+    lab();
+    b.addEventListener("click", ()=>{ state.gsAll = !state.gsAll; lab(); renderGlobalSearch(); });
+  })();
+
+  // ---- whole-yeshiva quick attendance (all sedarim, grouped by shiur) ----
+  (function(){
+    const sed = $("sederBar");
+    const bar = document.createElement("div"); bar.id = "attModeBar"; bar.className = "seder-chips"; bar.style.margin = "0 0 10px";
+    bar.innerHTML = '<button type="button" class="seder-chip" data-m="rebbe">By Rebbe</button><button type="button" class="seder-chip" data-m="all">Whole yeshiva (quick)</button>';
+    sed.parentNode.insertBefore(bar, sed.nextSibling);
+    const panel = document.createElement("div"); panel.id = "attAllPanel"; panel.className = "panel hidden";
+    bar.parentNode.insertBefore(panel, $("attClassPickerPanel"));
+    bar.addEventListener("click", e=>{ const b = e.target.closest("[data-m]"); if(!b) return; state.attMode = b.dataset.m; renderAttendanceTab(); renderAttClassStrip(); });
+  })();
+  const _ratV2 = renderAttendanceTab;
+  renderAttendanceTab = function(){
+    _ratV2();
+    const all = state.attMode==="all";
+    document.querySelectorAll("#attModeBar [data-m]").forEach(b=> b.classList.toggle("active", b.dataset.m===state.attMode));
+    $("attAllPanel").classList.toggle("hidden", !all);
+    if(all){ $("attClassPickerPanel").classList.add("hidden"); $("attTakePanel").classList.add("hidden"); renderAttAll(); }
+  };
+  let _aaT = null;
+  function aaRec(c, date, seder, create){
+    let r = findAttendanceRecord(c.id, date, seder);
+    if(!r && create){ r = {id:uid(), classId:c.id, date, seder, records:{}, photo:""}; studentsInClass(c.id).forEach(x=>{ r.records[x.id] = "present"; }); state.data.attendance.push(r); }
+    return r;
+  }
+  function renderAttAll(){
+    const P = $("attAllPanel"); if(!P || !state.data) return;
+    if(!P.dataset.built){
+      P.dataset.built = "1";
+      P.innerHTML = `<div class="row" style="align-items:center;gap:8px;"><div style="flex:1;"><p class="setup-title" style="font-size:16px;margin:0;">Whole yeshiva \u00b7 <span id="aaSeder"></span></p><p class="hint" id="aaSum" style="margin:2px 0 0;"></p></div><input type="date" id="aaDate" style="padding:6px 8px;font-size:13px;width:auto;"></div>
+        <div class="row" style="gap:6px;margin-top:10px;"><button type="button" class="seder-chip" id="aaScope"></button></div>
+        <input type="search" id="aaQ" placeholder="Type a name to mark absent / late" style="margin-top:10px;" autocomplete="off">
+        <div id="aaHits"></div><div id="aaOut"></div><p class="pf-lbl" style="margin-top:14px;">By shiur \u2014 tap a shiur to open it (everyone starts Present, changes save automatically)</p><div id="aaGroups"></div>`;
+      P.querySelector("#aaDate").addEventListener("change", e=>{ state.attAllDate = e.target.value || null; paint(); });
+      P.querySelector("#aaScope").addEventListener("click", ()=>{ state.attAllScopeAll = !state.attAllScopeAll; paint(); });
+      P.querySelector("#aaQ").addEventListener("input", ()=> paint(true));
+      P.addEventListener("click", e=>{
+        const cyc = e.target.closest("[data-cyc]"), set = e.target.closest("[data-set]"), gh = e.target.closest("[data-gh]"), ap = e.target.closest("[data-allp]");
+        if(cyc){ const st = state.data.students.find(x=>x.id===cyc.dataset.cyc); if(st) setSt(st, nextAttStatus(curSt(st))); }
+        else if(set){ const st = state.data.students.find(x=>x.id===set.dataset.id); if(st) setSt(st, set.dataset.set); }
+        else if(ap){ const c = classById(ap.dataset.allp); const r = aaRec(c, date(), state.activeSeder, true); Object.keys(r.records).forEach(k=>{ r.records[k] = "present"; }); studentsInClass(c.id).forEach(x=>{ r.records[x.id] = "present"; }); save(); paint(); toast(c.name+": all present \u2713","success"); }
+        else if(gh){ state.attAllOpen[gh.dataset.gh] = !state.attAllOpen[gh.dataset.gh]; paint(); }
+      });
+    }
+    paint();
+    function date(){ return state.attAllDate || todayStr(); }
+    function curSt(st){ const r = findAttendanceRecord(st.classId, date(), state.activeSeder); return (r && r.records && r.records[st.id]) || "present"; }
+    function save(){ clearTimeout(_aaT); _aaT = setTimeout(()=>{ persist().catch(()=>{}); }, 500); try{ renderAttClassStrip(); }catch(e){} }
+    function setSt(st, v){ const c = classById(st.classId); if(!c) return; const r = aaRec(c, date(), state.activeSeder, true); r.records[st.id] = v; save(); paint(); }
+    function paint(keepFocus){
+      const seder = state.activeSeder, D = date();
+      const list = (state.attAllScopeAll ? state.data.students : yearScope()).filter(s=> s.classId && classById(s.classId));
+      P.querySelector("#aaSeder").textContent = sederLabel(seder);
+      P.querySelector("#aaDate").value = D;
+      P.querySelector("#aaScope").textContent = state.attAllScopeAll ? "Showing: All students (tap for Shana Alef)" : "Showing: Shana Alef (tap for all students)";
+      const stN = x=> curSt(x), ab = list.filter(x=>stN(x)==="absent"), la = list.filter(x=>stN(x)==="late");
+      P.querySelector("#aaSum").textContent = `${ab.length} absent \u00b7 ${la.length} late \u00b7 ${list.length} talmidim`;
+      const row = x=>{ const st = stN(x), c = classById(x.classId); return `<div class="att-row att-row-tap st-${st}" data-cyc="${x.id}"><div class="att-name">${escapeHtml(x.name)}<div class="hint" style="margin:0;">${escapeHtml(rebbiFor(c,seder)||c.rebbi||c.name)}</div></div><button type="button" class="att-status-pill ${STATUS_COLORCLASS[st]||"green"}">${STATUS_LABEL[st]}</button></div>`; };
+      const q = (P.querySelector("#aaQ").value||"").trim();
+      const hits = q ? searchStudents(list, q).slice(0,6).map(r=>r.student) : [];
+      P.querySelector("#aaHits").innerHTML = hits.map(x=>`<div class="aa-hit"><div class="nm">${escapeHtml(x.name)} <span class="hint">${escapeHtml((classById(x.classId)||{}).rebbi||"")}</span></div><button type="button" data-set="absent" data-id="${x.id}">Absent</button><button type="button" data-set="late" data-id="${x.id}">Late</button><button type="button" data-set="present" data-id="${x.id}">Present</button></div>`).join("");
+      const out = ab.concat(la);
+      P.querySelector("#aaOut").innerHTML = out.length ? `<p class="pf-lbl" style="margin-top:12px;">Marked so far (tap to cycle)</p>` + out.sort(byName).map(row).join("") : "";
+      const groups = state.data.classes.filter(c=> list.some(x=>x.classId===c.id)).sort((a,b)=> (rebbiFor(a,seder)||a.name).localeCompare(rebbiFor(b,seder)||b.name));
+      P.querySelector("#aaGroups").innerHTML = groups.map(c=>{
+        const mem = list.filter(x=>x.classId===c.id).sort(byName), rec = findAttendanceRecord(c.id, D, seder), open = !!state.attAllOpen[c.id];
+        const nab = mem.filter(x=>stN(x)==="absent").length, nla = mem.filter(x=>stN(x)==="late").length;
+        const lbl = rebbiFor(c, seder) || c.rebbi || c.name;
+        const note = (seder!=="m1" && !rebbiFor(c, seder)) ? " \u00b7 same group as morning" : "";
+        return `<div class="aa-g"><div class="aa-gh" data-gh="${c.id}"><div><b>${escapeHtml(lbl)}</b><div class="hint" style="margin:0;">${mem.length} guys${note} \u00b7 ${rec?"taken \u2713":"not taken yet"}${nab?` \u00b7 ${nab} absent`:""}${nla?` \u00b7 ${nla} late`:""}</div></div><span>${open?"\u25BE":"\u203A"}</span></div>${open?`<div class="aa-gb">${mem.map(row).join("")}<div class="row row-end" style="margin-top:8px;"><button type="button" data-allp="${c.id}">All present \u2713</button></div></div>`:""}</div>`;
+      }).join("") || '<p class="hint">No students placed in shiurim yet.</p>';
+      if(keepFocus===true){ const i = P.querySelector("#aaQ"); i.focus(); }
+    }
+  }
+
+  // ---- one-tap setup banner for the rebbe shiurim ----
+  function maybeShiurBanner(){
+    try{
+      if(localStorage.getItem("shiurBannerDismissed")==="1") return;
+      if(!state.data || !state.data.students.length || $("shiurBanner")) return;
+      if(state.data.classes.some(c=> /^rabbi\s/i.test(c.name) && studentsInClass(c.id).length>=3)) return;
+      const d = document.createElement("div"); d.id = "shiurBanner"; d.className = "attn-banner"; d.style.cssText = "background:var(--brand-soft);border-color:#cfc9ec;padding:12px 14px;";
+      d.innerHTML = '<div style="font-size:13px;font-weight:600;">Set up the morning shiurim</div><div style="font-size:12px;color:var(--ink-soft);margin:2px 0 8px;">Creates the 9 rebbe shiurim (Banin, Gordon, Hoolin, Lieber, Lavon, Stern, Topaz, Traub, Zwick) and places each talmid in his shiur.</div><div class="row" style="gap:8px;"><button class="primary" id="sbGo" style="padding:7px 14px;font-size:12px;">Set up now</button><button class="ghost" id="sbNo" style="padding:7px 10px;font-size:12px;">Not now</button></div>';
+      $("mainView").insertBefore(d, $("mainView").querySelector(".tabs"));
+      d.querySelector("#sbGo").addEventListener("click", ()=>{ d.remove(); $("shiurListsBtn").click(); });
+      d.querySelector("#sbNo").addEventListener("click", ()=>{ try{ localStorage.setItem("shiurBannerDismissed","1"); }catch(e){} d.remove(); });
+    }catch(e){}
+  }
+  const _showMainV2 = showMain;
+  showMain = function(){ _showMainV2(); maybeShiurBanner(); };
 
   boot();
 })();
