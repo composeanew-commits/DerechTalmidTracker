@@ -400,6 +400,8 @@
   .dz small{font-weight:400;color:var(--ink-soft);font-size:11px;} .dz:hover,.dz.over{background:#e0dbf7;border-color:var(--brand);transform:translateY(-1px);} .dz .ic{font-size:26px;}
   .sticky-save{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:10px 12px;border-radius:16px;box-shadow:0 8px 24px rgba(36,29,74,.2);border:1px solid var(--line);z-index:5;}
   .sticky-save .primary{padding:12px 22px;font-size:15px;border-radius:12px;}
+  #attnBanner{display:none !important;}
+  .tab[data-tab="needs"]{display:none !important;}
 </style>
 </head>
 <body>
@@ -490,7 +492,7 @@
       <button class="tab hidden" data-tab="year" data-parent="shiurim">Whole yeshiva</button>
       <button class="tab" data-tab="needs">Needs me <span class="tab-badge hidden" id="needsBadge"></span></button>
       <button class="tab" data-tab="shiurim">Shiurim</button>
-      <button class="tab hidden" data-tab="interviews" data-parent="roster">Check-ins</button>
+      <button class="tab" data-tab="interviews">Check-ins</button>
       <button class="tab" data-tab="roster">Talmidim</button>
     </div>
 
@@ -504,6 +506,7 @@
       <div class="row" style="margin-bottom:14px;">
         <input type="text" id="rosterSearch" placeholder="Search students" style="max-width:220px;" />
         <div style="flex:1"></div>
+        <button id="rabbeimBtn">Rabbeim</button>
         <button id="addClassBtn">+ Class</button>
         <button class="primary" id="addStudentBtn">+ Student</button>
       </div>
@@ -561,12 +564,14 @@
 
     <!-- INTERVIEWS TAB -->
     <div id="tab-interviews" class="hidden">
+      <div id="roomSwitchBar" style="margin-bottom:10px;"></div>
       <div class="student-picker" id="interviewPicker"></div>
       <div class="panel" id="interviewPanel">
         <div class="row">
           <p class="setup-title" style="font-size:16px;margin:0;flex:1;" id="interviewStudentName">Select a student</p>
           <button class="primary hidden" id="addEntryBtn">+ New entry</button>
         </div>
+        <div id="stuBoxes"></div>
         <div id="entryForm" class="hidden" style="margin-top:12px;">
           <label for="entryDate">Date</label>
           <input type="date" id="entryDate" />
@@ -718,7 +723,7 @@
   state.photoStore = null; state.photosPromise = null; state.splitDisabled = false;
   function photoHolders(data){
     const out = [];
-    (data.students||[]).forEach(o=> out.push({key:"s:"+o.id, obj:o}));
+    (data.students||[]).forEach(o=>{ out.push({key:"s:"+o.id, obj:o}); (o.files||[]).forEach(f=> out.push({key:"f:"+f.id, obj:f})); });
     (data.attendance||[]).forEach(o=> out.push({key:"a:"+o.id, obj:o}));
     (data.trash||[]).forEach(t=>{ if(t && t.student) out.push({key:"t:"+t.id, obj:t.student}); });
     return out;
@@ -927,7 +932,8 @@
     $("mainView").classList.remove("hidden");
     $("moreMenuWrap").classList.remove("hidden");
     purgeOldTrash();
-    if(!state.activeClass && state.data.classes.length) state.activeClass = state.data.classes[0].id;
+    if(!state.activeClass && state.data.classes.length) state.activeClass = defaultClassId();
+    if(!state.activeAttClass) state.activeAttClass = defaultClassId();
     renderRoster();
     renderAttClassStrip();
     $("attDate").value = todayStr();
@@ -1221,6 +1227,12 @@
   function byName(a,b){
     return lastNameOf(a.name).localeCompare(lastNameOf(b.name)) || String(a.name||"").toLowerCase().localeCompare(String(b.name||"").toLowerCase());
   }
+  function defaultClassId(){
+    const cs = state.data.classes;
+    const m = cs.find(c=>/shana/i.test(c.name)&&/(alef|aleph)/i.test(c.name)) || cs.find(c=>/(alef|aleph)/i.test(c.name));
+    return m ? m.id : (cs[0] ? cs[0].id : null);
+  }
+  function rebbiFor(c, seder){ if(!c) return ""; if(!seder || seder==="m1") return c.rebbi||""; return (c.rabbeim && c.rabbeim[seder]) || ""; }
   function showMissingDots(){ try{ return localStorage.getItem("showMissing")==="1"; }catch(e){ return false; } }
   function missingFields(s){
     const cls = s.classId ? classById(s.classId) : null;
@@ -1395,6 +1407,7 @@
         <div class="row" style="gap:8px;margin-top:6px;"><input type="text" id="strInput" placeholder="Add a strength\u2026" style="flex:1;margin:0;" /><button type="button" id="strAdd">Add</button></div>
         <label style="margin-top:2px;">How's he doing?</label>
         ${standingHtml(student.id)}
+        <div id="qsExtra"></div>
         <div class="qs-actions">
           <button id="qsModeCheck">Check-in</button>
           <button id="qsModeAtt" ${cls?"":"disabled title='Assign a class first'"}>Attendance</button>
@@ -1406,6 +1419,7 @@
       </div>`;
     showOverlay(overlay);
     const body = overlay.querySelector("#qsBody");
+    try{ window.__renderStudentBoxes && window.__renderStudentBoxes(student, overlay.querySelector("#qsExtra")); }catch(e){}
     wireStanding(overlay, student.id, ()=>{ renderInterviewPanel(); });
     wireStrengthEditor(overlay, student);
     wireStrengthChips(overlay);
@@ -1975,7 +1989,7 @@
       return;
     }
     $("attActiveClassName").textContent = activeCls.name;
-    $("attRoomHint").textContent = [sederLabel(state.activeSeder), activeCls.rebbi ? "with "+activeCls.rebbi : null, activeCls.room ? "Room "+activeCls.room : null].filter(Boolean).join(" \u00b7 ");
+    $("attRoomHint").textContent = [sederLabel(state.activeSeder), rebbiFor(activeCls,state.activeSeder) ? "with "+rebbiFor(activeCls,state.activeSeder) : null, activeCls.room ? "Room "+activeCls.room : null].filter(Boolean).join(" \u00b7 ");
     if(!$("attDate").value) $("attDate").value = todayStr();
     const date = $("attDate").value || todayStr();
     const existing = findAttendanceRecord(classId, date);
@@ -2132,15 +2146,23 @@
   function renderInterviewPicker(){
     const wrap = $("interviewPicker");
     wrap.innerHTML = "";
-    const list = state.data.students.slice().sort((a,b)=>byName(a,b));
+    if(state.ciClass===undefined) state.ciClass = defaultClassId();
+    const sel = document.createElement("select"); sel.style.cssText = "width:100%;margin-bottom:8px;";
+    sel.innerHTML = `<option value="">All students</option>` + state.data.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+    sel.value = state.ciClass || "";
+    sel.addEventListener("change", ()=>{ state.ciClass = sel.value || null; renderInterviewPicker(); });
+    wrap.appendChild(sel);
+    let list = state.data.students.slice().sort((a,b)=>byName(a,b));
     if(state.activeInterviewStudent && !list.some(s=>s.id===state.activeInterviewStudent)) state.activeInterviewStudent = null;
+    if(state.ciClass) list = list.filter(s=>s.classId===state.ciClass);
     list.forEach(s=>{
       const pill = document.createElement("div");
       pill.className = "student-pill" + (state.activeInterviewStudent===s.id ? " active":"");
-      pill.textContent = s.name;
+      pill.textContent = s.name + (s.wantsSwitch ? " \uD83D\uDD04" : "");
       pill.addEventListener("click", ()=>{ state.activeInterviewStudent = s.id; renderInterviewPanel(); renderInterviewPicker(); });
       wrap.appendChild(pill);
     });
+    try{ window.__renderRoomBar && window.__renderRoomBar(); }catch(e){}
     renderInterviewPanel();
   }
 
@@ -2150,6 +2172,7 @@
     $("interviewStudentName").textContent = student ? student.name : "Select a student";
     $("addEntryBtn").classList.toggle("hidden", !student);
     $("entryForm").classList.add("hidden");
+    try{ window.__renderStudentBoxes && window.__renderStudentBoxes(student); }catch(e){}
     const list = $("entryList");
     list.innerHTML = "";
     if(!student){ $("entryHistoryLabel").textContent = ""; list.innerHTML = '<p class="hint">Pick a student above to view or add check-in notes.</p>'; return; }
@@ -2388,7 +2411,7 @@
       if(ovFilter.status === "attention") return r.reasons.length > 0;
       if(ovFilter.status !== "all") return r.status === ovFilter.status;
       return true;
-    }).sort((a,b)=> (b.reasons.length>0)-(a.reasons.length>0) || STATUS_ORDER_OV[a.status]-STATUS_ORDER_OV[b.status] || byName(a.student,b.student));
+    }).sort((a,b)=> byName(a.student,b.student));
   }
   const STATUS_ORDER_OV = { red:0, yellow:1, unknown:2, green:3 };
 
@@ -3206,7 +3229,7 @@
       return;
     }
     const c = classById(shiurOpen), x = shiurStats(c);
-    const order = r => (r.streak>=STREAK_ALERT?0:r.stand==="struggling"?1:r.st==="red"?2:r.overdue?3:4);
+    const order = r => 0;
     const rows = x.rows.slice().sort((a,b)=> order(a)-order(b) || byName(a.s,b.s));
     const strCount = {}; rows.forEach(r=>(r.s.strengths||[]).forEach(t=>{ const k=t.toLowerCase(); (strCount[k]=strCount[k]||{t,n:0}).n++; }));
     const strList = Object.values(strCount).sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t)).map(o=>[o.t,o.n]);
@@ -3662,7 +3685,7 @@
   // ================= SNAP ATTENDANCE: photo -> AI reads it -> review/edit -> saved =================
   (function(){
     const KEYK = "derech-ai-key", MODEL = "claude-haiku-4-5-20251001";
-    const getKey = ()=>{ try{ return localStorage.getItem(KEYK)||""; }catch(e){ return ""; } };
+    const getKey = ()=>"local";
     const norm = s=> String(s||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
     const near = (a,b)=>{ if(a===b) return true; if(a.length<4||b.length<4||Math.abs(a.length-b.length)>1) return false; let i=0,j=0,d=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++d>1) return false; if(a.length>b.length) i++; else if(a.length<b.length) j++; else {i++;j++;} } return d+(a.length-i)+(b.length-j)<=1; };
     const score = (n,s)=>{ const a=norm(n), b=norm(s.name); if(!a.length) return 0; let m=0; a.forEach(t=>{ if(b.some(u=> near(t,u) || (t.length>=2 && u.startsWith(t)) || (u.length>=3 && t.startsWith(u)))) m++; }); return m/Math.max(a.length,b.length); };
@@ -3679,12 +3702,9 @@
     window.addEventListener("online", ()=>{ const n = getQ().length; if(n) toast(`Back online \u2014 ${n} photo(s) waiting. Tap Snap attendance.`, "success"); });
 
     async function askAI(img, note){
-      const cls = state.data.classes.map(c=> `${c.name}${c.rebbi&&c.rebbi!==c.name?" ("+c.rebbi+")":""}: ` + studentsInClass(c.id).map(s=>s.name).join(", ")).join("\n");
-      const prompt = `This is a photo of a yeshiva attendance sheet. Today is ${todayStr()}. Rosters:\n${cls}\n\nRead the sheet. Return ONLY JSON: {"date":"YYYY-MM-DD or null","shiur":"exact shiur name from rosters or null","seder":"m1|m2|a1|a2|n or null (1st/2nd morning, 1st/2nd afternoon, night)","mode":"marks|absent_only|present_only","entries":[{"name":"as written","status":"present|absent|late"}]}. mode=marks if each name has a mark; absent_only if the sheet only lists absent students; present_only if it only lists those present. Checkmark=present, X/circled=absent, L/late=late.`;
-      const r = await fetch("https://api.anthropic.com/v1/messages", {method:"POST", headers:{"content-type":"application/json","x-api-key":getKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-        body: JSON.stringify({model:MODEL, max_tokens:1800, messages:[{role:"user",content:[...(img?[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:img.split(",")[1]}}]:[]),{type:"text",text:(note?"No photo - this is a typed/dictated note (usually only the absent or late names, so use mode absent_only unless it says otherwise): "+note+"\n\n":"")+prompt}]}]})});
-      const j = await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message || r.status);
-      const t = j.content.map(x=>x.text||"").join(""); return JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}")+1));
+      let text = note || "";
+      if(!text){ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"); text = (await window.Tesseract.recognize(img,"eng")).data.text; }
+      return window.__parseAttText(text, !!note);
     }
     function matchAll(entries, cid){
       const roster = studentsInClass(cid), used = new Set(), hit = [], miss = [];
@@ -3700,11 +3720,11 @@
       showOverlay(ov); const body = ov.querySelector("#snBody");
       ov.querySelector("#snX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
       const home = ()=>{
-        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<p class="hint">Take a photo of the attendance sheet. AI reads it, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
+        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<p class="hint">Take a photo of the attendance sheet. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
           ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
           <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="snCam" accept="image/*" capture="environment" hidden></label><label class="sn-big">&#128444; Choose image<input type="file" id="snPick" accept="image/*" hidden></label></div>
           <label style="margin-top:14px;">Paste WhatsApp attendance text, or type it</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button id="snTxt">Read it</button></div>
-          ${getKey()?`<p class="hint" style="margin-top:12px;"><a href="#" id="snChg">Change API key</a></p>`:""}`;
+          `;
         const go = f=>{ if(!f) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
         body.querySelector("#snCam").onchange = e=>go(e.target.files[0]); body.querySelector("#snPick").onchange = e=>go(e.target.files[0]);
         const qb = body.querySelector("#snQ"); if(qb) qb.onclick = async ()=>{ if(!navigator.onLine){ toast("Still offline.","error"); return; } const q = getQ(), it = q[0]; body.innerHTML = '<p class="hint">Reading&hellip;</p>'; try{ const res = await askAI(it.img); window.__qTs = it.ts; review(res, it.img); }catch(err){ toast("Couldn\'t read it: "+(err.message||err),"error"); home(); } };
@@ -3754,7 +3774,7 @@
       home();
     }
     fab.addEventListener("click", open);
-    const mb = document.createElement("button"); mb.textContent = "\uD83D\uDCF7 Snap attendance sheet (AI)";
+    const mb = document.createElement("button"); mb.textContent = "\uD83D\uDCF7 Snap attendance sheet";
     mb.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); open(); }); $("moreMenu").insertBefore(mb, $("moreMenu").firstChild);
   })();
 
@@ -3843,7 +3863,7 @@
 
   // ================= SMART IMPORT: photo / PDF / Excel of a roster -> AI -> review -> add/update =================
   (function(){
-    const KEYK = "derech-ai-key", getKey = ()=>{ try{ return localStorage.getItem(KEYK)||""; }catch(e){ return ""; } };
+    const KEYK = "derech-ai-key", getKey = ()=>"local";
     const key = n=> String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
     const b64 = f=> new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result.split(",")[1]); r.onerror=no; r.readAsDataURL(f); });
     function open(){
@@ -3852,26 +3872,16 @@
       showOverlay(ov); const B = ov.querySelector("#siB");
       ov.querySelector("#siX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
       const home = ()=>{
-        B.innerHTML = `<p class="hint">Photo, PDF, Excel or text of a class list or contact sheet. AI pulls out names, shiur and phone numbers; you review and edit before anything is saved. Existing students are updated, new ones added.</p>
+        B.innerHTML = `<p class="hint">Photo, PDF, Excel or text of a class list or contact sheet. It pulls out names, shiur and phone numbers; you review and edit before anything is saved. Existing students are updated, new ones added.</p>
           ${getKey()?"":`<label>Anthropic API key (one-time)</label><input type="password" id="siKey" placeholder="sk-ant-..." />`}
           <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="siCam" accept="image/*" capture="environment" hidden></label><label class="sn-big">&#128193; Choose file<input type="file" id="siPick" accept="image/*,.pdf,.xlsx,.xls,.csv,.txt" hidden></label></div>`;
         const go = f=>{ if(!f) return; const k = B.querySelector("#siKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
         B.querySelector("#siCam").onchange = e=>go(e.target.files[0]); B.querySelector("#siPick").onchange = e=>go(e.target.files[0]);
       };
       async function run(f){
-        B.innerHTML = `<p class="hint"><span class="dot spin" style="display:inline-block"></span> Reading&hellip;</p>`;
-        try{
-          let part;
-          if(/^image\//.test(f.type)) part = {type:"image",source:{type:"base64",media_type:"image/jpeg",data:(await compressImage(f,1800,0.7)).split(",")[1]}};
-          else if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)) part = {type:"document",source:{type:"base64",media_type:"application/pdf",data:await b64(f)}};
-          else if(/\.(xlsx|xls|csv)$/i.test(f.name)){ await ensureXLSX(); const wb = window.XLSX.read(await f.arrayBuffer(),{type:"array"}); part = {type:"text",text:wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n])).join("\n")}; }
-          else part = {type:"text",text:await f.text()};
-          const shiurim = state.data.classes.map(c=>c.name+(c.rebbi&&c.rebbi!==c.name?" ("+c.rebbi+")":"")).join("; ");
-          const r = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":getKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-            body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:4000,messages:[{role:"user",content:[part,{type:"text",text:`Extract every student from this document. Known shiurim: ${shiurim}. Return ONLY JSON: {"students":[{"name":"First Last","shiur":"shiur name or rebbi as shown, or empty","phone":"student phone or empty","parentPhone":"parent phone or empty"}]}`}]}]})});
-          const j = await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message||r.status);
-          const t = j.content.map(x=>x.text||"").join(""); review(JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1)).students||[]);
-        }catch(err){ B.innerHTML = `<span class="err">Couldn't read it: ${escapeHtml(err.message||String(err))}</span><div class="row" style="margin-top:10px;"><button id="siBk">Try again</button></div>`; B.querySelector("#siBk").onclick = home; }
+        B.innerHTML = `<p class="hint"><span class="dot spin" style="display:inline-block"></span> Reading&hellip; (photos take a few seconds the first time)</p>`;
+        try{ review(window.__parseRoster(await window.__extractText(f))); }
+        catch(err){ B.innerHTML = `<span class="err">Couldn't read it: ${escapeHtml(err.message||String(err))}</span><div class="row" style="margin-top:10px;"><button id="siBk">Try again</button></div>`; B.querySelector("#siBk").onclick = home; }
       }
       function review(list){
         const byKey = {}; state.data.students.forEach(s=>byKey[key(s.name)]=s);
@@ -4041,6 +4051,315 @@
       body.children[1].after(d.firstElementChild);
       body.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>openStudentQuick(b.dataset.q));
     };
+  })();
+
+  // ================= v2: OVERVIEW HOME, RABBEIM, ROOM SWITCHES, STUDENT FILES, LOCAL (NO-API) UPLOADS =================
+  (function(){
+    const esc = escapeHtml;
+    const sortedStudents = ()=> state.data.students.slice().sort(byName);
+    const studentOpts = sel => sortedStudents().map(s=>`<option value="${s.id}" ${s.id===sel?"selected":""}>${esc(s.name)}</option>`).join("");
+    const classOpts = sel => state.data.classes.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}" ${c.id===sel?"selected":""}>${esc(c.name)}</option>`).join("");
+    function mkOverlay(title){
+      const ov = document.createElement("div"); ov.className = "overlay";
+      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:8px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">${title}</p><button class="ghost" data-x>Close</button></div><div data-b></div></div>`;
+      showOverlay(ov); const close = ()=>closeOverlay(ov);
+      ov.querySelector("[data-x]").onclick = close; ov.addEventListener("click", e=>{ if(e.target===ov) close(); });
+      return {ov, B:ov.querySelector("[data-b]"), close};
+    }
+    const save = async msg=>{ try{ await persist(); if(msg) toast(msg,"success"); }catch(e){ if(!e.shown) toast("Couldn't save: "+(e.message||e),"error"); } };
+    const refreshAll = ()=>{ try{ renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); window.__renderHome(); }catch(e){} };
+    const menuAdd = (label, fn)=>{ const b = document.createElement("button"); b.textContent = label; b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); fn(); }); const m = $("moreMenu"); m.insertBefore(b, m.firstChild); };
+
+    // ---------- text helpers ----------
+    const toks = s=> String(s||"").toLowerCase().replace(/\([^)]*\)/g," ").replace(/[^a-z\u0590-\u05FF ]/g," ").split(/\s+/).filter(t=>t.length>1);
+    const near = (a,b)=>{ if(a===b) return true; if(a.length<4||b.length<4||Math.abs(a.length-b.length)>1) return false; let i=0,j=0,d=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++d>1) return false; if(a.length>b.length) i++; else if(a.length<b.length) j++; else {i++;j++;} } return d+(a.length-i)+(b.length-j)<=1; };
+    function findStudents(line){
+      const lt = toks(line); if(!lt.length) return [];
+      return state.data.students.filter(s=>{ const nt = toks(s.name); if(!nt.length) return false; const hit = nt.filter(n=>lt.some(t=>near(n,t))); return nt.length===1 ? hit.length===1 : hit.length>=Math.min(2,nt.length); });
+    }
+    function sectionize(text){
+      const secs = new Map(), un = []; let cur = null;
+      const push = (id,t)=>{ if(!secs.has(id)) secs.set(id,[]); secs.get(id).push(t); };
+      String(text||"").split(/\r?\n/).forEach(l=>{
+        const t = l.trim(); if(!t) return; const hits = findStudents(t);
+        if(hits.length>1){ hits.forEach(h=>push(h.id,t)); return; }
+        if(hits.length===1) cur = hits[0].id;
+        if(cur) push(cur,t); else un.push(t);
+      });
+      return {secs, un};
+    }
+
+    // ---------- read any file on this device (no API, no account) ----------
+    const TESS = "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js";
+    async function extract(file){
+      const n = (file.name||"").toLowerCase(), t = file.type||"";
+      if(/^image\//.test(t)){ await loadScript(TESS); return {text:(await window.Tesseract.recognize(file,"eng")).data.text}; }
+      if(/pdf$/.test(t) || /\.pdf$/.test(n)){
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        const pdf = await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise, out = [];
+        for(let i=1;i<=pdf.numPages;i++){ const c = await (await pdf.getPage(i)).getTextContent(); let y=null, line=""; c.items.forEach(it=>{ const yy = it.transform[5]; if(y!==null && Math.abs(yy-y)>3){ out.push(line); line=""; } y = yy; line += it.str+" "; }); out.push(line); }
+        const text = out.join("\n"); if(!text.trim()) throw new Error("That PDF is a scan with no text \u2014 upload a photo of it instead.");
+        return {text};
+      }
+      if(/\.docx$/.test(n)){ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"); return {text:(await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value}; }
+      if(/\.(xlsx|xls|csv)$/.test(n)){
+        await ensureXLSX(); const wb = window.XLSX.read(await file.arrayBuffer(),{type:"array"}), rows = [];
+        wb.SheetNames.forEach(s=> window.XLSX.utils.sheet_to_json(wb.Sheets[s],{header:1,defval:""}).forEach(r=>{ r = r.map(x=>String(x).trim()); if(r.some(Boolean)) rows.push(r); }));
+        return {rows, text:rows.map(r=>r.join("\t")).join("\n")};
+      }
+      return {text:await file.text()};
+    }
+    window.__extractText = extract;
+    const readDataUrl = f=> new Promise((ok,no)=>{ const r = new FileReader(); r.onload = ()=>ok(r.result); r.onerror = no; r.readAsDataURL(f); });
+    async function fileData(f){ if(/^image\//.test(f.type||"")) return await compressImage(f,1100,0.6); if(f.size<400000) return await readDataUrl(f); return ""; }
+
+    // ---------- attendance text -> entries (used by "Snap attendance") ----------
+    window.__parseAttText = function(text, isNote){
+      const ABS = /\b(absent|abs|out|sick|missing|x|a)\b/i, LATE = /\b(late|tardy|l)\b/i, PRES = /\b(present|here|p)\b/i, MA = /[\u2717\u2718\u274c]/, CK = /[\u2713\u2714\u2705]/;
+      const clean = s=> s.replace(/[\u2717\u2718\u274c\u2713\u2714\u2705]/g," ").replace(/\b(absent|abs|out|sick|missing|late|tardy|present|here|rabbi|rebbe|rebbi|rav|is|are|was|were|and)\b/ig," ").replace(/\b[xalp]\b/ig," ").replace(/[^A-Za-z\u0590-\u05FF'\u2019\- ]/g," ").replace(/\s+/g," ").trim();
+      const entries = [];
+      if(isNote){
+        String(text).split(/\r?\n|[,;]/).forEach(g=>{ g = g.trim(); if(!g) return; const st = /\b(late|tardy)\b/i.test(g) ? "late" : /\b(present|here)\b/i.test(g) ? "present" : "absent";
+          g.split(/\band\b|&|\+/i).forEach(p=>{ const nm = clean(p); if(nm.length>=2) entries.push({name:nm,status:st}); }); });
+        return {mode:"absent_only", entries};
+      }
+      const known = []; state.data.students.forEach(s=> toks(s.name).forEach(t=>known.push(t))); let marks = 0;
+      String(text).split(/\r?\n/).forEach(line=>{
+        if(!line.trim()) return; let st = "present", mk = false;
+        if(MA.test(line) || ABS.test(line)){ st = "absent"; mk = true; } else if(LATE.test(line)){ st = "late"; mk = true; } else if(CK.test(line) || PRES.test(line)) mk = true;
+        const nm = clean(line), t = toks(nm); if(!t.length || t.length>5) return; if(!t.some(x=>known.some(k=>near(k,x)))) return;
+        if(mk) marks++; entries.push({name:nm,status:st});
+      });
+      if(!marks){ entries.forEach(e=>e.status="absent"); return {mode:"absent_only", entries}; }
+      return {mode:"marks", entries};
+    };
+
+    // ---------- roster doc -> students (used by "Smart import") ----------
+    const PH = /\+?\d[\d\s().\-]{7,}\d/g;
+    window.__parseRoster = function(ex){
+      const cls = state.data.classes;
+      const rows = ex.rows || String(ex.text||"").split(/\r?\n/).map(l=>l.split(/\t|\||\s{2,}/).map(x=>x.trim()).filter(Boolean)).filter(r=>r.length);
+      let hi = -1; const col = {};
+      for(let i=0;i<Math.min(rows.length,6);i++){
+        const m = rows[i].map(c=>String(c).toLowerCase());
+        if(m.filter(c=>/name|phone|cell|mobile|shiur|class|parent/.test(c)).length>=2){ hi = i;
+          m.forEach((c,j)=>{ if(/parent|father|mother|dad|mom|home/.test(c) && /phone|cell|mobile|number/.test(c)) col.par = j; else if(/phone|cell|mobile/.test(c) && col.ph===undefined) col.ph = j; else if(/first/.test(c)) col.f = j; else if(/last|family|sur/.test(c)) col.l = j; else if(/name|student|talmid/.test(c) && col.n===undefined) col.n = j; else if(/shiur|class|rebbi|rabbi|year|grade/.test(c)) col.s = j; });
+          break; }
+      }
+      const out = [];
+      rows.slice(hi+1).forEach(r=>{
+        let name="", ph="", par="", sh="";
+        if(hi>=0){ const g = j=> j===undefined ? "" : String(r[j]||"");
+          name = (col.f!==undefined || col.l!==undefined) ? (g(col.f)+" "+g(col.l)).trim() : g(col.n); if(!name) name = g(col.n); ph = g(col.ph); par = g(col.par); sh = g(col.s); }
+        else { const phones = (r.join(" ").match(PH)||[]).map(x=>x.trim()); ph = phones[0]||""; par = phones[1]||"";
+          const rest = r.filter(c=>!/\d{5,}/.test(c)), shc = rest.find(c=>cls.some(k=>[k.name,k.rebbi].some(v=>v && String(c).toLowerCase().includes(String(v).toLowerCase()))));
+          sh = shc||""; const al = rest.filter(c=>c!==shc && /[a-z]/i.test(c)); name = al.length===1 ? al[0] : al.slice(0,2).join(" "); }
+        if(/^[^,]+,[^,]+$/.test(name)) name = name.split(",").map(x=>x.trim()).reverse().join(" ");
+        name = name.replace(/[^A-Za-z\u0590-\u05FF'\u2019\- .]/g,"").replace(/\s+/g," ").trim();
+        if(name.replace(/[^A-Za-z\u0590-\u05FF]/g,"").length<3) return;
+        out.push({name, shiur:sh, phone:ph, parentPhone:par});
+      });
+      return out;
+    };
+
+    // ---------- HOME = full school overview (alphabetical by last name) ----------
+    window.__homeClass = null;
+    window.__renderHome = function(){
+      const body = $("homeBody"); if(!body || !state.data || !state.data.students) return;
+      if(!body.dataset.built){
+        body.dataset.built = "1";
+        body.innerHTML = `<div class="nm-head"><b>Full school overview</b><span id="hmCount"></span></div><div id="hmTiles"></div>
+          <div class="row" style="margin-bottom:10px;"><input type="search" id="hmSearch" placeholder="Search name" style="flex:1" /></div>
+          <div class="class-strip" id="hmStrip"></div><div class="ov-grid" id="hmGrid"></div><p class="hint" id="hmEmpty"></p>`;
+        $("hmSearch").addEventListener("input", ()=>window.__renderHome());
+      }
+      const all = state.data.students, hc = window.__homeClass;
+      const scope = hc ? all.filter(s=>s.classId===hc) : all, c = {green:0,yellow:0,red:0,unknown:0};
+      scope.forEach(s=>{ const t = studentStatus(s); if(c[t]!==undefined) c[t]++; });
+      const tile = (n,l,col,bg)=>`<div style="background:${bg};border-radius:14px;padding:12px 6px;text-align:center;"><b style="display:block;font-size:26px;color:${col};">${n}</b><span style="font-size:12px;color:var(--ink-soft);">${l}</span></div>`;
+      const sw = all.filter(s=>s.wantsSwitch).length;
+      $("hmTiles").innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">${tile(c.green,"Thriving","var(--green)","var(--green-bg)")}${tile(c.yellow,"Steady","var(--amber)","var(--amber-bg)")}${tile(c.red,"Needs attention","var(--red)","var(--red-bg)")}</div>
+        <div class="nm-actions" style="margin:0 0 12px;"><button class="nm-btn" id="hmUp">\uD83D\uDCCE Upload files</button><button class="nm-btn" id="hmRs">\uD83D\uDD04 Room switches (${sw})</button><button class="nm-btn" id="hmRb">Rabbeim</button></div>`;
+      $("hmUp").onclick = openUpload; $("hmRs").onclick = openRoomSwitch; $("hmRb").onclick = openRabbeim;
+      $("hmCount").textContent = scope.length + " talmidim";
+      const strip = $("hmStrip"); strip.innerHTML = "";
+      const chip = (label,id,n)=>{ const d = document.createElement("div"); d.className = "class-chip"+(hc===id?" active":""); d.innerHTML = `${esc(label)} <span class="n">${n}</span>`; d.onclick = ()=>{ window.__homeClass = id; window.__renderHome(); }; strip.appendChild(d); };
+      chip("All students", null, all.length);
+      state.data.classes.forEach(k=>{ const n = all.filter(s=>s.classId===k.id).length; if(n) chip(k.name, k.id, n); });
+      const q = ($("hmSearch").value||"").toLowerCase().trim(), grid = $("hmGrid"); grid.innerHTML = "";
+      const list = scope.filter(s=>{ if(!q) return true; const k = s.classId ? classById(s.classId) : null; return (s.name+" "+(k?k.name+" "+(k.rebbi||""):"")).toLowerCase().includes(q); }).sort(byName);
+      list.forEach(s=>{
+        const k = s.classId ? classById(s.classId) : null, st = studentStatus(s), card = document.createElement("div"); card.className = "ov-card";
+        card.innerHTML = `<div class="ov-card-photo ${st}">${s.photo?`<img src="${s.photo}" alt="">`:initials(s.name)}</div><div class="ov-card-name">${esc(s.name)}${s.wantsSwitch?" \uD83D\uDD04":""}</div><div class="ov-card-sub">${k?esc(k.name):"No shiur"}</div>`;
+        card.onclick = ()=>openStudentQuick(s.id); grid.appendChild(card);
+      });
+      $("hmEmpty").textContent = list.length ? "" : "No students match.";
+    };
+
+    // ---------- per-student box: dorm room + room switch + files (in Check-in screen and tab) ----------
+    function openImg(url){ const {B} = mkOverlay("Photo"); B.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:10px;">`; }
+    async function openData(url){ if(/^data:image/.test(url)) return openImg(url); try{ const b = await (await fetch(url)).blob(); window.open(URL.createObjectURL(b),"_blank"); }catch(e){ toast("Couldn't open it.","error"); } }
+    window.__renderStudentBoxes = function(s, el){
+      el = el || $("stuBoxes"); if(!el) return; if(!s){ el.innerHTML = ""; return; }
+      const files = s.files || [];
+      el.innerHTML = ((s.phone||s.parentPhone) ? `<div class="nm-actions" style="margin-top:12px;">${s.phone?`<a class="nm-btn wa" href="${waLink(s.phone)}" target="_blank" rel="noopener">WhatsApp ${esc(s.name.split(" ")[0])}</a>`:""}${s.parentPhone?`<a class="nm-btn wa" href="${waLink(s.parentPhone)}" target="_blank" rel="noopener">WhatsApp parent</a>`:""}</div>` : "") + `<div class="nm-card" style="margin-top:12px;"><div class="nm-name">Dorm room</div>
+        <div class="row" style="margin-top:6px;gap:8px;"><input type="text" data-r="dorm" value="${esc(s.dorm||"")}" placeholder="Current room" style="flex:1"><button data-r="dsave">Save</button></div>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px;"><input type="checkbox" data-r="want" ${s.wantsSwitch?"checked":""} style="width:auto"> Wants to switch rooms</label>
+        <input type="text" data-r="note" class="${s.wantsSwitch?"":"hidden"}" value="${esc(s.switchNote||"")}" placeholder="Wants to move to / with whom / why (optional)" style="margin-top:6px;"></div>
+        <div class="nm-card"><div class="nm-name">Files &amp; documents (${files.length})</div>
+        ${files.map(f=>`<div class="pf-ck" data-f="${f.id}"><b>${esc(f.name)}</b> <span class="hint">${esc(f.date||"")}</span>
+          ${f.text?`<div class="hint" style="white-space:pre-wrap;">${esc(f.text.length>220?f.text.slice(0,220)+"\u2026":f.text)}</div>`:""}
+          <div class="nm-actions" style="margin-top:4px;">${f.photo?`<button class="nm-btn" data-a="view">View</button>`:""}${f.text&&f.text.length>220?`<button class="nm-btn" data-a="full">Full text</button>`:""}<button class="nm-btn" data-a="del" style="color:var(--red);">Delete</button></div></div>`).join("") || '<p class="hint">Nothing filed yet.</p>'}
+        <label class="sn-big" style="margin-top:8px;font-size:13px;">\uD83D\uDCCE Add photo / document<input type="file" data-r="add" multiple accept="image/*,.pdf,.docx,.xlsx,.xls,.csv,.txt" hidden></label></div>`;
+      const q = k=>el.querySelector(`[data-r="${k}"]`), again = ()=>{ try{ renderInterviewPicker(); window.__renderHome(); }catch(e){} };
+      q("dsave").onclick = async ()=>{ s.dorm = q("dorm").value.trim(); await save("Room saved"); again(); };
+      q("want").onchange = async e=>{ s.wantsSwitch = e.target.checked; if(!s.wantsSwitch) s.switchNote = ""; q("note").classList.toggle("hidden", !s.wantsSwitch); await save(s.wantsSwitch?"Added to room-switch list":"Removed from room-switch list"); again(); };
+      q("note").onchange = async e=>{ s.switchNote = e.target.value.trim(); await save(); };
+      q("add").onchange = async e=>{
+        const fl = [...e.target.files]; let n = 0;
+        for(const f of fl){ toast("Adding "+(f.name||"photo")+"\u2026"); let text = "";
+          if(!/^image\//.test(f.type||"")){ try{ text = ((await extract(f)).text||"").trim(); }catch(err){} }
+          (s.files = s.files||[]).unshift({id:uid(), name:f.name||"Photo", kind:/^image\//.test(f.type||"")?"image":"doc", date:todayStr(), text, photo:await fileData(f)}); n++; }
+        if(n){ await save(n+" file"+(n===1?"":"s")+" added"); window.__renderStudentBoxes(s, el); }
+      };
+      el.querySelectorAll(".pf-ck").forEach(d=>{ const f = files.find(x=>x.id===d.dataset.f); if(!f) return;
+        const b = a=>d.querySelector(`[data-a="${a}"]`);
+        if(b("view")) b("view").onclick = ()=>openData(f.photo);
+        if(b("full")) b("full").onclick = ()=>{ const {B} = mkOverlay(esc(f.name)); B.innerHTML = `<div style="white-space:pre-wrap;font-size:14px;">${esc(f.text)}</div>`; };
+        b("del").onclick = async ()=>{ if(!(await confirmDialog("Delete this file?",{okLabel:"Delete",danger:true}))) return; s.files = s.files.filter(x=>x.id!==f.id); await save(); window.__renderStudentBoxes(s, el); }; });
+    };
+
+    // ---------- room switch requests ----------
+    window.__renderRoomBar = function(){
+      const el = $("roomSwitchBar"); if(!el || !state.data) return;
+      el.innerHTML = `<button id="rsOpen" style="width:100%;">\uD83D\uDD04 Room switch requests (${state.data.students.filter(s=>s.wantsSwitch).length})</button>`;
+      el.querySelector("#rsOpen").onclick = openRoomSwitch;
+    };
+    function openRoomSwitch(){
+      const {B,close} = mkOverlay("\uD83D\uDD04 Room switch requests");
+      const paint = ()=>{
+        const list = sortedStudents().filter(s=>s.wantsSwitch);
+        B.innerHTML = (list.length ? list.map(s=>{ const mates = s.dorm ? state.data.students.filter(x=>x.id!==s.id && x.dorm===s.dorm).map(x=>x.name.split(" ")[0]).join(", ") : "";
+          return `<div class="nm-card"><div class="nm-name">${esc(s.name)}</div><div class="nm-sub">Now in: <b>${esc(s.dorm||"no room set")}</b>${mates?" \u00b7 with "+esc(mates):""}</div>${s.switchNote?`<div class="nm-sub">Wants: ${esc(s.switchNote)}</div>`:""}
+            <div class="row" style="margin-top:8px;gap:6px;"><input type="text" data-n="${s.id}" placeholder="New room (when moved)" style="flex:1"><button class="nm-btn main" data-done="${s.id}" style="flex:none;">Moved / clear</button></div>
+            <div class="nm-actions"><button class="nm-btn" data-open="${s.id}">Open check-in</button></div></div>`; }).join("") : '<p class="hint">Nobody has asked to switch rooms.</p>')
+          + `<div class="nm-card"><div class="nm-name">Add someone</div><div class="row" style="gap:6px;margin-top:6px;"><select id="rsSel" style="flex:1"><option value="">Pick a talmid\u2026</option>${sortedStudents().filter(s=>!s.wantsSwitch).map(s=>`<option value="${s.id}">${esc(s.name)}${s.dorm?" \u00b7 "+esc(s.dorm):""}</option>`).join("")}</select><button id="rsAdd">Add</button></div></div>`;
+        B.querySelectorAll("[data-done]").forEach(b=> b.onclick = async ()=>{ const s = state.data.students.find(x=>x.id===b.dataset.done), v = B.querySelector(`[data-n="${s.id}"]`).value.trim(); if(v) s.dorm = v; s.wantsSwitch = false; s.switchNote = ""; await save("Cleared"); refreshAll(); window.__renderRoomBar(); paint(); });
+        B.querySelectorAll("[data-open]").forEach(b=> b.onclick = ()=>{ state.activeInterviewStudent = b.dataset.open; state.ciClass = null; close(); document.querySelector('.tab[data-tab="interviews"]').click(); });
+        B.querySelector("#rsAdd").onclick = async ()=>{ const id = B.querySelector("#rsSel").value; if(!id) return; state.data.students.find(x=>x.id===id).wantsSwitch = true; await save(); refreshAll(); window.__renderRoomBar(); paint(); };
+      };
+      paint();
+    }
+
+    // ---------- Rabbeim manager (+ move talmidim between shiurim) ----------
+    function rabbeiList(){
+      const d = state.data; if(!Array.isArray(d.rabbeim)) d.rabbeim = [];
+      const set = new Set(d.rabbeim.map(x=>x.name));
+      d.classes.forEach(c=>[c.rebbi].concat(Object.values(c.rabbeim||{})).forEach(n=>{ n = String(n||"").trim(); if(n && !set.has(n)){ set.add(n); d.rabbeim.push({id:uid(), name:n}); } }));
+      return d.rabbeim;
+    }
+    function openRabbeim(){
+      const {B} = mkOverlay("Rabbeim &amp; shiurim");
+      const paint = ()=>{
+        const rl = rabbeiList(), cls = state.data.classes.slice().sort((a,b)=>a.name.localeCompare(b.name));
+        const ropts = sel => `<option value="">\u2014 none \u2014</option>`+rl.map(r=>`<option value="${esc(r.name)}" ${r.name===sel?"selected":""}>${esc(r.name)}</option>`).join("");
+        B.innerHTML = `<p class="pf-lbl">Rabbeim</p>
+          <div class="row" style="gap:6px;margin-bottom:8px;"><input type="text" id="rbNew" placeholder="Add a Rebbe (e.g. Rabbi Cohen)" style="flex:1"><button class="primary" id="rbAdd">Add</button></div>
+          ${rl.map(r=>`<div class="row" style="gap:6px;margin-bottom:6px;"><input type="text" data-rn="${r.id}" value="${esc(r.name)}" style="flex:1"><button data-rd="${r.id}" style="color:var(--red);">Remove</button></div>`).join("")}
+          <p class="pf-lbl" style="margin-top:16px;">Who teaches each shiur</p><p class="hint">The <b>1st Morning</b> Rebbe is the primary Rebbe for everyone in that shiur.</p>
+          ${cls.map(c=>`<div class="nm-card"><div class="nm-name">${esc(c.name)} <span class="hint">${studentsInClass(c.id).length} guys</span></div>
+            ${SEDARIM.map(sd=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;"><span style="width:104px;font-size:12px;color:var(--ink-soft);">${esc(sd.label)}${sd.id==="m1"?" \u2605":""}</span><select data-c="${c.id}" data-s="${sd.id}" style="flex:1">${ropts(sd.id==="m1" ? c.rebbi : (c.rabbeim||{})[sd.id])}</select></div>`).join("")}</div>`).join("")}
+          <p class="pf-lbl" style="margin-top:16px;">Move a talmid to a different shiur</p>
+          <div class="nm-card"><select id="mvS"><option value="">Pick a talmid\u2026</option>${sortedStudents().map(s=>{ const k = s.classId?classById(s.classId):null; return `<option value="${s.id}">${esc(s.name)}${k?" \u00b7 "+esc(k.name):""}</option>`; }).join("")}</select>
+            <select id="mvC" style="margin-top:6px;"><option value="">To which shiur\u2026</option>${classOpts("")}</select><div class="row row-end" style="margin-top:8px;"><button class="primary" id="mvGo">Move</button></div></div>`;
+        const rename = async (id,v)=>{ const r = state.data.rabbeim.find(x=>x.id===id), old = r.name; v = v.trim(); if(!v || v===old) return; r.name = v;
+          state.data.classes.forEach(c=>{ if(c.rebbi===old) c.rebbi = v; Object.keys(c.rabbeim||{}).forEach(k=>{ if(c.rabbeim[k]===old) c.rabbeim[k] = v; }); }); await save(); refreshAll(); paint(); };
+        B.querySelector("#rbAdd").onclick = async ()=>{ const v = B.querySelector("#rbNew").value.trim(); if(!v) return; if(!state.data.rabbeim.some(r=>r.name===v)) state.data.rabbeim.push({id:uid(), name:v}); await save(); paint(); };
+        B.querySelectorAll("[data-rn]").forEach(i=> i.onchange = ()=>rename(i.dataset.rn, i.value));
+        B.querySelectorAll("[data-rd]").forEach(b=> b.onclick = async ()=>{ const r = state.data.rabbeim.find(x=>x.id===b.dataset.rd); if(!(await confirmDialog(`Remove ${r.name}? He'll be cleared from any shiur he's assigned to.`,{okLabel:"Remove",danger:true}))) return;
+          state.data.rabbeim = state.data.rabbeim.filter(x=>x.id!==r.id); state.data.classes.forEach(c=>{ if(c.rebbi===r.name) c.rebbi = ""; Object.keys(c.rabbeim||{}).forEach(k=>{ if(c.rabbeim[k]===r.name) delete c.rabbeim[k]; }); }); await save(); refreshAll(); paint(); });
+        B.querySelectorAll("select[data-c]").forEach(sel=> sel.onchange = async ()=>{ const c = classById(sel.dataset.c), sid = sel.dataset.s; if(sid==="m1") c.rebbi = sel.value; else { c.rabbeim = c.rabbeim||{}; if(sel.value) c.rabbeim[sid] = sel.value; else delete c.rabbeim[sid]; } await save(); refreshAll(); });
+        B.querySelector("#mvGo").onclick = async ()=>{ const sid = B.querySelector("#mvS").value, cid = B.querySelector("#mvC").value; if(!sid||!cid){ toast("Pick a talmid and a shiur.","error"); return; }
+          const s = state.data.students.find(x=>x.id===sid), c = classById(cid); s.classId = cid; await save(`${s.name} moved to ${c.name}${c.rebbi?" \u2014 primary Rebbe: "+c.rebbi:""}`); refreshAll(); paint(); };
+      };
+      paint();
+    }
+
+    // ---------- Upload center: photos / documents -> sorted under each student ----------
+    function openUpload(){
+      const {B,close} = mkOverlay("\uD83D\uDCCE Upload photos &amp; documents");
+      let items = [];
+      const home = ()=>{
+        B.innerHTML = `<p class="hint">Photos, PDFs, Word, Excel or text. It's read right on your device (no account or key needed), each talmid is found by name, and the text is filed under his profile. Nothing saves until you confirm.</p>
+          <div class="sn-grid"><label class="sn-big">\uD83D\uDCF7 Take photo<input type="file" id="ucCam" accept="image/*" capture="environment" hidden></label><label class="sn-big">\uD83D\uDCC1 Choose files<input type="file" id="ucPick" multiple accept="image/*,.pdf,.docx,.xlsx,.xls,.csv,.txt" hidden></label></div>
+          <p class="hint" style="margin-top:10px;">If a file is about just one talmid, you can pick him on the next screen even if his name isn't in it.</p>`;
+        B.querySelector("#ucCam").onchange = e=>run([...e.target.files]); B.querySelector("#ucPick").onchange = e=>run([...e.target.files]);
+      };
+      async function run(files){
+        if(!files.length) return; items = [];
+        for(let i=0;i<files.length;i++){
+          const f = files[i]; B.innerHTML = `<p class="hint"><span class="dot spin" style="display:inline-block"></span> Reading ${i+1} of ${files.length}: ${esc(f.name||"photo")}\u2026 (photos take a few seconds the first time)</p>`;
+          let ex = {text:""}; try{ ex = await extract(f); }catch(e){ toast("Couldn't read "+(f.name||"file")+": "+(e.message||e),"error"); }
+          const {secs,un} = sectionize(ex.text||""), it = {f, secs:[...secs.entries()].map(([sid,l])=>({sid, text:l.join("\n"), on:true})), un:un.join("\n"), unSid:"", attach:""};
+          if(it.secs.length===1 && !it.un) it.attach = it.secs[0].sid; items.push(it);
+        }
+        review();
+      }
+      function review(){
+        B.innerHTML = items.map((it,i)=>`<div class="nm-card"><div class="nm-name">${esc(it.f.name||"Photo")}</div>
+          ${it.secs.map((x,j)=>`<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px;"><div class="row" style="align-items:center;gap:6px;"><input type="checkbox" data-i="${i}" data-j="${j}" data-f="on" ${x.on?"checked":""} style="width:auto"><select data-i="${i}" data-j="${j}" data-f="sid" style="flex:1">${studentOpts(x.sid)}</select></div><textarea rows="3" data-i="${i}" data-j="${j}" data-f="text">${esc(x.text)}</textarea></div>`).join("")}
+          ${(it.un || !it.secs.length) ? `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px;"><div class="hint">${it.secs.length?"Other text (no name found)":"No names recognized"} \u2014 who does it belong to?</div><select data-i="${i}" data-f="unSid"><option value="">Don't file the text</option>${studentOpts(it.unSid)}</select><textarea rows="3" data-i="${i}" data-f="un">${esc(it.un)}</textarea></div>` : ""}
+          <label style="margin-top:8px;">Attach the original file to</label><select data-i="${i}" data-f="attach"><option value="">Nobody (keep text only)</option>${studentOpts(it.attach)}</select></div>`).join("")
+          + `<div class="sn-save row row-end"><button id="ucBk">Back</button><button class="primary" id="ucGo">File it</button></div>`;
+        B.querySelectorAll("[data-f]").forEach(el=> el.onchange = el.oninput = ()=>{ const it = items[+el.dataset.i], f = el.dataset.f, v = el.type==="checkbox" ? el.checked : el.value; if(el.dataset.j!==undefined) it.secs[+el.dataset.j][f] = v; else it[f] = v; });
+        B.querySelector("#ucBk").onclick = home;
+        B.querySelector("#ucGo").onclick = async ()=>{
+          const ents = new Map(), E = (sid,i)=>{ const k = sid+"|"+i; if(!ents.has(k)) ents.set(k,{sid,i,texts:[],attach:false}); return ents.get(k); };
+          items.forEach((it,i)=>{ it.secs.forEach(x=>{ if(x.on && x.sid && x.text.trim()) E(x.sid,i).texts.push(x.text.trim()); }); if(it.unSid && it.un.trim()) E(it.unSid,i).texts.push(it.un.trim()); if(it.attach) E(it.attach,i).attach = true; });
+          if(!ents.size){ toast("Nothing to file \u2014 pick a talmid for each file.","error"); return; }
+          B.querySelector("#ucGo").disabled = true; let n = 0; const who = new Set();
+          for(const e of ents.values()){ const st = state.data.students.find(s=>s.id===e.sid); if(!st) continue; const f = items[e.i].f;
+            (st.files = st.files||[]).unshift({id:uid(), name:f.name||"Photo", kind:/^image\//.test(f.type||"")?"image":"doc", date:todayStr(), text:e.texts.join("\n\n"), photo:e.attach ? await fileData(f) : ""}); n++; who.add(st.id); }
+          await save(`Filed ${n} item${n===1?"":"s"} under ${who.size} talmid${who.size===1?"":"im"} \u2713`); close(); refreshAll();
+        };
+      }
+      home();
+    }
+
+    menuAdd("\uD83D\uDD04 Room switch requests", openRoomSwitch);
+    menuAdd("\uD83D\uDC64 Rabbeim & moving talmidim", openRabbeim);
+    menuAdd("\uD83D\uDCCE Upload photos & documents (by student)", openUpload);
+    const rb = $("rabbeimBtn"); if(rb) rb.addEventListener("click", openRabbeim);
+    try{ window.__renderHome(); }catch(e){}
+  })();
+
+  // ================= LOAD ROOMS + PHONES (Year 1 dorming sheet) =================
+  (function(){
+    const PEOPLE = [{"l":"Achial","f":"Harel","dorm":"18e","wa":"+18187485587","il":"","par":"+17477742361"},{"l":"Achial","f":"Dvir","dorm":"18e","wa":"+18182058036","il":"","par":"+17477742361"},{"l":"Aguvayev","f":"Emanuel","dorm":"17a","wa":"+19295803223","il":"","par":"+19174028725"},{"l":"Ahlers","f":"Ezra","dorm":"Mili 2a","wa":"+18287120862","il":"","par":"+18282319837"},{"l":"Azulay","f":"Itamar","dorm":"17e","wa":"+14243945410","il":"","par":"+18182070507"},{"l":"Bamberger","f":"Michael","dorm":"17e","wa":"+13232326465","il":"","par":"+32489990495"},{"l":"Behnam","f":"Eliahu","dorm":"17e","wa":"+15166039910","il":"+972539345384","par":""},{"l":"Bell","f":"Elad","dorm":"19f","wa":"+16173202840","il":"","par":"+17813664393"},{"l":"Black","f":"Binyamin","dorm":"Mili 2b","wa":"+447591743456","il":"","par":"+447564244816"},{"l":"Boruchov","f":"Daniel","dorm":"16a","wa":"+17185777258","il":"+972533638274","par":"+13476598576"},{"l":"Bressel","f":"Asher","dorm":"16b","wa":"+16179356599","il":"+972539338764","par":"+16178214886"},{"l":"Brodsky","f":"Adam","dorm":"16b","wa":"+17173151227","il":"+972539347097","par":"+17174218005"},{"l":"Burack","f":"Amitai","dorm":"Mili 4a","wa":"+15616098805","il":"","par":"+15618593062"},{"l":"Cairns","f":"David","dorm":"19a","wa":"+15873366434","il":"+972533637498","par":"+17807187925"},{"l":"Cohen","f":"David","dorm":"18a","wa":"+18184477232","il":"","par":"+18182313622"},{"l":"Davidovici","f":"Yehuda","dorm":"19c","wa":"+12014665950","il":"+972539336725","par":"+19179408649"},{"l":"Durbach","f":"Dani","dorm":"19a","wa":"+16479177649","il":"","par":"+16474041776"},{"l":"Edri","f":"Ori","dorm":"19b","wa":"+19545496826","il":"+972533642287","par":"+19548702328"},{"l":"Ehrenreich","f":"Ari","dorm":"Mili 2a","wa":"+13058898262","il":"","par":"+15169930510"},{"l":"Eliezer","f":"Yosef","dorm":"18e","wa":"+18188228763","il":"+972533649373","par":""},{"l":"Elkin","f":"Gavi","dorm":"Mili 4d","wa":"+13473959255","il":"+972533641565","par":"+18478307448"},{"l":"Epstein","f":"Yosef","dorm":"17b","wa":"+15613320257","il":"+972539335236","par":"+19515157901"},{"l":"Freedman","f":"Moshe","dorm":"19c","wa":"+16672733545","il":"","par":"+14433101392"},{"l":"Frieden","f":"Daniel","dorm":"18d","wa":"+15166037397","il":"","par":"+16467526228"},{"l":"Fromen","f":"Noah","dorm":"17b","wa":"+12019065402","il":"","par":"+19177960222"},{"l":"Ganjian","f":"Jason","dorm":"19a","wa":"+15167600374","il":"","par":"+19174943858"},{"l":"Gasner","f":"Jayden","dorm":"19e","wa":"+16465990052","il":"+972539344970","par":"+18456611053"},{"l":"Gelb","f":"Eli","dorm":"Mili 2a","wa":"+18478635195","il":"+972539374352","par":"+18474524386"},{"l":"Gelfand","f":"Ezra","dorm":"17a","wa":"+13473855492","il":"","par":"+19176274400"},{"l":"Gellman","f":"Yinnon","dorm":"Mili 2a","wa":"+19293722448","il":"","par":"+17189864504"},{"l":"Gerber","f":"Judah","dorm":"","wa":"+15519990439","il":"","par":""},{"l":"Ginsbury","f":"Aviel","dorm":"Mili 2c","wa":"+447908971743","il":"","par":"+447817256828"},{"l":"Glatt","f":"Nathan","dorm":"16d","wa":"+447498442307","il":"","par":"+447944039562"},{"l":"Glatt","f":"Uriel","dorm":"18c","wa":"+447498440307","il":"","par":"+447944039562"},{"l":"Gross","f":"Elishama","dorm":"17a","wa":"+19044691615","il":"","par":"+19044156731"},{"l":"Hirshbein","f":"Samuel","dorm":"19b","wa":"+17867738348","il":"+972539336708","par":"+13056100010"},{"l":"Iliev","f":"Michael","dorm":"19a","wa":"+16478043467","il":"","par":"+16477056110"},{"l":"Isaac -Saul","f":"Uriel","dorm":"177d","wa":"+447895552789","il":"","par":""},{"l":"Joseph","f":"Yoni","dorm":"18a","wa":"+447553249017","il":"","par":"+447909976579"},{"l":"Kaganoff","f":"Shlomo","dorm":"Mili 2b","wa":"+18622819226","il":"","par":"+16469380471"},{"l":"Kempner","f":"David","dorm":"17a","wa":"+12406019922","il":"","par":"+12405050761"},{"l":"Klein","f":"Elliot","dorm":"19f","wa":"+14479087369","il":"","par":"+14477088234"},{"l":"Leitner","f":"Zechariah","dorm":"","wa":"+447901025134","il":"","par":""},{"l":"Lichaa","f":"Yehuda","dorm":"Mili 2b","wa":"+13107290066","il":"","par":"+13109889703"},{"l":"Lugassy","f":"Michael","dorm":"19b","wa":"+19545163165","il":"","par":"+19542431786"},{"l":"Lunski","f":"David","dorm":"Mili 4a","wa":"+15613328461","il":"","par":"+15615263586"},{"l":"Maman","f":"Nerya","dorm":"18a","wa":"+19712809310","il":"","par":"+19713006519"},{"l":"Mason","f":"Yoni","dorm":"19f","wa":"+447942284320","il":"+972539574362","par":"+447968815271"},{"l":"Milgram","f":"Yaakov","dorm":"Mili 4c","wa":"+19175448189","il":"","par":"+19175611582"},{"l":"Mirzakandov","f":"Eitan","dorm":"16a","wa":"+19296334554","il":"","par":"+12124448933"},{"l":"Murdakhayov","f":"Netanel","dorm":"16a","wa":"+13476327937","il":"+972539335180","par":"+17186643721"},{"l":"Nassim","f":"Joseph","dorm":"18a","wa":"+447367508268","il":"","par":"+447309880101"},{"l":"Perlman","f":"Gavriel","dorm":"19f","wa":"+13476774041","il":"","par":"+13476930928"},{"l":"Peyman","f":"Micah","dorm":"16d","wa":"+13105958556","il":"","par":"+13108042882"},{"l":"Pshemish","f":"Aaron","dorm":"18b","wa":"+16475136405","il":"+972539344731","par":"+14168386404"},{"l":"Rakhmanov","f":"Daniel","dorm":"16b","wa":"+16465919084","il":"","par":""},{"l":"Robenov","f":"Ilan","dorm":"","wa":"+19176508434","il":"","par":""},{"l":"Robinson","f":"Moshe","dorm":"Mili 2c","wa":"+19293324964","il":"","par":"+19179238432"},{"l":"Sacks","f":"Joseph","dorm":"17e","wa":"+14128639332","il":"","par":"+14122253231"},{"l":"Sanders","f":"Wyatt","dorm":"Mili 4a","wa":"+15132125406","il":"","par":"+15134604067"},{"l":"Schwartz","f":"Asher","dorm":"18b","wa":"+13175154539","il":"","par":"+13177286770"},{"l":"Shnayderman","f":"Zevi","dorm":"16d","wa":"+14699013178","il":"+972539345226","par":"+12146090707"},{"l":"Shotkin","f":"Yaakov","dorm":"18d","wa":"+19734934188","il":"","par":"+19733306355"},{"l":"Sklar","f":"Mendel","dorm":"18b","wa":"+13474666763","il":"","par":"+13479516099"},{"l":"Sogaokar","f":"Itai","dorm":"17c","wa":"+14372652244","il":"","par":"+16477745718"},{"l":"Solomon","f":"Daniel","dorm":"17d","wa":"+447947496753","il":"","par":"+447968561321"},{"l":"Stark","f":"Mendy","dorm":"17b","wa":"+16469884314","il":"+972533642482","par":"+17189609793"},{"l":"Suissa","f":"Levi","dorm":"16d","wa":"+17869420966","il":"","par":"+17869420966"},{"l":"Valdez","f":"Binyamin","dorm":"Mili 4c","wa":"+13239013082","il":"","par":"+13239013082"},{"l":"Weiman","f":"Avishai","dorm":"Mili 4a","wa":"+13149731704","il":"+972533632709","par":"+13148146629"},{"l":"Weinstein","f":"Moishy","dorm":"18c","wa":"+14477089064","il":"","par":"+44784641483"},{"l":"Zagory","f":"Matan","dorm":"17c","wa":"+19542493772","il":"","par":"+19542534499"},{"l":"Zirkiyev","f":"Jonathan","dorm":"16a","wa":"+13474727438","il":"","par":"+13477531033"},{"l":"Eliezer","f":"Yosef Yisrael","dorm":"","wa":"+18188228763","il":"","par":"+18182820596"},{"l":"Gozarkhah","f":"Eli","dorm":"","wa":"+18186180739","il":"","par":"+13103835345"},{"l":"Krupp","f":"Noah","dorm":"","wa":"+16472846624","il":"","par":"+16473477317"},{"l":"Bershadsky","f":"Nathan","dorm":"","wa":"","il":"+972539681265","par":""},{"l":"Simon","f":"Noah","dorm":"","wa":"","il":"+972535988931","par":""},{"l":"Wasser","f":"Aryeh","dorm":"","wa":"","il":"+972533610028","par":""}];
+    const toks = s=> String(s||"").toLowerCase().replace(/\([^)]*\)/g," ").replace(/[^a-z ]/g," ").split(/\s+/).filter(t=>t.length>1);
+    const near = (a,b)=>{ if(a===b) return true; if(a.length<4||b.length<4||Math.abs(a.length-b.length)>1) return false; let i=0,j=0,d=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++d>1) return false; if(a.length>b.length) i++; else if(a.length<b.length) j++; else {i++;j++;} } return d+(a.length-i)+(b.length-j)<=1; };
+    async function run(){
+      const sts = state.data.students, plan = [], missing = [], amb = [];
+      PEOPLE.forEach(p=>{
+        const pt = toks(p.f+" "+p.l); if(pt.length<2){ return; }
+        const hits = sts.filter(s=>{ const st = toks(s.name); return pt.every(x=>st.some(t=>near(x,t))); });
+        if(hits.length===1) plan.push({s:hits[0], p}); else if(hits.length>1) amb.push(p.f+" "+p.l); else missing.push(p);
+      });
+      let rooms=0, phones=0, pars=0;
+      plan.forEach(({s,p})=>{ if(p.dorm && s.dorm!==p.dorm) rooms++; if(!s.phone && (p.wa||p.il)) phones++; if(!s.parentPhone && p.par) pars++; });
+      const msg = `Matched ${plan.length} of ${PEOPLE.length} people in your roster.\nRooms to set: ${rooms}\nStudent phones to add: ${phones}\nParent phones to add: ${pars}\nExisting phone numbers are never overwritten.`+(amb.length?`\nSkipped (two possible matches): ${amb.join(", ")}`:"");
+      if(!(await confirmDialog(msg,{okLabel:"Apply"}))) return;
+      plan.forEach(({s,p})=>{ if(p.dorm) s.dorm = p.dorm; if(!s.phone && (p.wa||p.il)) s.phone = p.wa||p.il; if(!s.parentPhone && p.par) s.parentPhone = p.par; });
+      let added = 0;
+      if(missing.length && await confirmDialog(`${missing.length} people aren't in your roster yet: ${missing.map(p=>p.f+" "+p.l).join(", ")}.\nAdd them (to Shana Alef) with their room and phone?`,{okLabel:"Add them",cancelLabel:"Skip"})){
+        missing.forEach(p=>{ state.data.students.push({id:uid(), name:(p.f+" "+p.l).replace(/\s+/g," ").trim(), classId:defaultClassId(), photo:"", phone:p.wa||p.il||"", parentPhone:p.par||"", dorm:p.dorm||""}); added++; });
+      }
+      try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); try{ window.__renderHome(); }catch(e){} toast(`Done \u2014 ${plan.length} updated${added?", "+added+" added":""} \u2713`,"success"); }
+      catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
+    }
+    const b = document.createElement("button"); b.style.fontWeight = "600"; b.textContent = "\uD83D\uDCDE Load rooms & phones (Year 1 sheets)";
+    b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); run(); }); $("moreMenu").insertBefore(b, $("moreMenu").firstChild);
   })();
 
   boot();
