@@ -411,6 +411,20 @@
   .aa-hit{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);}
   .aa-hit .nm{flex:1;font-size:14px;}
   .aa-hit button{padding:6px 10px;font-size:12px;}
+.mx-row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line)}
+.mx-n{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-b{display:flex;gap:4px}
+.mx-c{min-width:42px;padding:7px 2px;font-size:10px;border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;line-height:1.2;background:#fff}
+.mx-c i{font-style:normal;font-size:15px;font-weight:700}
+.mx-c.p{background:var(--green-bg,#e6f6ec);color:var(--green,#1a7f43)}
+.mx-c.a{background:var(--red-bg,#fde8e8);color:var(--red,#c0392b)}
+.mx-c.l{background:var(--amber-bg,#fff3d6);color:var(--amber,#a66a00)}
+.pf-sd{display:flex;align-items:center;gap:8px;padding:3px 0}.pf-sdl{width:92px;font-size:12px}
+.pf-sd b.g{color:var(--green,#1a7f43)}.pf-sd b.y{color:var(--amber,#a66a00)}.pf-sd b.r{color:var(--red,#c0392b)}
+.tabs{position:sticky;top:0;z-index:20;background:var(--paper);padding:8px 0 10px;margin-bottom:10px;}
+.menu-dropdown{max-height:75vh;overflow-y:auto;}
+.menu-dropdown .menu-label{margin-top:8px;}
+.entry-notes{white-space:pre-wrap;}
 </style>
 </head>
 <body>
@@ -428,7 +442,7 @@
           <button id="overviewBtn">Full school overview</button>
           <button id="missingToggleBtn">Show missing-info dots: Off</button>
           <button id="strBrowseBtn">Strengths &amp; interests</button>
-          <button id="weeklyReportBtn">Weekly report (printable)</button>
+          <button id="weeklyReportBtn">Whole-school report (printable)</button>
           <div class="menu-label">Safety</div>
           <button id="backupBtn">Download full backup</button>
           <button id="backupsBtn">Backups</button>
@@ -493,7 +507,7 @@
       <button class="attn-toggle" id="attnToggle">
         <span class="attn-dot"></span>
         <span class="attn-toggle-text" id="attnText">Loading\u2026<span class="attn-toggle-sub" id="attnSub"></span></span>
-        <span class="attn-chevron open" id="attnChevron">&#9662;</span>
+        <span class="attn-chevron" id="attnChevron">&#9662;</span>
       </button>
       <div class="attn-list" id="attnList"></div>
     </div>
@@ -692,6 +706,15 @@
     state.data.trash = state.data.trash.filter(t=> new Date(t.deletedAt).getTime() > cutoff);
   }
 
+  const mdB = h => String(h).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*\*/g,"");
+  const IMPORTANT = /\b(struggl\w*|concern\w*|worr\w*|skipp\w*|miss\w*|absent|late|sick|ill|family|parents?|mother|father|divorce|passed away|depress\w*|anxi\w*|sad|angry|fight\w*|phone|vap\w*|smok\w*|drink\w*|leav\w*|drop\w*|urgent|follow.?up|must|needs?|wants? to (?:switch|leave|move)|not (?:learning|davening|coming))\b/i;
+  function tidyNotes(raw){
+    let t = String(raw||"").replace(/\r/g,"\n"); if(!t.trim()) return t;
+    t = t.replace(/\b(um+|uh+|uhm|you know|i mean|basically|so yeah)\b[,.]?\s*/gi," ");
+    let parts = t.split(/\n+|(?<=[.!?])\s+|\s+and then\s+|;\s*/i).map(x=> x.replace(/^[-\u2022*\s]+/,"").replace(/\*\*/g,"").replace(/\s+/g," ").trim()).filter(x=> x.length>2);
+    parts = parts.map(x=>{ x = x.replace(/\bi\b/g,"I").replace(/\s+([,.!?])/g,"$1"); x = x.charAt(0).toUpperCase()+x.slice(1); if(!/[.!?]$/.test(x)) x += "."; return IMPORTANT.test(x) ? "**"+x+"**" : x; });
+    return Array.from(new Set(parts)).map(x=>"- "+x).join("\n");
+  }
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
   const localDateStr = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   const todayStr = () => localDateStr(new Date());
@@ -1195,7 +1218,7 @@
     }
   }
 
-  let attnExpanded = true;
+  let attnExpanded = false;
   $("attnToggle").addEventListener("click", ()=>{
     attnExpanded = !attnExpanded;
     $("attnList").classList.toggle("hidden", !attnExpanded);
@@ -1208,17 +1231,17 @@
     const allChip = document.createElement("div");
     allChip.className = "class-chip" + (state.activeClass===null?" active":"");
     allChip.textContent = "Shana Alef";
-    allChip.addEventListener("click", ()=>{ state.activeClass = null; renderRoster(); });
+    allChip.addEventListener("click", ()=>{ state.gsAll=false; state.activeClass = null; window.__lab&&window.__lab(); renderRoster(); });
     strip.appendChild(allChip);
     const everyChip = document.createElement("div");
     everyChip.className = "class-chip" + (state.activeClass==="__all"?" active":"");
-    everyChip.textContent = "All students";
-    everyChip.addEventListener("click", ()=>{ state.activeClass = "__all"; renderRoster(); });
+    everyChip.textContent = "All students (incl. Bet)";
+    everyChip.addEventListener("click", ()=>{ state.gsAll=true; state.activeClass = "__all"; window.__lab&&window.__lab(); renderRoster(); });
     strip.appendChild(everyChip);
-    state.data.classes.forEach(c=>{
+    state.data.classes.filter(c=> state.gsAll || classYear(c)==="alef").forEach(c=>{
       const chip = document.createElement("div");
       chip.className = "class-chip" + (state.activeClass===c.id ? " active":"");
-      chip.innerHTML = `${escapeHtml(c.name)}${c.rebbi ? ` <span class="hint">(${escapeHtml(c.rebbi)})</span>`:""} <span class="n">${studentsInClass(c.id).length}</span>`;
+      chip.innerHTML = `${escapeHtml(c.id==="class_shana_alef"?"Not yet in a shiur":c.name)}${c.rebbi ? ` <span class="hint">(${escapeHtml(c.rebbi)})</span>`:""} <span class="n">${studentsInClass(c.id).length}</span>`;
       chip.addEventListener("click", ()=>{ state.activeClass = c.id; renderRoster(); });
       chip.addEventListener("dblclick", ()=> editClass(c.id));
       strip.appendChild(chip);
@@ -1415,6 +1438,7 @@
           <button class="ghost" id="qsClose">Close</button>
         </div>
         ${quickTopHtml(student)}
+        <div class="pf-lbl">Quick check-in \u2014 how is he doing?</div>${standingHtml(student.id)}
         <div class="qs-actions">
           <button id="qsModeCheck">Check-in</button>
           <button id="qsModeAtt" ${cls?"":"disabled title='Assign a class first'"}>Attendance</button>
@@ -1425,6 +1449,7 @@
         </div>
       </div>`;
     showOverlay(overlay);
+    wireStanding(overlay, student.id);
     const body = overlay.querySelector("#qsBody");
     const close = ()=>{ stopAllDictation(); closeOverlay(overlay); };
     overlay.querySelector("#qsClose").addEventListener("click", close);
@@ -1506,9 +1531,10 @@
         persist().catch(()=>{});
       });
     }
-    overlay.querySelector("#qsModeCheck").addEventListener("click", checkInMode);
+    const goCheck = ()=>{ close(); state.ckFrom = student.id; state.activeInterviewStudent = student.id; state.ciClass = studentYear(student)==="alef" ? "__alef" : null; document.querySelector('.tab[data-tab="interviews"]').click(); renderInterviewPicker(); };
+    overlay.querySelector("#qsModeCheck").addEventListener("click", goCheck);
     overlay.querySelector("#qsModeAtt").addEventListener("click", attendanceMode);
-    if(startMode==="check") checkInMode(); else if(startMode==="att") attendanceMode();
+    if(startMode==="check") goCheck(); else if(startMode==="att") attendanceMode();
   }
 
   // ================= SMART SEARCH =================
@@ -1754,6 +1780,7 @@
         ${!isNew ? rebbiRowsHtml(student) : ""}
         <label for="stPhone">Student phone <span style="color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="stPhone" value="${escapeHtml(student.phone||"")}" />
+        ${student.phone?`<div class="nm-actions" style="margin:6px 0;"><a class="nm-btn wa" href="${waLink(student.phone)}" target="_blank" rel="noopener">WhatsApp</a><a class="nm-btn" href="tel:${escapeHtml(student.phone)}">Call</a></div>`:""}
         <label for="stDorm">Dorm room</label>
         <input type="text" id="stDorm" value="${escapeHtml(student.dorm||"")}" placeholder="e.g. 17a or Mili 2b" />
         <label for="stParentPhone">Parent phone <span style="color:var(--ink-soft);">(optional)</span></label>
@@ -1780,7 +1807,7 @@
       </div>
     `;
     showOverlay(overlay);
-    overlay.querySelector("#closeDrawer").addEventListener("click", ()=> closeOverlay(overlay));
+    overlay.querySelector("#closeDrawer").addEventListener("click", ()=>{ closeOverlay(overlay); if(!isNew) openStudentQuick(student.id); });
     autoSaveStudentFields(overlay, student, isNew);
     wireStrengthEditor(overlay, student);
     if(!isNew) renderStudentTimeline(overlay, student.id);
@@ -1823,7 +1850,7 @@
       if(isNew && !state.data.students.includes(student)) state.data.students.push(student);
       persist().catch(()=>{});
       closeOverlay(overlay);
-      renderRoster(); renderInterviewPicker();
+      renderRoster(); renderInterviewPicker(); if(!isNew) openStudentQuick(student.id);
       if(!$("mainView").classList.contains("hidden") && document.getElementById("ovGrid")) renderOverviewRows();
     });
 
@@ -1866,7 +1893,7 @@
       return;
     }
     const today = todayStr();
-    const withStudents = state.data.classes.filter(c=> studentsInClass(c.id).length>0);
+    const withStudents = state.data.classes.filter(c=> studentsInClass(c.id).length>0 && (state.gsAll || classYear(c)==="alef"));
     const takenCount = withStudents.filter(c=> findAttendanceRecord(c.id, today, state.activeSeder)).length;
     const summary = document.createElement("div");
     const allDone = withStudents.length>0 && takenCount===withStudents.length;
@@ -2150,7 +2177,7 @@
     wrap.innerHTML = "";
     if(state.ciClass===undefined) state.ciClass = "__alef";
     const sel = document.createElement("select"); sel.style.cssText = "width:100%;margin-bottom:8px;";
-    sel.innerHTML = `<option value="__alef">Shana Alef</option><option value="">All students</option>` + state.data.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+    sel.innerHTML = `<option value="__alef">Shana Alef</option><option value="">All students</option>` + state.data.classes.filter(c=> state.gsAll || classYear(c)==="alef").map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
     sel.value = state.ciClass || "";
     sel.addEventListener("change", ()=>{ state.ciClass = sel.value || null; renderInterviewPicker(); });
     wrap.appendChild(sel);
@@ -2186,7 +2213,7 @@
       div.className = "entry";
       const statusLabel = entry.status ? `<span class="status-label ${entry.status==='thriving'?'green':entry.status==='struggling'?'red':'yellow'}" style="margin-right:6px;">${entry.status}</span>` : "";
       div.innerHTML = `<div class="entry-date"><span>${statusLabel}${entry.date}</span><span><a href="#" data-del="${entry.id}" style="color:var(--red);font-size:12px;text-decoration:none;">delete</a></span></div>
-        ${entry.notes ? `<div class="entry-notes">${escapeHtml(entry.notes)}</div>` : ""}`;
+        ${entry.notes ? `<div class="entry-notes">${mdB(escapeHtml(entry.notes))}</div>` : ""}`;
       div.querySelector("[data-del]").addEventListener("click", async e=>{
         e.preventDefault();
         if(!(await confirmDialog("Delete this entry?", {okLabel:"Delete", danger:true}))) return;
@@ -2299,6 +2326,9 @@
   }
   attachDictation($("voiceBtn"), $("entryNotes"));
   $("cancelEntry").addEventListener("click", stopAllDictation);
+  { const tb = document.createElement("button"); tb.type = "button"; tb.className = "ghost"; tb.style.cssText = "font-size:12px;"; tb.textContent = "\u2728 Tidy"; tb.title = "Clean up and organize these notes"; $("voiceBtn").insertAdjacentElement("afterend", tb);
+    tb.addEventListener("click", ()=>{ const ta = $("entryNotes"); ta.value = tidyNotes(ta.value); toast("Tidied \u2014 important points are bolded. Edit if needed.", "success"); }); }
+  $("saveEntry").addEventListener("click", ()=>{ const ta = $("entryNotes"); if(ta.value.trim() && !/^- /.test(ta.value.trim())) ta.value = tidyNotes(ta.value); }, true);
   $("saveEntry").addEventListener("click", stopAllDictation);
 
   $("addEntryBtn").addEventListener("click", ()=>{
@@ -2314,7 +2344,7 @@
     if(!notes && !currentEntryStatus) { toast("Add some notes or pick how he's holding.", "error"); return; }
     state.data.interviews.push({ id:uid(), studentId: state.activeInterviewStudent, date: $("entryDate").value || todayStr(), notes, status: currentEntryStatus||"" });
     $("saveEntry").disabled = true;
-    try{ await persist(); $("entryForm").classList.add("hidden"); renderInterviewPanel(); }
+    try{ await persist(); $("entryForm").classList.add("hidden"); renderInterviewPanel(); if(state.ckFrom){ const id = state.ckFrom; state.ckFrom = null; openStudentQuick(id); } }
     catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
     finally{ $("saveEntry").disabled = false; }
   });
@@ -3458,6 +3488,22 @@
       rate: total ? Math.round(((present + late*0.5)/total)*100) : null };
   }
 
+  function weeklyStudentSection(){
+    const days = []; for(let i=6;i>=0;i--){ const d = new Date(todayStr()+"T00:00:00"); d.setDate(d.getDate()-i); days.push(localDateStr(d)); }
+    const sym = {present:"\u2713", absent:"\u2717", late:"L"}, E = escapeHtml;
+    const cls = state.data.classes.filter(c=> classYear(c)==="alef" && studentsInClass(c.id).length).sort((a,b)=> (a.rebbi||a.name).localeCompare(b.rebbi||b.name));
+    return cls.map(c=>{ const mem = studentsInClass(c.id).sort(byName);
+      return `<div class="shiur"><h2>${E(c.rebbi||c.name)} \u2014 ${mem.length} talmidim</h2>` + mem.map(s=>{
+        const recs = state.data.attendance.filter(a=> a.records && a.records[s.id]!==undefined && days.indexOf(a.date)>=0);
+        let p = 0; recs.forEach(a=>{ const v = a.records[s.id]; p += v==="present" ? 1 : v==="late" ? 0.5 : 0; });
+        const pct = recs.length ? Math.round(p/recs.length*100) : null;
+        const grid = `<table class="g"><tr><th></th>${days.map(d=>`<th>${d.slice(5)}</th>`).join("")}</tr>${SEDARIM.map(sd=>`<tr><th>${sd.id.toUpperCase()}</th>${days.map(d=>{ const r = recs.find(a=>a.date===d && recSeder(a)===sd.id), v = r ? r.records[s.id] : null; return `<td class="${v||"none"}">${v ? sym[v] : "\u00b7"}</td>`; }).join("")}</tr>`).join("")}</table>`;
+        const cks = state.data.interviews.filter(i=>i.studentId===s.id).sort((a,b)=> b.date.localeCompare(a.date)), lst = latestStanding(s.id), streak = absentStreak(s), d0 = cks.length ? daysSince(cks[0].date) : null;
+        const needs = []; if(streak>=2) needs.push("**"+streak+" absences in a row**"); if(lst && lst.status==="struggling") needs.push("**Needs attention**"); if(s.wantsSwitch||s.swM||s.swA) needs.push("**wants a switch**"); if(d0===null) needs.push("no check-in yet"); else if(d0>=CHECKIN_STALE_DAYS) needs.push("no check-in in "+d0+" days");
+        const stTxt = lst ? (lst.status==="struggling" ? "**Needs attention**" : lst.status) : "not set";
+        const notes = cks.filter(i=>i.notes).slice(0,2).map(i=>`<div class="nt"><i>${E(i.date)}</i> ${mdB(E(i.notes)).replace(/\n/g,"<br>")}</div>`).join("");
+        return `<div class="st"><div class="stn"><b>${E(s.name)}</b> <span>${pct===null?"no attendance this week":"attendance "+pct+"%"} \u00b7 holding: ${mdB(E(stTxt))}</span></div>${grid}${needs.length?`<div class="nd">Needs: ${mdB(E(needs.join(" \u00b7 ")))}</div>`:""}${notes}</div>`; }).join("") + `</div>`; }).join("");
+  }
   function buildWeeklyReportHtml(){
     const genDate = new Date().toLocaleDateString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"});
     const attention = attentionList();
@@ -3505,6 +3551,7 @@
   th{text-align:left;padding:6px 8px;background:#f1effa;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#6b6480;}
   td{padding:7px 8px;border-bottom:1px solid #eee;}
   .flagname{font-weight:600;}
+  .shiur{page-break-before:always;} .st{border-top:1px solid #ddd;padding:8px 0;page-break-inside:avoid;font-size:12px;} .stn span{color:#6b6480;font-size:11px;} .g{width:auto;font-size:10px;margin:4px 0;} .g th,.g td{padding:1px 4px;text-align:center;border:0;background:none;} .g .present{color:#1a7f43;} .g .absent{color:#c0392b;font-weight:700;} .g .late{color:#a66a00;font-weight:700;} .g .none{color:#bbb;} .nd{color:#8a1f1f;margin:2px 0;} .nt{margin:3px 0;color:#333;}
   @media print{ body{margin:0;max-width:100%;} .no-print{display:none;} }
   .no-print{margin-bottom:20px;}
   .no-print button{font-family:inherit;font-size:13px;padding:8px 16px;border-radius:8px;border:1px solid #241d4a;
@@ -3533,6 +3580,7 @@
     <thead><tr><th>Shiur</th><th>Rebbi</th><th>Room</th><th>Students</th><th>Sessions taken</th><th>Attendance this week</th></tr></thead>
     <tbody>${classRows}</tbody>
   </table>
+  ${weeklyStudentSection()}
 </body></html>`;
   }
 
@@ -3665,22 +3713,23 @@
     $("moreMenu").classList.add("hidden");
     const key = n=> String(n||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
     const byKey = {}; state.data.students.forEach(s=>{ byKey[key(s.name)] = s; });
-    const plan = [], missing = [];
+    const plan = [], missing = [], toAdd = [];
     SHIUR_LISTS.forEach(sh=> sh.students.forEach(n=>{
       const st = byKey[key(n)] || byKey[key(SHIUR_ALIASES[n]||"")] || fuzzyStudent(n);
-      if(st) plan.push({st, sh}); else missing.push(n+" ("+sh.rebbi+")");
+      if(st) plan.push({st, sh}); else { missing.push(n+" ("+sh.rebbi+")"); toAdd.push({n, sh}); }
     }));
-    if(!plan.length){ toast("No students matched \u2014 restore or import your roster first.", "error"); return; }
-    if(!(await confirmDialog(`Create ${SHIUR_LISTS.length} shiurim (${SHIUR_LISTS.map(x=>x.rebbi.replace("Rabbi ","")).join(", ")}) and place ${plan.length} students in them? Each student moves from Shana Alef into his shiur, so attendance is taken per shiur from now on.`+(missing.length?` Not found in roster: ${missing.join(", ")}.`:""), {okLabel:"Place students"}))) return;
+    if(!plan.length && !toAdd.length){ toast("No students matched \u2014 restore or import your roster first.", "error"); return; }
+    if(!(await confirmDialog(`Create ${SHIUR_LISTS.length} shiurim (${SHIUR_LISTS.map(x=>x.rebbi.replace("Rabbi ","")).join(", ")}) and place ${plan.length} students in them? Each student moves from Shana Alef into his shiur, so attendance is taken per shiur from now on.`+(missing.length?` Not in your roster yet, will be added: ${missing.join(", ")}.`:""), {okLabel:"Place students"}))) return;
     SHIUR_LISTS.forEach(sh=>{
       let c = state.data.classes.find(c=> c.name.trim().toLowerCase()===sh.rebbi.toLowerCase());
       if(!c){ c = {id:uid(), name:sh.rebbi, rebbi:sh.rebbi, room:"", year:"alef"}; state.data.classes.push(c); }
       sh.cid = c.id;
     });
     plan.forEach(p=>{ p.st.classId = p.sh.cid; });
+    toAdd.forEach(a=> state.data.students.push({id:uid(), name:a.n, classId:a.sh.cid, phone:"", dorm:"", parentPhone:""}));
     try{
       await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); updateAttentionBanner(); renderKpis();
-      toast(`${plan.length} students placed in ${SHIUR_LISTS.length} shiurim.`, "success");
+      toast(`${plan.length+toAdd.length} students placed in ${SHIUR_LISTS.length} shiurim.`, "success");
     }catch(e){ if(!e.shown) toast("Couldn't save: "+e.message, "error"); }
   });
 
@@ -4501,7 +4550,7 @@
   })();
 
   // ================= v2: year scope, quick profile, autosave, whole-yeshiva attendance =================
-  state.gsAll = false; state.attMode = "rebbe"; state.attAllDate = null; state.attAllScopeAll = false; state.attAllOpen = {};
+  state.gsAll = false; state.attMode = "all"; state.attAllDate = null; state.gsAll = false; state.attAllOpen = {};
   function studentYear(s){ const c = s.classId ? classById(s.classId) : null; return c ? classYear(c) : "alef"; }
   function yearScope(){ return state.data.students.filter(s=> studentYear(s)==="alef"); }
   function fuzzyStudent(n){
@@ -4529,19 +4578,19 @@
     const overall = pct(recs.slice(-20)), streak = absentStreak(s);
     const cks = state.data.interviews.filter(i=>i.studentId===s.id).sort((a,b)=> b.date.localeCompare(a.date));
     const d = cks.length ? daysSince(cks[0].date) : null;
-    const bySeder = SEDARIM.map(sd=>{ const p = pct(recs.filter(a=>recSeder(a)===sd.id).slice(-10)); return p===null ? "" : `<div><b class="${cls(p)}">${p}%</b><span>${escapeHtml(sd.label)}</span></div>`; }).join("");
+    const bySeder = SEDARIM.map(sd=>{ const rs = recs.filter(a=>recSeder(a)===sd.id).slice(-14), p = pct(rs); return p===null ? "" : `<div class="pf-sd"><span class="pf-sdl">${escapeHtml(sd.label)}</span><span class="pf-dots" style="margin:0;flex:1;">${rs.map(a=>`<span class="pf-dot ${a.records[s.id]}" title="${escapeHtml(a.date+" \u00b7 "+a.records[s.id])}"></span>`).join("")}</span><b class="${cls(p)}">${p}%</b></div>`; }).join("");
     const sc = {thriving:2, steady:1, struggling:0}, withSt = cks.filter(i=>i.status && sc[i.status]!==undefined);
     let trend = "";
     if(withSt.length>=2){ const prev = withSt.slice(1,4), avg = prev.reduce((t,i)=>t+sc[i.status],0)/prev.length, df = sc[withSt[0].status]-avg;
       trend = df>=0.5 ? "\u2197 Improving" : df<=-0.5 ? "\u2198 Slipping" : "\u2192 Holding steady"; }
     const stDots = withSt.slice(0,8).reverse().map(i=>`<span class="pf-dot ${i.status==="thriving"?"present":i.status==="steady"?"late":"absent"}" title="${escapeHtml(i.date+" \u00b7 "+i.status)}"></span>`).join("");
-    const notes = cks.slice(0,5).map(i=>`<div class="pf-ck"><b>${escapeHtml(i.date)}</b>${i.status?` <span class="pf-st ${escapeHtml(i.status)}">${escapeHtml(i.status)}</span>`:""}${i.notes?`<div>${escapeHtml(i.notes.length>200?i.notes.slice(0,200)+"\u2026":i.notes)}</div>`:""}</div>`).join("");
+    const notes = cks.slice(0,5).map(i=>`<div class="pf-ck"><b>${escapeHtml(i.date)}</b>${i.status?` <span class="pf-st ${escapeHtml(i.status)}">${escapeHtml(i.status)}</span>`:""}${i.notes?`<div>${mdB(escapeHtml(i.notes.length>300?i.notes.slice(0,300)+"\u2026":i.notes))}</div>`:""}</div>`).join("");
     const flags = [s.wantsSwitch?"wants room switch":"", s.swM?"wants morning shiur switch":"", s.swA?"wants afternoon shiur switch":""].filter(Boolean);
     return `<div class="pf-stats">
         <div><b class="${cls(overall)}">${overall===null?"\u2014":overall+"%"}</b><span>Attendance</span></div>
         <div><b class="${streak>=STREAK_ALERT?"r":""}">${streak}</b><span>Absent in a row</span></div>
         <div><b class="${d===null||d>=CHECKIN_STALE_DAYS?"y":""}">${d===null?"\u2014":d===0?"Today":d+"d"}</b><span>Last check-in</span></div></div>
-      ${bySeder?`<div class="pf-lbl">By seder</div><div class="pf-stats" style="margin-top:0;">${bySeder}</div>`:""}
+      ${bySeder?`<div class="pf-lbl">All 5 sedarim (last 14 each)</div><div>${bySeder}</div>`:""}
       ${dots?`<div class="pf-lbl">Attendance trail (oldest \u2192 newest)</div><div class="pf-dots">${dots}</div>`:""}
       ${stDots?`<div class="pf-lbl">How he's been holding${trend?" \u00b7 "+trend:""}</div><div class="pf-dots">${stDots}</div>`:""}
       ${flags.length?`<div class="nm-tags" style="margin:6px 0;">${flags.map(f=>`<span class="nm-tag warn">${f}</span>`).join("")}</div>`:""}
@@ -4560,11 +4609,12 @@
     el.innerHTML = wa + `<div class="nm-card" style="margin-top:10px;"><div class="nm-name">Wants to switch</div>${s.dorm?`<div class="nm-sub">Room now: <b>${escapeHtml(s.dorm)}</b></div>`:""}`
       + F.map(f=>`<label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px;"><input type="checkbox" data-f="${f[0]}" ${s[f[0]]?"checked":""} style="width:auto"> ${f[2]}</label><input type="text" data-n="${f[0]}" class="${s[f[0]]?"":"hidden"}" value="${escapeHtml(s[f[1]]||"")}" placeholder="${f[3]}" style="margin-top:4px;">`).join("") + `</div>`;
     const sv = msg=>{ persist().then(()=>{ if(msg) toast(msg,"success"); }).catch(()=>{}); try{ window.__renderRoomBar(); }catch(e){} };
-    el.querySelectorAll("[data-f]").forEach(c=> c.onchange = ()=>{ const f = F.find(x=>x[0]===c.dataset.f); s[f[0]] = c.checked; if(!c.checked) s[f[1]] = ""; el.querySelector(`[data-n="${f[0]}"]`).classList.toggle("hidden", !c.checked); sv(c.checked ? "Noted \u2014 saved" : "Cleared"); });
+    el.querySelectorAll("[data-f]").forEach(c=> c.onchange = ()=>{ const f = F.find(x=>x[0]===c.dataset.f); s[f[0]] = c.checked; if(!c.checked) s[f[1]] = ""; el.querySelector(`[data-n="${f[0]}"]`).classList.toggle("hidden", !c.checked); window.__swCk(c.checked, f[2], s); sv(c.checked ? "Noted \u2014 saved" : "Cleared"); });
     el.querySelectorAll("[data-n]").forEach(i=> i.onchange = ()=>{ const f = F.find(x=>x[0]===i.dataset.n); s[f[1]] = i.value.trim(); sv(); });
   }
   window.__renderSwitchBox = renderSwitchBox;
-  window.__renderStudentBoxes = function(s, el){ renderSwitchBox(s, el || $("stuBoxes"), !el); };
+  window.__renderStudentBoxes = function(s, el){ const t = el || $("stuBoxes"); renderSwitchBox(s, t, !el); if(!el && s){ const d = document.createElement("div"); d.innerHTML = "<label>Quick check-in: how is he doing?</label>" + standingHtml(s.id); t.insertBefore(d, t.firstChild); wireStanding(d, s.id); } };
+  window.__swCk = function(on, lbl, s){ if(!on) return; const note = "Wants to switch: " + lbl.replace("Wants to switch ","").replace("Wants to switch","rooms").toLowerCase(), d = todayStr(); if(!state.data.interviews.some(i=>i.studentId===s.id && i.date===d && i.notes===note)) state.data.interviews.push({id:uid(), studentId:s.id, date:d, notes:note, status:""}); try{ renderInterviewPanel(); }catch(e){} };
 
   // profile autosave
   function autoSaveStudentFields(overlay, student, isNew){
@@ -4595,16 +4645,16 @@
   // search scope toggle
   (function(){
     const b = $("gsScope"); if(!b) return;
-    const lab = ()=>{ b.textContent = state.gsAll ? "All" : "Alef"; };
+    const lab = ()=>{ b.textContent = state.gsAll ? "Everyone" : "Alef only"; }; window.__lab = lab;
     lab();
-    b.addEventListener("click", ()=>{ state.gsAll = !state.gsAll; lab(); renderGlobalSearch(); });
+    b.addEventListener("click", ()=>{ state.gsAll = !state.gsAll; if(!state.gsAll && state.activeClass==="__all") state.activeClass=null; lab(); renderGlobalSearch(); renderRoster(); renderAttendanceTab(); renderInterviewPicker(); });
   })();
 
   // ---- whole-yeshiva quick attendance (all sedarim, grouped by shiur) ----
   (function(){
     const sed = $("sederBar");
     const bar = document.createElement("div"); bar.id = "attModeBar"; bar.className = "seder-chips"; bar.style.margin = "0 0 10px";
-    bar.innerHTML = '<button type="button" class="seder-chip" data-m="rebbe">By Rebbe</button><button type="button" class="seder-chip" data-m="all">Whole yeshiva (quick)</button>';
+    bar.innerHTML = '<button type="button" class="seder-chip" data-m="rebbe">One shiur</button><button type="button" class="seder-chip" data-m="all">All shiurim</button>';
     sed.parentNode.insertBefore(bar, sed.nextSibling);
     const panel = document.createElement("div"); panel.id = "attAllPanel"; panel.className = "panel hidden";
     bar.parentNode.insertBefore(panel, $("attClassPickerPanel"));
@@ -4629,34 +4679,41 @@
     if(!P.dataset.built){
       P.dataset.built = "1";
       P.innerHTML = `<div class="row" style="align-items:center;gap:8px;"><div style="flex:1;"><p class="setup-title" style="font-size:16px;margin:0;">Whole yeshiva \u00b7 <span id="aaSeder"></span></p><p class="hint" id="aaSum" style="margin:2px 0 0;"></p></div><input type="date" id="aaDate" style="padding:6px 8px;font-size:13px;width:auto;"></div>
-        <div class="row" style="gap:6px;margin-top:10px;"><button type="button" class="seder-chip" id="aaScope"></button></div>
+        <div class="row" style="gap:6px;margin-top:10px;"><button type="button" class="seder-chip" id="aaScope"></button><button type="button" class="seder-chip" id="aaWho">Who to address</button></div>
         <input type="search" id="aaQ" placeholder="Type a name to mark absent / late" style="margin-top:10px;" autocomplete="off">
-        <div id="aaHits"></div><div id="aaOut"></div><p class="pf-lbl" style="margin-top:14px;">By shiur \u2014 tap a shiur to open it (everyone starts Present, changes save automatically)</p><div id="aaGroups"></div>`;
+        <label class="dz" style="margin:10px 0;display:block;"><span class="ic">&#128247;</span>Photo / file of a sheet<small>reads names + marks \u00b7 a line with 5 marks fills all 5 sedarim, otherwise fills the seder selected above</small><input type="file" id="aaFile" accept="image/*,.xlsx,.xls,.csv,.txt" hidden></label><div id="aaHits"></div><div id="aaOut"></div><p class="pf-lbl" style="margin-top:14px;">Tap a mark: \u2713 present \u2192 \u2717 absent \u2192 L late. Everyone starts present and it saves by itself.</p><div id="aaGroups"></div>`;
       P.querySelector("#aaDate").addEventListener("change", e=>{ state.attAllDate = e.target.value || null; paint(); });
-      P.querySelector("#aaScope").addEventListener("click", ()=>{ state.attAllScopeAll = !state.attAllScopeAll; paint(); });
+      P.querySelector("#aaWho").addEventListener("click", ()=> window.__who());
+      P.querySelector("#aaScope").addEventListener("click", ()=>{ state.gsAll = !state.gsAll; window.__lab&&window.__lab(); renderRoster(); paint(); });
       P.querySelector("#aaQ").addEventListener("input", ()=> paint(true));
+      P.querySelector("#aaFile").addEventListener("change", e=>{ window.__aaSheet(e.target.files[0]); e.target.value = ""; });
       P.addEventListener("click", e=>{
-        const cyc = e.target.closest("[data-cyc]"), set = e.target.closest("[data-set]"), gh = e.target.closest("[data-gh]"), ap = e.target.closest("[data-allp]");
-        if(cyc){ const st = state.data.students.find(x=>x.id===cyc.dataset.cyc); if(st) setSt(st, nextAttStatus(curSt(st))); }
+        const cyc = e.target.closest("[data-cyc]"), set = e.target.closest("[data-set]"), gh = e.target.closest("[data-gh]"), ap = e.target.closest("[data-allp]"), mx = e.target.closest("[data-mx]");
+        if(mx){ const st = state.data.students.find(x=>x.id===mx.dataset.id); if(st) setSd(st, mx.dataset.sd, nextAttStatus(curSd(st, mx.dataset.sd))); }
+        else if(cyc){ const st = state.data.students.find(x=>x.id===cyc.dataset.cyc); if(st) setSt(st, nextAttStatus(curSt(st))); }
         else if(set){ const st = state.data.students.find(x=>x.id===set.dataset.id); if(st) setSt(st, set.dataset.set); }
         else if(ap){ const c = classById(ap.dataset.allp); const r = aaRec(c, date(), state.activeSeder, true); Object.keys(r.records).forEach(k=>{ r.records[k] = "present"; }); studentsInClass(c.id).forEach(x=>{ r.records[x.id] = "present"; }); save(); paint(); toast(c.name+": all present \u2713","success"); }
-        else if(gh){ state.attAllOpen[gh.dataset.gh] = !state.attAllOpen[gh.dataset.gh]; paint(); }
+        else if(gh){ state.attAllOpen[gh.dataset.gh] = (state.attAllOpen[gh.dataset.gh]===false); paint(); }
       });
     }
     paint();
     function date(){ return state.attAllDate || todayStr(); }
     function curSt(st){ const r = findAttendanceRecord(st.classId, date(), state.activeSeder); return (r && r.records && r.records[st.id]) || "present"; }
     function save(){ clearTimeout(_aaT); _aaT = setTimeout(()=>{ persist().catch(()=>{}); }, 500); try{ renderAttClassStrip(); }catch(e){} }
+    function curSd(st, sd){ const r = findAttendanceRecord(st.classId, date(), sd); return (r && r.records && r.records[st.id]) || "present"; }
+    function setSd(st, sd, v){ const c = classById(st.classId); if(!c) return; const r = aaRec(c, date(), sd, true); r.records[st.id] = v; r.by = enteredBy(); r.at = new Date().toISOString(); save(); paint(); }
     function setSt(st, v){ const c = classById(st.classId); if(!c) return; const r = aaRec(c, date(), state.activeSeder, true); r.records[st.id] = v; save(); paint(); }
     function paint(keepFocus){
       const seder = state.activeSeder, D = date();
-      const list = (state.attAllScopeAll ? state.data.students : yearScope()).filter(s=> s.classId && classById(s.classId));
+      const list = (state.gsAll ? state.data.students : yearScope()).filter(s=> s.classId && classById(s.classId));
       P.querySelector("#aaSeder").textContent = sederLabel(seder);
       P.querySelector("#aaDate").value = D;
-      P.querySelector("#aaScope").textContent = state.attAllScopeAll ? "Showing: All students (tap for Shana Alef)" : "Showing: Shana Alef (tap for all students)";
+      P.querySelector("#aaScope").textContent = state.gsAll ? "Showing: All students (tap for Shana Alef)" : "Showing: Shana Alef (tap for all students)";
       const stN = x=> curSt(x), ab = list.filter(x=>stN(x)==="absent"), la = list.filter(x=>stN(x)==="late");
       P.querySelector("#aaSum").textContent = `${ab.length} absent \u00b7 ${la.length} late \u00b7 ${list.length} talmidim`;
       const row = x=>{ const st = stN(x), c = classById(x.classId); return `<div class="att-row att-row-tap st-${st}" data-cyc="${x.id}"><div class="att-name">${escapeHtml(x.name)}<div class="hint" style="margin:0;">${escapeHtml(rebbiFor(c,seder)||c.rebbi||c.name)}</div></div><button type="button" class="att-status-pill ${STATUS_COLORCLASS[st]||"green"}">${STATUS_LABEL[st]}</button></div>`; };
+      const mxC = {present:"p",absent:"a",late:"l"}, mxI = {present:"\u2713",absent:"\u2717",late:"L"};
+      const rowMx = x=>`<div class="mx-row"><div class="mx-n">${escapeHtml(x.name)}</div><div class="mx-b">${SEDARIM.map(sd=>{ const v = curSd(x, sd.id); return `<button type="button" class="mx-c ${mxC[v]}" data-mx data-id="${x.id}" data-sd="${sd.id}">${sd.id.toUpperCase()}<i>${mxI[v]}</i></button>`; }).join("")}</div></div>`;
       const q = (P.querySelector("#aaQ").value||"").trim();
       const hits = q ? searchStudents(list, q).slice(0,6).map(r=>r.student) : [];
       P.querySelector("#aaHits").innerHTML = hits.map(x=>`<div class="aa-hit"><div class="nm">${escapeHtml(x.name)} <span class="hint">${escapeHtml((classById(x.classId)||{}).rebbi||"")}</span></div><button type="button" data-set="absent" data-id="${x.id}">Absent</button><button type="button" data-set="late" data-id="${x.id}">Late</button><button type="button" data-set="present" data-id="${x.id}">Present</button></div>`).join("");
@@ -4664,15 +4721,74 @@
       P.querySelector("#aaOut").innerHTML = out.length ? `<p class="pf-lbl" style="margin-top:12px;">Marked so far (tap to cycle)</p>` + out.sort(byName).map(row).join("") : "";
       const groups = state.data.classes.filter(c=> list.some(x=>x.classId===c.id)).sort((a,b)=> (rebbiFor(a,seder)||a.name).localeCompare(rebbiFor(b,seder)||b.name));
       P.querySelector("#aaGroups").innerHTML = groups.map(c=>{
-        const mem = list.filter(x=>x.classId===c.id).sort(byName), rec = findAttendanceRecord(c.id, D, seder), open = !!state.attAllOpen[c.id];
+        const mem = list.filter(x=>x.classId===c.id).sort(byName), rec = findAttendanceRecord(c.id, D, seder), open = state.attAllOpen[c.id]!==false;
         const nab = mem.filter(x=>stN(x)==="absent").length, nla = mem.filter(x=>stN(x)==="late").length;
         const lbl = rebbiFor(c, seder) || c.rebbi || c.name;
         const note = (seder!=="m1" && !rebbiFor(c, seder)) ? " \u00b7 same group as morning" : "";
-        return `<div class="aa-g"><div class="aa-gh" data-gh="${c.id}"><div><b>${escapeHtml(lbl)}</b><div class="hint" style="margin:0;">${mem.length} guys${note} \u00b7 ${rec?"taken \u2713":"not taken yet"}${nab?` \u00b7 ${nab} absent`:""}${nla?` \u00b7 ${nla} late`:""}</div></div><span>${open?"\u25BE":"\u203A"}</span></div>${open?`<div class="aa-gb">${mem.map(row).join("")}<div class="row row-end" style="margin-top:8px;"><button type="button" data-allp="${c.id}">All present \u2713</button></div></div>`:""}</div>`;
+        return `<div class="aa-g"><div class="aa-gh" data-gh="${c.id}"><div><b>${escapeHtml(lbl)}</b><div class="hint" style="margin:0;">${mem.length} guys${note} \u00b7 ${rec?"taken \u2713"+(rec.by?" by "+escapeHtml(rec.by):""):"not taken yet"}${nab?` \u00b7 ${nab} absent`:""}${nla?` \u00b7 ${nla} late`:""}</div></div><span>${open?"\u25BE":"\u203A"}</span></div>${open?`<div class="aa-gb">${mem.map(rowMx).join("")}<div class="row row-end" style="margin-top:8px;"><button type="button" data-allp="${c.id}">All present \u2713</button></div></div>`:""}</div>`;
       }).join("") || '<p class="hint">No students placed in shiurim yet.</p>';
       if(keepFocus===true){ const i = P.querySelector("#aaQ"); i.focus(); }
     }
   }
+
+  const MARKS = /[\u2713\u2714\u2705]|[\u2717\u2718\u274c]|(?<![A-Za-z])[pPaAlLxX](?![A-Za-z])/g;
+  function enteredBy(){ let n = ""; try{ n = localStorage.getItem("enteredBy")||""; }catch(e){} if(!n){ n = (prompt("Your name (saved next to the attendance you enter):","Rabbi Balsam")||"").trim() || "Rabbi Balsam"; try{ localStorage.setItem("enteredBy", n); }catch(e){} } return n; }
+  async function prepImg(file){ try{ const url = URL.createObjectURL(file); const img = await new Promise((ok,no)=>{ const i = new Image(); i.onload = ()=>ok(i); i.onerror = no; i.src = url; }); const sc = Math.min(2, 2200/Math.max(img.width,img.height)); const c = document.createElement("canvas"); c.width = img.width*sc; c.height = img.height*sc; const x = c.getContext("2d"); x.filter = "grayscale(1) contrast(1.6)"; x.drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); return c; }catch(e){ return file; } }
+  window.__aaSheet = async function(file){
+    if(!file) return;
+    const D = state.attAllDate || todayStr();
+    const list = (state.gsAll ? state.data.students : yearScope()).filter(x=> x.classId && classById(x.classId)).sort(byName);
+    try{
+      toast("Reading sheet\u2026");
+      let text = "";
+      if(/^image\//.test(file.type)){ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"); text = (await window.Tesseract.recognize(await prepImg(file), "eng")).data.text; }
+      else if(/\.(xlsx|xls|csv)$/i.test(file.name)){ await ensureXLSX(); const wb = window.XLSX.read(await file.arrayBuffer(), {type:"array"}); text = wb.SheetNames.map(n=> window.XLSX.utils.sheet_to_csv(wb.Sheets[n]).replace(/,/g," ")).join("\n"); }
+      else text = await file.text();
+      const prev = currentAttRoster; currentAttRoster = list; const used = new Set(), found = [], unm = [];
+      text.split(/\r?\n/).forEach(line=>{ const m = matchLine(line, used);
+        if(!m){ if((line.match(/[A-Za-z]{3,}/g)||[]).length>=2) unm.push(line.trim()); return; } used.add(m.s.id);
+        const mk = (line.match(MARKS)||[]).map(x=> /[\u2713\u2714\u2705pP]/.test(x) ? "present" : /[lL]/.test(x) ? "late" : "absent");
+        found.push({s:m.s, mk}); });
+      currentAttRoster = prev;
+      if(!found.length && !unm.length){ toast("Couldn't read any names. Try a clearer, flatter photo.", "error"); return; }
+      sheetReview(found, unm, list, D);
+    }catch(err){ toast("Couldn't read that file: " + (err.message||err), "error"); }
+  };
+  function sheetReview(found, unm, list, D){
+    let sdSel = state.activeSeder; const cyc = {present:"absent", absent:"late", late:"present"}, ic = {present:"\u2713", absent:"\u2717", late:"L"}, cl = {present:"p", absent:"a", late:"l"};
+    const vals = {}; // sid -> array(5) of status|null
+    const own = f=>{ const a = SEDARIM.map(()=>null); if(f.mk.length>=2) f.mk.slice(0,5).forEach((v,i)=>{ a[i] = v; }); return a; };
+    found.forEach(f=>{ vals[f.s.id] = own(f); });
+    const ov = document.createElement("div"); ov.className = "overlay";
+    const paint = ()=>{
+      const sdIdx = SEDARIM.findIndex(x=>x.id===sdSel);
+      ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><div class="name">Check what was read</div><div class="hint" style="margin:0;">${found.length} names matched \u00b7 tap a mark to change it \u00b7 \u2013 = no change</div></div><button class="ghost" id="srX">Cancel</button></div>
+        <label>A single mark (or none) on a line goes to</label><select id="srSd">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===sdSel?"selected":""}>${x.label}</option>`).join("")}</select>
+        <div style="margin-top:10px;">${found.map(f=>{ const a = vals[f.s.id], single = f.mk.length===1 ? f.mk[0] : null; return `<div class="mx-row"><div class="mx-n">${escapeHtml(f.s.name)}</div><div class="mx-b">${SEDARIM.map((sd,i)=>{ let v = a[i]; if(v===null && i===sdIdx && single) v = single; const t = v ? ic[v] : "\u2013"; return `<button type="button" class="mx-c ${v?cl[v]:""}" data-f="${f.s.id}" data-i="${i}">${sd.id.toUpperCase()}<i>${t}</i></button>`; }).join("")}</div></div>`; }).join("")}</div>
+        ${unm.length?`<div class="pf-lbl">Couldn't match these lines \u2014 pick who they are (or ignore)</div>${unm.map((u,k)=>`<div class="aa-hit"><div class="nm" style="font-size:12px;">${escapeHtml(u)}</div><select data-u="${k}"><option value="">ignore</option>${list.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join("")}</select></div>`).join("")}`:""}
+        <div class="row row-end sticky-save" style="margin-top:14px;"><button class="primary" id="srOk">Save to ${escapeHtml(D)}</button></div></div>`;
+      ov.querySelector("#srX").onclick = ()=> closeOverlay(ov);
+      ov.querySelector("#srSd").onchange = e=>{ sdSel = e.target.value; paint(); };
+      ov.querySelectorAll("[data-f]").forEach(b=> b.onclick = ()=>{ const f = found.find(x=>x.s.id===b.dataset.f), i = +b.dataset.i, a = vals[f.s.id]; let cur = a[i]; if(cur===null && i===sdIdx && f.mk.length===1) cur = f.mk[0]; a[i] = cur ? cyc[cur] : "absent"; paint(); });
+      ov.querySelectorAll("[data-u]").forEach(sel=> sel.onchange = ()=>{ const st = list.find(x=>x.id===sel.value); if(!st || found.some(f=>f.s.id===st.id)) return; const line = unm[+sel.dataset.u]; const mk = (line.match(MARKS)||[]).map(x=> /[\u2713\u2714\u2705pP]/.test(x) ? "present" : /[lL]/.test(x) ? "late" : "absent"); const f = {s:st, mk}; found.push(f); vals[st.id] = own(f); unm.splice(+sel.dataset.u,1); paint(); });
+      ov.querySelector("#srOk").onclick = ()=>{
+        const by = enteredBy(), at = new Date().toISOString(); let n = 0;
+        found.forEach(f=>{ const c = classById(f.s.classId), a = vals[f.s.id];
+          SEDARIM.forEach((sd,i)=>{ let v = a[i]; if(v===null && i===sdIdx && f.mk.length===1) v = f.mk[0]; if(v===null && i===sdIdx && !f.mk.length && found.every(x=>!x.mk.length)) v = "absent"; if(v){ const r = aaRec(c, D, sd.id, true); r.records[f.s.id] = v; r.by = by; r.at = at; n++; } }); });
+        closeOverlay(ov); persist().catch(()=>{}); renderAttAll(); try{ renderAttClassStrip(); }catch(e){} toast(`Saved ${n} marks`, "success");
+      };
+    };
+    showOverlay(ov); paint();
+  }
+  window.__who = function(){
+    const list = (state.gsAll ? state.data.students : yearScope()).filter(x=>x.classId);
+    const rows = list.map(x=>{ const rs = state.data.attendance.filter(a=>a.records && a.records[x.id]).sort((p,q)=> (q.date+(q.seder||"")).localeCompare(p.date+(p.seder||""))).slice(0,10); const miss = rs.filter(a=>a.records[x.id]==="absent").length, late = rs.filter(a=>a.records[x.id]==="late").length, streak = absentStreak(x); return {x, miss, late, streak, n:rs.length}; })
+      .filter(r=> r.streak>=2 || r.miss>=3).sort((p,q)=> q.streak-p.streak || q.miss-p.miss);
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div><div class="name">Who to address</div><div class="hint" style="margin:0;">Missed 2+ in a row, or 3+ of his last 10</div></div><button class="ghost" id="wX">Close</button></div>${rows.length ? rows.map(r=>`<div class="aa-hit" data-w="${r.x.id}" style="cursor:pointer;"><div class="nm">${escapeHtml(r.x.name)}<div class="hint" style="margin:0;">${escapeHtml(rebbiFor(classById(r.x.classId),"m1")||"")} \u00b7 ${r.streak} absent in a row \u00b7 ${r.miss} absent, ${r.late} late of last ${r.n}</div></div></div>`).join("") : '<p class="hint">Nobody is flagged right now.</p>'}</div>`;
+    showOverlay(ov); ov.querySelector("#wX").onclick = ()=> closeOverlay(ov);
+    ov.querySelectorAll("[data-w]").forEach(e=> e.onclick = ()=>{ closeOverlay(ov); openStudentQuick(e.dataset.w); });
+  };
 
   // ---- one-tap setup banner for the rebbe shiurim ----
   function maybeShiurBanner(){
@@ -4689,6 +4805,31 @@
   }
   const _showMainV2 = showMain;
   showMain = function(){ _showMainV2(); maybeShiurBanner(); };
+
+  // ---- tidy pass: grouped menu, calmer tab order, collapsed alerts ----
+  function tidyMenu(){
+    const m = $("moreMenu"); if(!m || m.dataset.tidy) return; m.dataset.tidy = "1";
+    const btns = Array.from(m.querySelectorAll("button"));
+    const G = {"Attendance":[], "Reports":[], "Data & backup":[], "Setup (rarely needed)":[]};
+    btns.forEach(b=>{ const t = b.textContent;
+      const g = /class lists|shiurim list|dorm|rooms? &|phone numbers|load |edit shiurim|missing/i.test(t) ? "Setup (rarely needed)" : /attendance|history|snap/i.test(t) ? "Attendance" : /import|backup|deleted|sync/i.test(t) ? "Data & backup" : "Reports";
+      G[g].push(b); });
+    m.innerHTML = "";
+    Object.keys(G).forEach(k=>{ if(!G[k].length) return;
+      if(k.indexOf("Setup")===0){ const d = document.createElement("details"); d.className = "menu-setup"; const sm = document.createElement("summary"); sm.textContent = k; d.appendChild(sm); G[k].forEach(b=> d.appendChild(b)); m.appendChild(d); }
+      else { const l = document.createElement("div"); l.className = "menu-label"; l.textContent = k; m.appendChild(l); G[k].forEach(b=> m.appendChild(b)); } });
+  }
+  function tidyUi(){
+    tidyMenu();
+    const tabs = document.querySelector(".tabs"), L = {roster:"Talmidim", attendance:"Attendance", shiurim:"Shiurim", interviews:"Check-ins", home:"Overview"};
+    Object.keys(L).forEach(t=>{ const x = tabs.querySelector('[data-tab="'+t+'"]'); if(x){ x.textContent = L[t]; tabs.appendChild(x); if(t==="interviews"||t==="home") x.classList.add("hidden"); } });
+    const mm = $("moreMenu"), first = mm.querySelector(".menu-label");
+    [["Overview","home"],["Check-ins","interviews"]].forEach(([l,t])=>{ const bt = document.createElement("button"); bt.textContent = l; bt.onclick = ()=>{ mm.classList.add("hidden"); document.querySelector('.tab[data-tab="'+t+'"]').click(); }; mm.insertBefore(bt, first); });
+    const rt = tabs.querySelector('[data-tab="roster"]'); if(rt) rt.click();
+    const al = $("attnList"); if(al) al.classList.add("hidden");
+  }
+  const _showMainV3 = showMain;
+  showMain = function(){ _showMainV3(); try{ tidyUi(); }catch(e){} };
 
   boot();
 })();
