@@ -736,6 +736,9 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     key: "sb_publishable_NblMIQhiVSdPjIHHVgxZIg_Wm8tDoOL"
   };
 
+  // Workspace: each yeshiva gets its own rows, so data never mixes
+  const PFX = (function(){ try{ const w = (localStorage.getItem("ws-code")||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,32); return w ? "ws-"+w+"-" : ""; }catch(e){ return ""; } })();
+
   // One-time recovery of the real roster (149 students) recovered from an older backup file.
   // Only ever used if you tap "Restore" — never applied automatically or silently.
   const RECOVERED_SEED = {"classes":[{"id":"class_shana_alef","name":"Shana Alef","room":""},{"id":"class_shana_bet","name":"Shana Bet","room":""}],"students":[{"id":"seed_0","name":"Emanuel Abramchayev","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_1","name":"Oren Abramov","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_2","name":"Yosef Baturov","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_3","name":"Yehuda Berkman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_4","name":"Nathan Bershadsky","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_5","name":"Benjamin Best","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_6","name":"Jesse Blitman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_7","name":"Eliyahu Blumenkranc","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_8","name":"Yehuda Breskin","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_9","name":"Akiva Bressel","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_10","name":"Daniel Bustos","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_11","name":"Ariel Cohen","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_12","name":"Eitan Cohen","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_13","name":"Judah Cohen","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_14","name":"Mordechai Cohen","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_15","name":"Pinchas Czeladnicki","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_16","name":"Benjamin Eisenmann","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_17","name":"Jacob Feiertag","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_18","name":"Mordy Feiner","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_19","name":"Zachary Fenton-Zeira","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_20","name":"Yoni Ferd","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_21","name":"Aryeh Fogelgarn-Abenson","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_22","name":"Evan Goldman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_23","name":"Joseph Greenberg","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_24","name":"Chanania Gross","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_25","name":"Max Gurock","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_26","name":"Akiva Hadari","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_27","name":"Zohar Hadari","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_28","name":"Nathan Harari","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_29","name":"Ethan Harrison","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_30","name":"Ilay Hazan","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_31","name":"Pinchas Hoffert","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_32","name":"Zack Horovics","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_33","name":"Aaron Kamienny","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_34","name":"David Karoudo","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_35","name":"Michael Karoudo","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_36","name":"Yaniv Katz","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_37","name":"Benjamin Khaimov","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_38","name":"Benny Klainberg","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_39","name":"Daniel Lamarre","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_40","name":"Moshe Linkov","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_41","name":"Benjamin Lohay","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_42","name":"Lior Matsui","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_43","name":"Yehuda Menahem","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_44","name":"Adam Mendelsohn","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_45","name":"Yitzchak Meth","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_46","name":"Jacob Mieli","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_47","name":"Shimshon Mintz","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_48","name":"Moshe Murciano","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_49","name":"Daniel Murdakhayev","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_50","name":"Eitan Nahom","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_51","name":"Itamar Paknoush","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_52","name":"Matthew Pavel","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_53","name":"Zachary Rahmanfar","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_54","name":"Eliyahu Rewega","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_55","name":"Betzalel Rosedale","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_56","name":"Jacob Scanlan","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_57","name":"Corey Seff","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_58","name":"Sruli Silverman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_59","name":"Noah Simon","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_60","name":"Michael Stoltzman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_61","name":"Andrew Strohli","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_62","name":"Shlomo Strum","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_63","name":"Benjamin Treyer","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_64","name":"Rotem Uzan","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_65","name":"Daniel Warger","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_66","name":"Aryeh Wasser","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_67","name":"Ben Weberman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_68","name":"Chaim White","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_69","name":"Benjamin Winterman","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_70","name":"Benjamin Woodward","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_71","name":"Jonathan Yakubov","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_72","name":"Noah Yashouafar","classId":"class_shana_bet","photo":"","phone":"","parentPhone":""},{"id":"seed_73","name":"dvir achial","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_74","name":"Harel Achial","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_75","name":"Emanuel Aguvayev","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_76","name":"Ezra Ahlers","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_77","name":"Benjamin Aranbayev","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_78","name":"Michael Bamberger","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_79","name":"Eliahu Behnam","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_80","name":"Elad Bell","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_81","name":"Daniel Boruchov","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_82","name":"Asher Bressel","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_83","name":"Adam Brodsky","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_84","name":"Ty Burack","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_85","name":"David Cairns","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_86","name":"David Cohen","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_87","name":"Yehuda Davidovici","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_88","name":"Dani Durbach","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_89","name":"Ori Edri","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_90","name":"Ari Ehrenreich","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_91","name":"Gavi Elkin","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_92","name":"Yosef Epstein","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_93","name":"Moshe Freedman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_94","name":"Daniel Frieden","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_95","name":"Jayden Gasner","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_96","name":"Eli Gelb","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_97","name":"Ezra Gelfand","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_98","name":"Yinnon Gellman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_99","name":"Aviel Ginsbury","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_100","name":"Elishama Gross","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_101","name":"Samuel Hirshbein","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_102","name":"Michael Iliev","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_103","name":"Jonathan (Yoni) Joseph","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_104","name":"Solomon Kaganoff","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_105","name":"David Kempner","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_106","name":"Yehuda Lichaa","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_107","name":"David Lunski","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_108","name":"Yoni Mason","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_109","name":"Yaakov Milgram","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_110","name":"Eitan Mirzakandov","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_111","name":"Joseph Nassim","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_112","name":"Baruch Neiman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_113","name":"Ilan Nisim","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_114","name":"Gavriel Perlman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_115","name":"Micah Peyman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_116","name":"aaron pshemish","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_117","name":"Moshe Robinson","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_118","name":"JOSEPH SACKS","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_119","name":"Wyatt Sanders","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_120","name":"Zevi Shnayderman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_121","name":"Yaakov Shotkin","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_122","name":"Menachem Sklar","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_123","name":"itai sogaokar","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_124","name":"Daniel solomon","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_125","name":"Max Stark","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_126","name":"Benyamin Valdez","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_127","name":"avishai weiman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_128","name":"Moishy Weinstein","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_129","name":"Matan Zagory","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_130","name":"Jonathan Zirkiyev","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_131","name":"Chaim Weisman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_132","name":"Uriel yehoshua Isaac-Saul","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_133","name":"Itamar Azulay","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_134","name":"Binyamin Black","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_135","name":"Yosef Yisrael Eliezer","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_136","name":"noah fromen","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_137","name":"Uriel Glatt","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_138","name":"Elliot Klein","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_139","name":"noah krupp","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_140","name":"Michael Lugassy","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_141","name":"nerya maman","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_142","name":"Nathan Glatt","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_143","name":"Natanel Murdakhayev","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_144","name":"Daniel Rakhmanov","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_145","name":"Eric Shamalov","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_146","name":"Levi Suissa","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_147","name":"Asher Schwartz","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""},{"id":"seed_148","name":"Jason Ganjian","classId":"class_shana_alef","photo":"","phone":"","parentPhone":""}]};
@@ -844,7 +847,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       method:"POST",
       headers:{ apikey: state.config.key, Authorization: `Bearer ${state.config.key}`,
         "Content-Type":"application/json", "Prefer":"resolution=merge-duplicates" },
-      body: JSON.stringify({ id:"main", data: dataBlob, updated_at: new Date().toISOString() })
+      body: JSON.stringify({ id:PFX+"main", data: dataBlob, updated_at: new Date().toISOString() })
     }, 60000);
     if(!res.ok) throw new Error(`${res.status} ${res.statusText} ${await res.text().catch(()=> "")}`.trim());
   }
@@ -854,11 +857,12 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     const out = [];
     (data.students||[]).forEach(o=>{ out.push({key:"s:"+o.id, obj:o}); (o.files||[]).forEach(f=> out.push({key:"f:"+f.id, obj:f})); });
     (data.attendance||[]).forEach(o=> out.push({key:"a:"+o.id, obj:o}));
+    (data.uploads||[]).forEach(o=>{ if(o && o.id) out.push({key:"u:"+o.id, obj:o}); });
     (data.trash||[]).forEach(t=>{ if(t && t.student) out.push({key:"t:"+t.id, obj:t.student}); });
     return out;
   }
   function loadPhotos(){
-    return sbGet("derech_data?select=data&id=eq.photos").then(rows=>{
+    return sbGet(`derech_data?select=data&id=eq.${PFX}photos`).then(rows=>{
       const store = (rows && rows[0] && rows[0].data) || {};
       state.photoStore = store;
       let changed = false;
@@ -900,16 +904,16 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     if(!state.splitDisabled){
       const map = currentPhotoMap();
       if(!sameMap(map, state.photoStore || {})){
-        try{ await sbPut("photos", JSON.stringify(map)); state.photoStore = map; }
+        try{ await sbPut(PFX+"photos", JSON.stringify(map)); state.photoStore = map; }
         catch(e){
           if(e.status===401 || e.status===403){ state.splitDisabled = true; } else throw e;
         }
       }
     }
     if(state.splitDisabled){
-      await sbPut("main", JSON.stringify(state.data));
+      await sbPut(PFX+"main", JSON.stringify(state.data));
     } else {
-      await sbPut("main", JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v));
+      await sbPut(PFX+"main", JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v));
     }
   }
 
@@ -923,8 +927,8 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
   }
   function cacheLocal(pending){
     try{
-      localStorage.setItem("derech-cache", JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v));
-      localStorage.setItem("derech-pending", pending ? "1" : "");
+      localStorage.setItem("derech-cache"+PFX, JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v));
+      localStorage.setItem("derech-pending"+PFX, pending ? "1" : "");
     }catch(e){}
   }
   async function persist(){
@@ -965,9 +969,9 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     state.config = cfg;
     setConn(false, "connecting\u2026");
     let rows;
-    const photosFetch = sbGet("derech_data?select=data&id=eq.photos");
+    const photosFetch = sbGet(`derech_data?select=data&id=eq.${PFX}photos`);
     photosFetch.catch(()=>{});
-    try{ rows = await sbGet("derech_data?select=data,updated_at&id=eq.main"); }
+    try{ rows = await sbGet(`derech_data?select=data,updated_at&id=eq.${PFX}main`); }
     catch(e){ setConn(false,"not connected"); throw e; }
     if(keepLocal){
       state.data = Object.assign(emptyData(), keepLocal);
@@ -1004,14 +1008,14 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       setConn(false, i===1 ? "connecting\u2026" : `still connecting (try ${i} of ${attempts})\u2026`, true);
       const lt = $("loadingText"); if(lt) lt.textContent = i===1 ? "Connecting\u2026" : `Still connecting (try ${i} of ${attempts})\u2026`;
       try{
-        const pend = loadLocal("derech-pending") ? loadLocal("derech-cache") : null;
+        const pend = loadLocal("derech-pending"+PFX) ? loadLocal("derech-cache"+PFX) : null;
         await connect(saved, pend);
         showMain(); autoBackup();
         if(pend) persist().catch(()=>{});
         return;
       }catch(e){
         if(i===attempts){
-          const c = loadLocal("derech-cache");
+          const c = loadLocal("derech-cache"+PFX);
           if(c){
             state.config = saved; state.data = Object.assign(emptyData(), c);
             photoHolders(state.data).forEach(h=>{ if(h.obj.photo==="@") h.obj.photo = ""; });
@@ -1034,7 +1038,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       await connect(state.config, state.data);
       state.offline = false;
       renderRoster(); renderGlobalSearch(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner();
-      if(loadLocal("derech-pending")) await persist(); else showBar(null);
+      if(loadLocal("derech-pending"+PFX)) await persist(); else showBar(null);
       toast("Back online \u2014 changes synced.", "success");
     }catch(e){ setConn(false, "offline"); }
     finally{ _rc = false; }
@@ -1075,7 +1079,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     const banner = $("restoreBanner");
     if(!banner) return;
     const alreadyHasData = state.data.students.length > 0;
-    if(restoreDismissed || alreadyHasData){ banner.classList.add("hidden"); return; }
+    if(PFX || restoreDismissed || alreadyHasData){ banner.classList.add("hidden"); return; }
     banner.classList.remove("hidden");
     const classNames = RECOVERED_SEED.classes.map(c=>c.name).join(" & ");
     $("restoreSub").textContent = `${RECOVERED_SEED.students.length} students across ${classNames}, This won't overwrite anything \u2014 your roster is currently empty.`;
@@ -1288,7 +1292,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     banner.classList.remove("hidden");
     const redCount = list.filter(r=>r.status==="red").length;
     $("attnText").innerHTML = `${list.length} student${list.length===1?"":"s"} need${list.length===1?"s":""} attention`
-      + `<span class="attn-toggle-sub" id="attnSub">${redCount?redCount+" with low attendance \u00b7 ":""}tap to review, or use Full school overview</span>`;
+      + `<span class="attn-toggle-sub" id="attnSub">${redCount?redCount+" with low attendance \u00b7 ":""}tap to review, or open the Overview dashboard</span>`;
     const listEl = $("attnList");
     listEl.innerHTML = "";
     list.slice(0,8).forEach(r=>{
@@ -1308,8 +1312,8 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     if(list.length>8){
       const more = document.createElement("div");
       more.className = "attn-more";
-      more.textContent = `+ ${list.length-8} more \u2014 open Full school overview`;
-      more.addEventListener("click", openOverview);
+      more.textContent = `+ ${list.length-8} more \u2014 open the Overview dashboard`;
+      more.addEventListener("click", ()=>{ window.__openInsights && window.__openInsights(); });
       listEl.appendChild(more);
     }
   }
@@ -3388,7 +3392,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
   async function makeBackup(id){ await sbPut(id, backupJson()); }
   async function pruneBackups(){
     try{
-      const rows = await sbGet("derech_data?select=id&id=like.backup-*&order=id.desc");
+      const rows = await sbGet(`derech_data?select=id&id=like.${PFX}backup-*&order=id.desc`);
       for(const r of rows.slice(BACKUP_KEEP)){
         await fetchWithTimeout(`${state.config.url}/rest/v1/derech_data?id=eq.${encodeURIComponent(r.id)}`, { method:"DELETE", headers:{ apikey:state.config.key, Authorization:`Bearer ${state.config.key}` } });
       }
@@ -3398,7 +3402,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     try{
       if(state.offline || !state.data || !state.data.students.length) return;
       const d = new Date(); d.setDate(d.getDate()-d.getDay());
-      const id = "backup-" + localDateStr(d);
+      const id = PFX + "backup-" + localDateStr(d);
       const have = await sbGet(`derech_data?select=id&id=eq.${id}`);
       if(have && have.length) return;
       await makeBackup(id); pruneBackups();
@@ -3417,8 +3421,8 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     const list = ov.querySelector("#bkList");
     const load = async ()=>{
       try{
-        const rows = await sbGet("derech_data?select=id,updated_at&id=like.backup-*&order=id.desc");
-        list.innerHTML = rows.length ? rows.map(r=>`<div class="nm-card" style="display:flex;align-items:center;gap:10px;"><div style="flex:1;"><div class="nm-name">Week of ${escapeHtml(r.id.slice(7))}</div><div class="nm-sub" style="margin:0;">Saved ${escapeHtml(new Date(r.updated_at).toLocaleString())}</div></div><button class="nm-btn" data-id="${escapeHtml(r.id)}" style="flex:none;">Restore</button></div>`).join("") : '<p class="hint">No backups yet \u2014 tap Back up now.</p>';
+        const rows = await sbGet(`derech_data?select=id,updated_at&id=like.${PFX}backup-*&order=id.desc`);
+        list.innerHTML = rows.length ? rows.map(r=>`<div class="nm-card" style="display:flex;align-items:center;gap:10px;"><div style="flex:1;"><div class="nm-name">Week of ${escapeHtml(r.id.slice(PFX.length+7))}</div><div class="nm-sub" style="margin:0;">Saved ${escapeHtml(new Date(r.updated_at).toLocaleString())}</div></div><button class="nm-btn" data-id="${escapeHtml(r.id)}" style="flex:none;">Restore</button></div>`).join("") : '<p class="hint">No backups yet \u2014 tap Back up now.</p>';
         list.querySelectorAll("button[data-id]").forEach(b=> b.addEventListener("click", async ()=>{
           if(!(await confirmDialog("Restore this backup? Your current data will be replaced (photos are kept).", {okLabel:"Restore"}))) return;
           try{
@@ -3433,7 +3437,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       }catch(e){ list.innerHTML = `<span class="err">${escapeHtml(e.message)}</span>`; }
     };
     ov.querySelector("#bkNow").addEventListener("click", async ()=>{
-      try{ await makeBackup("backup-" + localDateStr(new Date())); pruneBackups(); toast("Backup saved.", "success"); load(); }
+      try{ await makeBackup(PFX + "backup-" + localDateStr(new Date())); pruneBackups(); toast("Backup saved.", "success"); load(); }
       catch(e){ toast("Couldn't back up: " + e.message, "error"); }
     });
     load();
@@ -3889,18 +3893,24 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
           review(res, img); }
         catch(err){ if(img && (err instanceof TypeError || !navigator.onLine) && setQ(getQ().concat([{ts:Date.now(),img}]))){ badge(); body.innerHTML = '<p class="hint">&#128246; No connection. The photo is saved on this device and will be ready to read when you are back online.</p><div class="row" style="margin-top:10px;"><button id="snBack">OK</button></div>'; body.querySelector("#snBack").onclick = home; return; } body.innerHTML = `<span class="err">Couldn't read it: ${escapeHtml(err.message||String(err))}</span><div class="row" style="margin-top:10px;"><button id="snBack">Try again</button></div>`; body.querySelector("#snBack").onclick = home; }
       }
-      function reviewWeek(wk){
+      function savedDone(msg, img, snapFn){
+        if(!img){ closeOverlay(ov); toast(msg,"success"); return; }
+        body.innerHTML = `<div class="nm-card" style="text-align:center;"><div style="font-size:32px;color:var(--green);">&#10003;</div><div class="nm-name">${msg.replace(/\s*\u2713$/,"")}</div><p class="hint" style="margin:6px 0 0;">The photo is kept with this upload. Want to check it read the sheet correctly?</p></div><div class="row" style="gap:8px;margin-top:10px;"><button class="primary" id="sdCmp" style="flex:2;">Compare photo with saved data</button><button id="sdOk" style="flex:1;">Done</button></div><p class="hint" style="margin-top:10px;">You can always find it later: &#8942; menu &rarr; Upload history &rarr; Compare photo.</p>`;
+        body.querySelector("#sdCmp").onclick = ()=> window.__sheetCompare(snapFn());
+        body.querySelector("#sdOk").onclick = ()=> closeOverlay(ov);
+      }
+      function reviewWeek(wk, img){
         const t = new Date(); t.setDate(t.getDate()-t.getDay());
         const ymd = d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
         const IDX = {sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6}, NM = {sun:"Sun",mon:"Mon",tue:"Tue",wed:"Wed",thu:"Thu",fri:"Fri",sat:"Sat"};
         const sun = ws=>{ const d = new Date(ws+"T12:00:00"); d.setDate(d.getDate()-d.getDay()); return d; };
         const dayDate = (ws,k)=>{ const d = sun(ws); d.setDate(d.getDate()+IDX[k]); return ymd(d); };
         const fromPhoto = (()=>{ const k = wk.days.find(x=>wk.dates&&wk.dates[x]); if(k){ const d = new Date(wk.dates[k]+"T12:00:00"); d.setDate(d.getDate()-IDX[k]); return ymd(d); } return wk.anchor ? ymd(sun(wk.anchor)) : null; })();
-        let wstart = fromPhoto || ymd(t), seder = state.activeSeder, cid = null, grid = {}, unm = [], best = -1;
+        let wstart = fromPhoto || ymd(t), seder = state.activeSeder, cid = null, grid = {}, unm = [], best = -1, rawName = {};
         state.data.classes.forEach(c=>{ const n = matchAll(wk.rows.map(r=>({name:r.name,status:"present"})),c.id).hit.length; if(n>best){ best=n; cid=c.id; } });
-        const build = ()=>{ const roster = studentsInClass(cid), used = new Set(); grid = {}; unm = [];
+        const build = ()=>{ const roster = studentsInClass(cid), used = new Set(); grid = {}; unm = []; rawName = {};
           wk.rows.forEach(r=>{ const sc = roster.filter(s=>!used.has(s.id)).map(s=>({s,v:score(r.name,s)})).sort((a,b)=>b.v-a.v);
-            if(sc[0] && sc[0].v>=0.6 && (!sc[1] || sc[0].v>sc[1].v)){ used.add(sc[0].s.id); grid[sc[0].s.id] = Object.assign({}, r.cells); } else unm.push(r); }); };
+            if(sc[0] && sc[0].v>=0.6 && (!sc[1] || sc[0].v>sc[1].v)){ used.add(sc[0].s.id); grid[sc[0].s.id] = Object.assign({}, r.cells); rawName[sc[0].s.id] = r.name; } else unm.push(r); }); };
         const LBL = {present:"\u2713", late:"L", absent:"A"}, CLR = {present:"var(--green)", late:"var(--amber)", absent:"var(--red)"}, NEXT = {"":"present", present:"late", late:"absent", absent:""};
         const paint = ()=>{
           const roster = studentsInClass(cid), ids = Object.keys(grid).map(id=>state.data.students.find(s=>s.id===id)).filter(Boolean).sort(byName);
@@ -3910,29 +3920,31 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
             <div class="sn-row" style="margin-top:8px;"><span class="n"></span>${wk.days.map(k=>{ const dd = dayDate(wstart,k).split("-"); return `<span style="width:38px;text-align:center;font-size:11px;color:var(--ink-soft);">${NM[k]}<br>${+dd[1]}/${+dd[2]}</span>`; }).join("")}</div>
             ${ids.map(s=>`<div class="sn-row" data-id="${s.id}"><span class="n">${escapeHtml(s.name)}</span>${wk.days.map(k=>{ const v = grid[s.id][k]||""; return `<button data-k="${k}" style="width:38px;padding:6px 0;font-weight:700;${v?`color:#fff;background:${CLR[v]};border-color:${CLR[v]};`:""}">${v?LBL[v]:"&ndash;"}</button>`; }).join("")}</div>`).join("")}
             ${unm.length?`<p class="pf-lbl">Names I couldn't match</p>${unm.map((u,i)=>`<div class="sn-row"><span class="n">${escapeHtml(u.name)}</span><select data-u="${i}" style="width:48%"><option value="">Assign to&hellip;</option>${roster.filter(s=>!grid[s.id]).map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}</select></div>`).join("")}`:""}
-            <div class="sn-save row row-end"><button id="wkRe">Retake</button><button class="primary" id="wkGo">Save week</button></div>`;
+            ${img?`<button class="nm-btn main" id="wkCmp" style="width:100%;margin:10px 0 0;">\uD83D\uDCF7 View sheet photo next to this data</button>`:""}<div class="sn-save row row-end"><button id="wkRe">Retake</button><button class="primary" id="wkGo">Save week</button></div>`;
           body.querySelector("#wkD").onchange = e=>{ wstart = e.target.value||wstart; paint(); };
           body.querySelector("#wkS").onchange = e=>{ seder = e.target.value; paint(); };
           body.querySelector("#wkC").onchange = e=>{ cid = e.target.value; build(); paint(); };
           body.querySelectorAll(".sn-row[data-id] button").forEach(b=> b.onclick = ()=>{ const id = b.closest(".sn-row").dataset.id, k = b.dataset.k, nx = NEXT[grid[id][k]||""]; if(nx) grid[id][k] = nx; else delete grid[id][k]; paint(); });
-          body.querySelectorAll("select[data-u]").forEach(sel=> sel.onchange = ()=>{ if(sel.value){ grid[sel.value] = Object.assign({}, unm[+sel.dataset.u].cells); unm.splice(+sel.dataset.u,1); paint(); } });
+          body.querySelectorAll("select[data-u]").forEach(sel=> sel.onchange = ()=>{ if(sel.value){ grid[sel.value] = Object.assign({}, unm[+sel.dataset.u].cells); rawName[sel.value] = unm[+sel.dataset.u].name; unm.splice(+sel.dataset.u,1); paint(); } });
           body.querySelector("#wkRe").onclick = home;
+          const wkc = body.querySelector("#wkCmp"); if(wkc) wkc.onclick = ()=> window.__sheetCompare(weekSnapNow());
           body.querySelector("#wkGo").onclick = async ()=>{
-            let nd = 0;
+            let nd = 0; const bid = uid(); let firstId = null; const wsheet = {days:wk.days.slice(), rows:wk.rows.map(r=>({name:r.name, cells:Object.assign({},r.cells)})), dates:{}, names:NM, dayOf:{}};
             wk.days.forEach(k=>{ const map = {}; Object.keys(grid).forEach(id=>{ if(grid[id][k]) map[id] = grid[id][k]; }); if(!Object.keys(map).length) return;
               const date = dayDate(wstart,k); let rec = findAttendanceRecord(cid,date,seder); const created = !rec, prev = rec ? JSON.parse(JSON.stringify(rec.records||{})) : null;
               if(!rec){ rec = {id:uid(), classId:cid, date, seder, records:{}, photo:""}; state.data.attendance.push(rec); }
               rec.records = Object.assign(rec.records||{}, map);
-              window.__logUpload({id:uid(), ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries:[], result:JSON.parse(JSON.stringify(map))}); nd++; });
+              wsheet.dates[k] = date; wsheet.dayOf[date] = k; const lid = uid(); if(!firstId) firstId = lid; window.__logUpload({id:lid, ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries:[], result:JSON.parse(JSON.stringify(map)), batch:bid, nameOf:lid===firstId?Object.assign({},rawName):undefined, photo:(lid===firstId && img) ? img : "", weekSheet:lid===firstId?wsheet:undefined}); nd++; });
             if(!nd){ toast("Nothing marked to save.","error"); return; }
-            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); closeOverlay(ov); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } toast(`Saved ${nd} day${nd===1?"":"s"} of attendance \u2713`,"success"); }
+            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } const gsnap = JSON.parse(JSON.stringify(grid)), rn = Object.assign({}, rawName), lbl = {}; wk.days.forEach(k=>{ const dd = (wsheet.dates[k]||"").split("-"); lbl[k] = NM[k]+(dd.length===3?" "+(+dd[1])+"/"+(+dd[2]):""); }); savedDone(`Saved ${nd} day${nd===1?"":"s"} of attendance \u2713`, img, ()=> window.__weekSnap({img, wk, grid:gsnap, rawName:rn, labels:lbl, sub:(classById(cid)||{}).name||""})); }
             catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
           };
         };
+        const weekSnapNow = ()=>{ const labels = {}; wk.days.forEach(k=>{ const dd = dayDate(wstart,k).split("-"); labels[k] = NM[k]+" "+(+dd[1])+"/"+(+dd[2]); }); return window.__weekSnap({img, wk, grid, rawName, labels, sub:(classById(cid)||{}).name||""}); };
         build(); paint();
       }
       function review(res, img){
-        if(res.week) return reviewWeek(res.week);
+        if(res.week) return reviewWeek(res.week, img);
         const entries = (res.entries||[]).filter(e=>e&&e.name).map(e=>({name:String(e.name), status:/abs/i.test(e.status)?"absent":/late/i.test(e.status)?"late":"present"}));
         const all = state.data.students.filter(s=>s.classId);
         const cname = id=>{ const c = classById(id); return c ? c.name : "No shiur"; };
@@ -3953,9 +3965,10 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
         let date = /^\d{4}-\d\d-\d\d$/.test(res.date||"") ? res.date : todayStr();
         let seder = SEDARIM.some(x=>x.id===res.seder) ? res.seder : state.activeSeder;
         const m0 = matchEvery(); let st = {}, unm = m0.miss, onSheet = new Set();
-        m0.hit.forEach(h=>{ st[h.s.id]=h.st; onSheet.add(h.s.id); });
+        const nameOf = {}, read0 = {}; m0.hit.forEach(h=>{ st[h.s.id]=h.st; onSheet.add(h.s.id); nameOf[h.s.id]=h.name; read0[h.s.id]=h.st; });
         const doubt = new Set(m0.hit.filter(h=>h.v<0.85).map(h=>h.s.id));
         let rest = (res.mode==="absent_only" || res.isNote) ? "present" : "leave";
+        const hsh = img ? img.length+":"+img.slice(1000,1120)+img.slice(-80) : null;
         const paint = ()=>{
           const ids = Object.keys(st), cids = [...new Set(ids.map(id=>state.data.students.find(s=>s.id===id)).filter(Boolean).map(s=>s.classId))];
           const eff = {}; // what will actually be saved, per student
@@ -3965,8 +3978,8 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
           const groups = cids.map(c=>({c, list:studentsInClass(c).filter(s=>s.id in eff).sort(byName)})).sort((a,b)=>cname(a.c).localeCompare(cname(b.c)));
           const free = all.filter(s=>!(s.id in st)).sort(byName);
           body.innerHTML = `<div class="row"><div style="flex:1"><label>Date</label><input type="date" id="snD" value="${date}"></div><div style="flex:1"><label>Seder</label><select id="snS">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select></div></div>
-            <div class="sn-sum"><span><b style="color:var(--green)">${cnt("present")}</b> present</span><span><b style="color:var(--amber)">${cnt("late")}</b> late</span><span><b style="color:var(--red)">${cnt("absent")}</b> absent</span><span style="color:var(--ink-soft)">${m0.hit.length} of ${entries.length} names matched</span></div>${doubt.size?`<p class="hint" style="color:var(--amber)">${doubt.size} match${doubt.size===1?"":"es"} worth a quick look (marked &ldquo;check match&rdquo;). Everything else was a confident match.</p>`:""}
-            <label>Students in those shiurim who are not on the sheet</label><select id="snR"><option value="leave" ${rest==="leave"?"selected":""}>Leave unchanged</option><option value="present" ${rest==="present"?"selected":""}>Mark present</option><option value="absent" ${rest==="absent"?"selected":""}>Mark absent</option></select>
+            <div class="sn-sum"><span><b style="color:var(--green)">${cnt("present")}</b> present</span><span><b style="color:var(--amber)">${cnt("late")}</b> late</span><span><b style="color:var(--red)">${cnt("absent")}</b> absent</span><span style="color:var(--ink-soft)">${m0.hit.length} of ${entries.length} names matched</span></div>${doubt.size?`<p class="hint" style="color:var(--amber)">${doubt.size} match${doubt.size===1?"":"es"} worth a quick look (marked &ldquo;check match&rdquo;). Everything else was a confident match.</p>`:""}${(()=>{ const dup = hsh && state.data.attendance.some(a=>a.photoHash===hsh); const ex = cids.map(c=>{ const r = findAttendanceRecord(c,date,seder); const n = r ? Object.keys(r.records||{}).length : 0; return n ? cname(c)+" ("+n+")" : null; }).filter(Boolean); return (dup||ex.length) ? `<div style="background:#FFF4DB;border:1px solid #F0C36D;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.5">\u26A0\uFE0F <b>${dup?"This exact photo was uploaded before.":"Attendance already recorded for this date and seder."}</b>${ex.length?` Already on file: ${escapeHtml(ex.join(", "))}.`:""} Saving <b>updates</b> those students \u2014 it won't create doubles.</div>` : ""; })()}
+            ${img?`<button class="nm-btn main" id="snCmp" style="width:100%;margin:8px 0 4px;">\uD83D\uDCF7 View sheet photo next to this data</button>`:""}<label>Students in those shiurim who are not on the sheet</label><select id="snR"><option value="leave" ${rest==="leave"?"selected":""}>Leave unchanged</option><option value="present" ${rest==="present"?"selected":""}>Mark present</option><option value="absent" ${rest==="absent"?"selected":""}>Mark absent</option></select>
             ${groups.map(g=>`<p class="pf-lbl">${escapeHtml(cname(g.c))}</p>${g.list.map(s=>{ const fromSheet = s.id in st, dbt = doubt.has(s.id);
               return `<div class="sn-row ${fromSheet?"":"off"}" data-id="${s.id}"><span class="n">${escapeHtml(s.name)}${fromSheet?(dbt?' <span class="hint" style="color:var(--amber)">\u2022 check match</span>':""):' <span class="hint">(not on sheet)</span>'}</span><div class="seg">${[["present","p","P"],["late","l","L"],["absent","a","A"]].map(([v,c,t])=>`<button class="${c} ${eff[s.id]===v?"active":""}" data-v="${v}">${t}</button>`).join("")}</div></div>`; }).join("")}`).join("")}
             ${unm.length?`<p class="pf-lbl">Couldn't match &mdash; tap to pick the student</p>${unm.map((u,i)=>`<div class="sn-row"><span class="n">${escapeHtml(u.name)} <span class="hint">${u.st}</span></span><select data-u="${i}" style="width:52%"><option value="">Pick student&hellip;</option>${(u.cand&&u.cand.length?`<optgroup label="Closest">${u.cand.filter(s=>!(s.id in st)).map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}</optgroup>`:"")}<optgroup label="Everyone">${free.map(s=>`<option value="${s.id}">${escapeHtml(s.name)} \u00b7 ${escapeHtml(cname(s.classId))}</option>`).join("")}</optgroup></select><button data-skip="${i}" class="ghost" style="padding:4px 8px">Skip</button></div>`).join("")}`:""}
@@ -3975,20 +3988,22 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
           body.querySelector("#snS").onchange = e=>{ seder = e.target.value; paint(); };
           body.querySelector("#snR").onchange = e=>{ rest = e.target.value; paint(); };
           body.querySelectorAll(".sn-row[data-id] .seg button").forEach(b=> b.onclick = ()=>{ const id = b.closest(".sn-row").dataset.id; st[id] = b.dataset.v; doubt.delete(id); paint(); });
-          body.querySelectorAll("select[data-u]").forEach(sel=> sel.onchange = ()=>{ if(sel.value){ const u = unm[+sel.dataset.u]; (state.data.aliases = state.data.aliases||{})[norm(u.name).join(" ")] = sel.value; st[sel.value] = u.st; onSheet.add(sel.value); unm.splice(+sel.dataset.u,1); paint(); } });
+          body.querySelectorAll("select[data-u]").forEach(sel=> sel.onchange = ()=>{ if(sel.value){ const u = unm[+sel.dataset.u]; (state.data.aliases = state.data.aliases||{})[norm(u.name).join(" ")] = sel.value; st[sel.value] = u.st; onSheet.add(sel.value); nameOf[sel.value] = u.name; read0[sel.value] = u.st; unm.splice(+sel.dataset.u,1); paint(); } });
           body.querySelectorAll("[data-skip]").forEach(b=> b.onclick = ()=>{ unm.splice(+b.dataset.skip,1); paint(); });
           body.querySelector("#snRe").onclick = home;
+          const cmpB = body.querySelector("#snCmp"); if(cmpB) cmpB.onclick = ()=> window.__sheetCompare(window.__daySnap({img, date, seder, entries, nameOf, read:read0, result:eff, doubt, rest}));
           body.querySelector("#snGo").onclick = async ()=>{
             const byClass = {}; Object.keys(eff).forEach(id=>{ const s = state.data.students.find(x=>x.id===id); if(s) (byClass[s.classId] = byClass[s.classId]||{})[id] = eff[id]; });
             const cl = Object.keys(byClass); if(!cl.length){ toast("Nothing to save.","error"); return; }
+            const bid = uid(); let firstId = null;
             cl.forEach(cid=>{
               let rec = findAttendanceRecord(cid,date,seder); const created = !rec, prev = rec ? JSON.parse(JSON.stringify(rec.records||{})) : null;
               if(!rec){ rec = {id:uid(), classId:cid, date, seder, records:{}, photo:""}; state.data.attendance.push(rec); }
-              if(img && !rec.photo) rec.photo = img;
+              if(img && !rec.photo) rec.photo = img; if(hsh) rec.photoHash = hsh;
               rec.records = Object.assign(rec.records||{}, byClass[cid]);
-              window.__logUpload({id:uid(), ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries, result:JSON.parse(JSON.stringify(byClass[cid]))});
+              const lid = uid(); if(!firstId) firstId = lid; window.__logUpload({id:lid, ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries, result:JSON.parse(JSON.stringify(byClass[cid])), batch:bid, nameOf:Object.assign({},nameOf), read:Object.assign({},read0), photo:(lid===firstId && img) ? img : ""});
             });
-            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); closeOverlay(ov); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } toast(`Saved to ${cl.length} shiur${cl.length===1?"":"im"} \u2713`,"success"); }
+            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } const fin = Object.assign({}, eff), nm = Object.assign({}, nameOf), rd = Object.assign({}, read0), dd = date, sd = seder, ur = unm.slice(); savedDone(`Saved to ${cl.length} shiur${cl.length===1?"":"im"} \u2713`, img, ()=> window.__daySnap({img, date:dd, seder:sd, entries, nameOf:nm, read:rd, result:fin})); }
             catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
           };
         };
@@ -4077,72 +4092,258 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${vals.map((x,i)=>{ const hh = x.v===1?H-16:x.v===.5?(H-16)*.55:(H-16)*.22, c = x.v===1?C.gr:x.v===.5?C.am:C.rd; return `<rect x="${5+i*(bw+2)}" y="${H-8-hh}" width="${bw}" height="${hh}" rx="3" fill="${c}" opacity=".9" style="filter:drop-shadow(0 0 3px ${c})"><title>${x.d}</title></rect>`; }).join("")}</svg>`; }
     const spark = v=> `<span class="ixsp">${v.slice(-14).map(x=>`<i style="height:${x===1?100:x===.5?55:25}%;background:${x===1?C.gr:x===.5?C.am:C.rd}"></i>`).join("")||'<em>no data</em>'}</span>`;
 
+    const AREA_L = {emo:"Emotional",spi:"Spiritual",soc:"Social",lrn:"Learning",phy:"Physical"};
+    const cap = t=> t.charAt(0).toUpperCase()+t.slice(1);
+    function issuesOf(s){
+      const out = [];
+      attentionReasons(s).forEach(t=>{ out.push({t:cap(t), sev: /check-in/i.test(t) ? "a" : "r"}); });
+      const wa = state.data.interviews.filter(x=>x.studentId===s.id && x.areas && Object.keys(x.areas).length).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      if(wa){ const bad = Object.keys(wa.areas).filter(k=>wa.areas[k]==="n").map(k=>AREA_L[k]||k); if(bad.length) out.push({t:"Needs help: "+bad.join(", "), sev:"r"}); }
+      return out;
+    }
+    function mk(s){ const i = info(s); i.iss = issuesOf(s); i.urgent = i.iss.some(x=>x.sev==="r"); i.stat = studentStatus(s); return i; }
+    const tagsHtml = (iss,max)=> iss.slice(0,max||99).map(x=>`<span class="tg ${x.sev}">${esc(x.t)}</span>`).join("") + (max && iss.length>max ? `<span class="tg">+${iss.length-max}</span>` : "");
+    const strHtml = (s,max)=> (s.strengths||[]).slice(0,max||99).map(t=>`<span class="tg g">${esc(t)}</span>`).join("") + (max && (s.strengths||[]).length>max ? `<span class="tg g">+${s.strengths.length-max}</span>` : "");
+
     function openInsights(){
       const el = document.createElement("div"); el.className = "ix";
       if(!document.getElementById("ixStyle")){ const st = document.createElement("style"); st.id = "ixStyle"; st.textContent = `
         .ix{position:fixed;inset:0;z-index:70;overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,#2a1f6e 0%,transparent 60%),radial-gradient(900px 500px at -10% 20%,#0b3b5c 0%,transparent 55%),#070a1c;color:#e8ecff;font-family:-apple-system,system-ui,sans-serif;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(40px + env(safe-area-inset-bottom,0px));}
+        .ix ~ .overlay{z-index:80} .ix ~ #toastStack{z-index:90}
         .ix h2{margin:0;font-size:22px;letter-spacing:.3px;background:linear-gradient(90deg,#fff,${C.cy});-webkit-background-clip:text;background-clip:text;color:transparent} .ix .top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
         .ix .x{margin-left:auto;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:7px 12px}
         .ix .gl{background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;margin-bottom:12px;backdrop-filter:blur(8px);box-shadow:0 10px 30px -12px rgba(92,225,230,.25)}
+        .ix .gl.alert{border-color:rgba(255,93,115,.45);box-shadow:0 10px 30px -12px rgba(255,93,115,.35)}
         .ix .gl h3{margin:0 0 8px;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#9aa3c7;font-weight:600} .ixh{color:#9aa3c7;font-size:12px;margin:4px 0}
         .ix .kp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px} .ix .kp .gl{margin:0;text-align:center} .ix .kp b{display:block;font-size:28px;line-height:1.1} .ix .kp span{font-size:11px;color:#9aa3c7}
-        .ix .chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px} .ix .chip{flex:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#cdd3f5;font-size:13px} .ix .chip.on{background:linear-gradient(90deg,${C.vi},${C.cy});color:#06091c;border-color:transparent;font-weight:700}
+        .ix .chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px} .ix .chip{flex:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#cdd3f5;font-size:13px;cursor:pointer} .ix .chip.on{background:linear-gradient(90deg,${C.vi},${C.cy});color:#06091c;border-color:transparent;font-weight:700}
         .ix .br{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px} .ix .br .l{width:38%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis} .ix .br .t{flex:1;height:9px;border-radius:9px;background:rgba(255,255,255,.08);position:relative;overflow:hidden} .ix .br .t i{position:absolute;inset:0 auto 0 0;border-radius:9px} .ix .br .v{width:42px;text-align:right;font-weight:700}
-        .ix .tap{cursor:pointer} .ix .miss{font-size:12px;color:#cdd3f5;margin:4px 0 8px;line-height:1.7} .ix .miss a{display:inline-block;background:rgba(255,255,255,.08);border-radius:8px;padding:1px 8px;margin:2px}
+        .ix .tap{cursor:pointer} .ix .miss{font-size:12px;color:#cdd3f5;margin:4px 0 8px;line-height:1.7} .ix .miss a{display:inline-block;background:rgba(255,255,255,.08);border-radius:8px;padding:1px 8px;margin:2px;cursor:pointer}
         .ix input,.ix select{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px;font-size:14px;width:100%}
         .ix .sc{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);margin-bottom:8px;cursor:pointer}
+        .ix .sc.flag{border-color:rgba(255,93,115,.45);background:rgba(255,93,115,.07)}
         .ix .sc .p{width:42px;height:42px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;background:rgba(255,255,255,.08);overflow:hidden;border:2px solid var(--c)} .ix .sc .p img{width:100%;height:100%;object-fit:cover}
         .ix .sc .m{flex:1;min-width:0} .ix .sc .m b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .ix .sc .m small{color:#9aa3c7;font-size:11px;display:block;margin-top:2px}
         .ixsp{display:inline-flex;align-items:flex-end;gap:2px;height:20px;margin-top:4px;vertical-align:bottom} .ixsp i{display:block;width:5px;border-radius:2px} .ixsp em{font-size:10px;color:#6b7390}
         .ix .num{text-align:right;flex:none} .ix .num b{font-size:18px} .ix .num small{display:block;font-size:10px;color:#9aa3c7}
         .ix .two{display:grid;grid-template-columns:1fr 1fr;gap:10px} .ix .tl{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px} .ix .tl span{font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.07)}
-        .ix .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}`; document.head.appendChild(st); }
+        .ix .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}
+        .ix .tg{display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;margin:4px 4px 0 0;background:rgba(255,255,255,.08);color:#cdd3f5;border:1px solid transparent}
+        .ix .tg.r{background:rgba(255,93,115,.16);color:#ff9aa9;border-color:rgba(255,93,115,.35)} .ix .tg.a{background:rgba(255,200,87,.14);color:#ffd98a;border-color:rgba(255,200,87,.3)} .ix .tg.g{background:rgba(61,242,160,.1);color:#7af5c0;border-color:rgba(61,242,160,.25)}
+        .ix .tg.tap.sel{background:linear-gradient(90deg,${C.vi},${C.cy});color:#06091c;border-color:transparent;font-weight:700}
+        .ix .lg{cursor:pointer;padding:2px 0} .ix .lg.on{font-weight:700;color:#fff}
+        .ix .more{text-align:center;font-size:12px;color:${C.cy};padding:6px;cursor:pointer}
+        .ix .pillx{display:inline-block;font-size:12px;font-weight:700;border:1px solid;border-radius:999px;padding:3px 10px;margin:-4px 0 12px}
+        .ix .acts{display:flex;gap:8px;margin:0 0 10px} .ix .btn{flex:1;text-align:center;text-decoration:none;font-size:14px;font-weight:600;padding:12px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;cursor:pointer} .ix .btn.pri{background:linear-gradient(90deg,${C.vi},${C.cy});color:#06091c;border-color:transparent}
+        .ix .nt{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px;line-height:1.45} .ix .nt small{display:block;color:#9aa3c7;font-size:11px;margin-bottom:2px}`; document.head.appendChild(st); }
       document.body.appendChild(el);
-      let cid = null, q = "", sort = "attn", open = null, gap = null;
+      let cid = null, q = "", sort = "attn", open = null, gap = null, filt = "all", strSel = null, allAttn = false, listY = 0;
+      const photo = (s)=> s.photo ? `<img src="${s.photo}">` : initials(s.name);
+      const card = i=>{ const s = i.s, c = i.urgent ? C.rd : col(i.short);
+        return `<div class="sc ${i.urgent?"flag":""}" data-s="${s.id}" style="--c:${c}"><div class="p">${photo(s)}</div><div class="m"><b>${esc(s.name)}</b>${spark(i.v)}<div>${tagsHtml(i.iss,2)}${strHtml(s,3)}</div><small>${i.miss.length?"Missing: "+i.miss.slice(0,3).join(", ")+(i.miss.length>3?" +"+(i.miss.length-3):""):"Profile complete \u2713"}</small></div><div class="num"><b style="color:${c}">${i.short===null?"\u2014":i.short+"%"}</b><small>recent${i.delta!==null?` \u00b7 ${i.delta>=0?"\u25B2":"\u25BC"}${Math.abs(i.delta)}`:""}</small><small>${i.long===null?"":i.long+"% overall"}</small></div></div>`; };
       const paint = ()=>{
-        const stu = state.data.students.filter(s=>s.classId && (!cid || s.classId===cid)), inf = stu.map(info), recs = state.data.attendance.filter(a=>!cid || a.classId===cid);
+        const y0 = el.scrollTop;
+        const stu = state.data.students.filter(s=>s.classId && (!cid || s.classId===cid)), inf = stu.map(mk), recs = state.data.attendance.filter(a=>!cid || a.classId===cid);
         const allV = [].concat(...inf.map(i=>i.v)), last5 = [].concat(...inf.map(i=>i.v.slice(-5))), longP = pct(allV), shortP = pct(last5);
         const comp = inf.length ? Math.round(inf.reduce((a,i)=>a+i.comp,0)/inf.length) : 0;
         const byDate = {}; recs.forEach(a=>{ const arr = Object.values(a.records||{}).map(val); if(!arr.length) return; (byDate[a.date] = byDate[a.date]||[]).push(...arr); });
         const pts = Object.keys(byDate).sort().slice(-30).map(d=>({l:mdy(d).replace(/\/\d{4}$/,""), y:pct(byDate[d])}));
         const chips = `<div class="chips"><div class="chip ${!cid?"on":""}" data-c="">All shiurim</div>${state.data.classes.filter(c=>studentsInClass(c.id).length).map(c=>`<div class="chip ${cid===c.id?"on":""}" data-c="${c.id}">${esc(c.name)}</div>`).join("")}</div>`;
-        const cnt = {green:0,yellow:0,red:0,unknown:0}; stu.forEach(s=>{ const t = studentStatus(s); if(cnt[t]!==undefined) cnt[t]++; });
-        const dn = (()=>{ const tot = stu.length||1, seg = [["green",C.gr,"Thriving"],["yellow",C.am,"Steady"],["red",C.rd,"Needs attention"]]; let acc = 0; const r = 40, c = 2*Math.PI*r;
-          return `<svg viewBox="0 0 100 100" width="100" style="display:block;margin:0 auto"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/>${seg.map(([k,cl])=>{ const f = cnt[k]/tot, d = `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${cl}" stroke-width="11" stroke-dasharray="${f*c} ${c}" stroke-dashoffset="${-acc*c}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 3px ${cl})"/>`; acc += f; return d; }).join("")}<text x="50" y="50" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="20" font-weight="700">${stu.length}</text></svg><div style="font-size:11px;margin-top:6px;line-height:1.6"><span style="color:${C.gr}">\u25CF</span> ${cnt.green} thriving<br><span style="color:${C.am}">\u25CF</span> ${cnt.yellow} steady<br><span style="color:${C.rd}">\u25CF</span> ${cnt.red} need attention</div>`; })();
+        const cnt = {green:0,yellow:0,red:0,unknown:0}; inf.forEach(i=>{ if(cnt[i.stat]!==undefined) cnt[i.stat]++; });
+        const flagged = inf.filter(i=>i.iss.length).sort((a,b)=>b.urgent-a.urgent || b.iss.length-a.iss.length || (a.short===null)-(b.short===null) || (a.short||0)-(b.short||0));
+        const nAttn = flagged.length;
+        const dn = (()=>{ const tot = stu.length||1, seg = [["green",C.gr,"Thriving"],["yellow",C.am,"Steady"],["red",C.rd,"Red \u00b7 needs attention"]]; let acc = 0; const r = 40, c = 2*Math.PI*r;
+          return `<svg viewBox="0 0 100 100" width="100" style="display:block;margin:0 auto"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/>${seg.map(([k,cl])=>{ const f = cnt[k]/tot, d = `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${cl}" stroke-width="11" stroke-dasharray="${f*c} ${c}" stroke-dashoffset="${-acc*c}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 3px ${cl})"/>`; acc += f; return d; }).join("")}<text x="50" y="50" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="20" font-weight="700">${stu.length}</text></svg><div style="font-size:11px;margin-top:6px;line-height:1.6">${seg.map(([k,cl,lb])=>`<div class="lg ${filt===k?"on":""}" data-f="${k}"><span style="color:${cl}">\u25CF</span> ${cnt[k]} ${lb.toLowerCase()}</div>`).join("")}</div>`; })();
         const shiurBars = state.data.classes.map(c=>{ const ii = inf.filter(i=>i.s.classId===c.id); if(!ii.length) return ""; const l = pct([].concat(...ii.map(i=>i.v))), sh = pct([].concat(...ii.map(i=>i.v.slice(-5)))); return `<div class="br"><span class="l">${esc(c.name)}</span><span class="t"><i style="width:${l||0}%;background:linear-gradient(90deg,${C.vi},${col(l)})"></i></span><span class="v" style="color:${col(sh)}">${sh===null?"\u2014":sh+"%"}</span></div>`; }).join("");
         const fb = FIELDS.map((f,i)=>{ const have = stu.filter(s=>f[1](s)).length, p = stu.length ? Math.round(have/stu.length*100) : 0; return `<div class="br tap" data-g="${i}"><span class="l">${f[0]}</span><span class="t"><i style="width:${p}%;background:linear-gradient(90deg,${C.vi},${col(p)})"></i></span><span class="v">${p}%</span></div>${gap===i?`<div class="miss">Missing (${stu.length-have}): ${stu.filter(s=>!f[1](s)).sort(byName).map(s=>`<a data-s="${s.id}">${esc(s.name)}</a>`).join("")||"nobody \u2014 all set!"}</div>`:""}`; }).join("");
-        let list = inf.filter(i=>!q || i.s.name.toLowerCase().includes(q));
-        list.sort(sort==="attn" ? (a,b)=>(a.short===null)-(b.short===null) || (a.short||0)-(b.short||0) : sort==="miss" ? (a,b)=>b.miss.length-a.miss.length : (a,b)=>byName(a.s,b.s));
-        el.innerHTML = `<div class="top"><h2>Talmidim Insights</h2><button class="x" id="ixX">Close</button></div>${chips}
+        // strengths
+        const sc = {}; stu.forEach(s=>(s.strengths||[]).forEach(t=>{ const k = t.toLowerCase(); (sc[k] = sc[k]||{t,n:0}).n++; }));
+        const sl = Object.keys(sc).map(k=>({k, ...sc[k]})).sort((a,b)=>b.n-a.n || a.t.localeCompare(b.t));
+        const noStr = stu.filter(s=>!(s.strengths||[]).length);
+        if(strSel && strSel!=="__none" && !sc[strSel]) strSel = null;
+        const strPeople = strSel==="__none" ? noStr : strSel ? stu.filter(s=>(s.strengths||[]).some(t=>t.toLowerCase()===strSel)) : [];
+        const strPanel = `<div class="gl"><h3>Strengths &amp; interests \u00b7 tap to see who</h3>${sl.length?`<div>${sl.map(o=>`<span class="tg g tap ${strSel===o.k?"sel":""}" data-st="${esc(o.k)}">${esc(o.t)} \u00b7 ${o.n}</span>`).join("")}</div>`:'<p class="ixh">No strengths noted yet \u2014 open a talmid\u2019s profile to add some.</p>'}
+          ${noStr.length&&sl.length?`<div style="margin-top:6px"><span class="tg tap ${strSel==="__none"?"sel":""}" data-st="__none">No strengths noted \u00b7 ${noStr.length}</span></div>`:""}
+          ${strSel?`<div class="miss">${strSel==="__none"?"No strengths yet":esc(sc[strSel].t)} (${strPeople.length}): ${strPeople.sort(byName).map(s=>`<a data-s="${s.id}">${esc(s.name)}</a>`).join("")}</div>`:""}</div>`;
+        // needs attention
+        const attnPanel = nAttn ? `<div class="gl alert"><h3 style="color:#ff9aa9">Needs attention \u00b7 ${nAttn}</h3>${(allAttn?flagged:flagged.slice(0,5)).map(card).join("")}${nAttn>5?`<div class="more" id="ixMore">${allAttn?"Show fewer":"Show all "+nAttn}</div>`:""}</div>`
+          : `<div class="gl"><h3>Needs attention</h3><p class="ixh">Nobody flagged \u2014 everyone looks on track \u2713</p></div>`;
+        let list = inf.filter(i=>(!q || i.s.name.toLowerCase().includes(q)) && (filt==="all" || (filt==="attn"&&i.iss.length) || (filt==="ok"&&!i.iss.length) || i.stat===filt));
+        list.sort(sort==="attn" ? (a,b)=>b.urgent-a.urgent || b.iss.length-a.iss.length || (a.short===null)-(b.short===null) || (a.short||0)-(b.short||0) : sort==="miss" ? (a,b)=>b.miss.length-a.miss.length : (a,b)=>byName(a.s,b.s));
+        const pill = (k,lb)=>`<div class="chip ${filt===k?"on":""}" data-f="${k}">${lb}</div>`;
+        el.innerHTML = `<div class="top"><h2>Overview</h2><button class="x" id="ixX">Close</button></div>${chips}
           <div class="kp"><div class="gl"><b style="color:${col(longP)}">${longP===null?"\u2014":longP+"%"}</b><span>Attendance \u00b7 long term</span></div><div class="gl"><b style="color:${col(shortP)}">${shortP===null?"\u2014":shortP+"%"}${(longP!==null&&shortP!==null)?`<small style="font-size:13px;color:${shortP>=longP?C.gr:C.rd}"> ${shortP>=longP?"\u25B2":"\u25BC"}${Math.abs(shortP-longP)}</small>`:""}</b><span>Last 5 sessions \u00b7 short term</span></div>
-          <div class="gl"><b>${stu.length}</b><span>Talmidim</span></div><div class="gl"><b style="color:${col(comp)}">${comp}%</b><span>What we know about them</span></div></div>
+          <div class="gl tap" id="ixKA"><b style="color:${nAttn?C.rd:C.gr}">${nAttn}</b><span>Need attention \u00b7 tap to list</span></div><div class="gl"><b style="color:${col(comp)}">${comp}%</b><span>What we know about them</span></div></div>
+          ${attnPanel}
           <div class="gl"><h3>Attendance trend \u00b7 last 30 days</h3>${area(pts)}</div>
-          <div class="two"><div class="gl"><h3>Standing</h3>${dn}</div><div class="gl"><h3>By shiur \u00b7 recent</h3>${shiurBars||'<p class="ixh">No data</p>'}</div></div>
+          <div class="two"><div class="gl"><h3>Standing \u00b7 tap to filter</h3>${dn}</div><div class="gl"><h3>By shiur \u00b7 recent</h3>${shiurBars||'<p class="ixh">No data</p>'}</div></div>
+          ${strPanel}
           <div class="gl"><h3>What we know \u00b7 tap to see who's missing</h3>${fb}</div>
-          <div class="gl"><h3>Students</h3><div class="two" style="margin-bottom:8px"><input id="ixQ" placeholder="Search name" value="${esc(q)}"><select id="ixSo"><option value="attn" ${sort==="attn"?"selected":""}>Lowest attendance first</option><option value="miss" ${sort==="miss"?"selected":""}>Most info missing first</option><option value="name" ${sort==="name"?"selected":""}>Name</option></select></div>
-          ${list.map(i=>{ const s = i.s, c = col(i.short); return `<div class="sc" data-s="${s.id}" style="--c:${c}"><div class="p">${s.photo?`<img src="${s.photo}">`:initials(s.name)}</div><div class="m"><b>${esc(s.name)}</b>${spark(i.v)}<small>${i.miss.length?"Missing: "+i.miss.slice(0,3).join(", ")+(i.miss.length>3?" +"+(i.miss.length-3):""):"Profile complete \u2713"}</small></div><div class="num"><b style="color:${c}">${i.short===null?"\u2014":i.short+"%"}</b><small>recent${i.delta!==null?` \u00b7 ${i.delta>=0?"\u25B2":"\u25BC"}${Math.abs(i.delta)}`:""}</small><small>${i.long===null?"":i.long+"% overall"}</small></div></div>`; }).join("")||'<p class="ixh">No students match.</p>'}</div>`;
-        el.querySelector("#ixX").onclick = ()=>el.remove();
-        $$(el,".chip").forEach(c=> c.onclick = ()=>{ cid = c.dataset.c||null; paint(); });
+          <div class="gl" id="ixList"><h3>Everyone \u00b7 ${list.length}${list.length!==stu.length?" of "+stu.length:""}</h3><div class="chips" style="margin-bottom:8px">${pill("all","All")}${pill("attn","\u26A0 Needs attention")}${pill("ok","Doing fine")}${["red","yellow","green"].includes(filt)?pill(filt,{red:"Red",yellow:"Steady",green:"Thriving"}[filt]):""}</div>
+          <div class="two" style="margin-bottom:8px"><input id="ixQ" placeholder="Search name" value="${esc(q)}"><select id="ixSo"><option value="attn" ${sort==="attn"?"selected":""}>Issues first</option><option value="miss" ${sort==="miss"?"selected":""}>Most info missing first</option><option value="name" ${sort==="name"?"selected":""}>Name</option></select></div>
+          ${list.map(card).join("")||'<p class="ixh">No students match.</p>'}</div>`;
+        el.querySelector("#ixX").onclick = ()=>{ mo.disconnect(); el.remove(); };
+        $$(el,".chip[data-c]").forEach(c=> c.onclick = ()=>{ cid = c.dataset.c||null; paint(); });
+        $$(el,"[data-f]").forEach(c=> c.onclick = ()=>{ filt = filt===c.dataset.f && c.dataset.f!=="all" ? "all" : c.dataset.f; paint(); const t = el.querySelector("#ixList"); if(t && filt!=="all") t.scrollIntoView({behavior:"smooth",block:"start"}); });
+        el.querySelector("#ixKA").onclick = ()=>{ filt = "attn"; paint(); el.querySelector("#ixList").scrollIntoView({behavior:"smooth",block:"start"}); };
+        const mr = el.querySelector("#ixMore"); if(mr) mr.onclick = ()=>{ allAttn = !allAttn; paint(); };
         $$(el,"[data-g]").forEach(b=> b.onclick = ()=>{ gap = gap===+b.dataset.g ? null : +b.dataset.g; paint(); });
-        $$(el,"[data-s]").forEach(b=> b.onclick = ()=>{ open = b.dataset.s; deep(); });
+        $$(el,"[data-st]").forEach(b=> b.onclick = ()=>{ strSel = strSel===b.dataset.st ? null : b.dataset.st; paint(); });
+        $$(el,"[data-s]").forEach(b=> b.onclick = ()=>{ listY = el.scrollTop; open = b.dataset.s; deep(); el.scrollTop = 0; });
         const qi = el.querySelector("#ixQ"); qi.oninput = ()=>{ q = qi.value.toLowerCase().trim(); const pos = qi.selectionStart; paint(); const n = el.querySelector("#ixQ"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} };
         el.querySelector("#ixSo").onchange = e=>{ sort = e.target.value; paint(); };
+        el.scrollTop = y0;
       };
       const deep = ()=>{
-        const s = state.data.students.find(x=>x.id===open); if(!s){ paint(); return; } const i = info(s), k = classById(s.classId), iv = state.data.interviews.filter(x=>x.studentId===s.id).sort((a,b)=>a.date.localeCompare(b.date)), stc = {thriving:C.gr, steady:C.am, struggling:C.rd};
+        const s = state.data.students.find(x=>x.id===open); if(!s){ open = null; paint(); return; } const i = mk(s), k = classById(s.classId), iv = state.data.interviews.filter(x=>x.studentId===s.id).sort((a,b)=>a.date.localeCompare(b.date)), stc = {thriving:C.gr, steady:C.am, struggling:C.rd};
         const late = i.r.filter(a=>a.records[s.id]==="late").length, abs = i.r.filter(a=>a.records[s.id]==="absent").length;
-        el.innerHTML = `<div class="top"><h2>${esc(s.name)}</h2><button class="x" id="ixB">Back</button></div><p class="ixh" style="margin:-4px 0 12px">${k?esc(k.name):"No shiur"}${s.dorm?" \u00b7 Dorm "+esc(s.dorm):""}</p>
+        const pl = i.urgent ? ["Needs attention",C.rd] : i.iss.length ? ["Check in soon",C.am] : ["Doing well",C.gr];
+        const notes = iv.filter(x=>x.notes && String(x.notes).trim()).slice(-3).reverse();
+        el.innerHTML = `<div class="top"><h2>${esc(s.name)}</h2><button class="x" id="ixB">Back</button></div><p class="ixh" style="margin:-4px 0 8px">${k?esc(k.name):"No shiur"}${s.dorm?" \u00b7 Dorm "+esc(s.dorm):""}</p><span class="pillx" style="color:${pl[1]};border-color:${pl[1]}">${pl[0]}</span>
+          <div class="acts"><button class="btn" id="ixCk">Check in / attendance</button><button class="btn pri" id="ixO">Open full profile</button></div>
+          ${(s.phone||s.parentPhone)?`<div class="acts">${s.phone?`<a class="btn" href="tel:${esc(s.phone)}">\u260E Call him</a>`:""}${s.parentPhone?`<a class="btn" href="tel:${esc(s.parentPhone)}">\u260E Call parent</a>`:""}</div>`:""}
+          <div class="gl ${i.iss.length?"alert":""}"><h3>${i.iss.length?"Issues to attend to":"Issues"}</h3>${i.iss.length?i.iss.map(x=>`<div class="kv"><span>${esc(x.t)}</span><b style="color:${x.sev==="r"?C.rd:C.am};white-space:nowrap">${x.sev==="r"?"\u25CF urgent":"\u25CF follow up"}</b></div>`).join(""):'<p class="ixh">Nothing flagged \u2713</p>'}</div>
+          <div class="gl"><h3>Strengths &amp; interests</h3>${(s.strengths||[]).length?`<div>${strHtml(s)}</div>`:'<p class="ixh">None noted yet \u2014 open the full profile to add some.</p>'}</div>
           <div class="kp"><div class="gl">${ring(i.long,92,"overall")}</div><div class="gl">${ring(i.short,92,"last 5")}</div></div>
           <div class="gl"><h3>Attendance \u00b7 last 30 sessions</h3>${bars(i.r.slice(-30).map(a=>({v:val(a.records[s.id]),d:a.date+" \u00b7 "+a.records[s.id]})))}<p class="ixh">${i.r.length} sessions \u00b7 ${i.r.length-late-abs} present \u00b7 ${late} late \u00b7 ${abs} absent</p></div>
-          <div class="gl"><h3>How he's been doing (check-ins)</h3>${iv.filter(x=>x.status).length?`<div class="tl">${iv.filter(x=>x.status).slice(-12).map(x=>`<span style="border:1px solid ${stc[x.status]||"#888"};color:${stc[x.status]||"#ccc"}">${x.date.slice(5)} \u00b7 ${x.status}</span>`).join("")}</div>`:'<p class="ixh">No standing rated yet \u2014 that is a gap.</p>'}<p class="ixh">${iv.length} check-in${iv.length===1?"":"s"} on file${iv.length?" \u00b7 last "+daysSince(iv[iv.length-1].date)+" days ago":""}</p></div>
-          <div class="gl"><h3>What we know \u00b7 ${i.comp}%</h3>${FIELDS.map(f=>{ const ok = f[1](s); return `<div class="kv"><span>${f[0]}</span><b style="color:${ok?C.gr:C.rd}">${ok?"\u2713 on file":"missing"}</b></div>`; }).join("")}</div>
-          <div class="row row-end"><button class="primary" id="ixO">Open full profile</button></div>`;
-        el.querySelector("#ixB").onclick = ()=>{ open = null; paint(); }; el.querySelector("#ixO").onclick = ()=>{ el.remove(); openStudentQuick(s.id); };
+          <div class="gl"><h3>How he's been doing (check-ins)</h3>${iv.filter(x=>x.status).length?`<div class="tl">${iv.filter(x=>x.status).slice(-12).map(x=>`<span style="border:1px solid ${stc[x.status]||"#888"};color:${stc[x.status]||"#ccc"}">${x.date.slice(5)} \u00b7 ${x.status}</span>`).join("")}</div>`:'<p class="ixh">No standing rated yet \u2014 that is a gap.</p>'}<p class="ixh">${iv.length} check-in${iv.length===1?"":"s"} on file${iv.length?" \u00b7 last "+daysSince(iv[iv.length-1].date)+" days ago":""}</p>
+            ${notes.map(x=>`<div class="nt"><small>${esc(x.date)}${x.status?" \u00b7 "+esc(x.status):""}</small>${esc(String(x.notes).slice(0,240))}${String(x.notes).length>240?"\u2026":""}</div>`).join("")}</div>
+          <div class="gl"><h3>What we know \u00b7 ${i.comp}%</h3>${FIELDS.map(f=>{ const ok = f[1](s); return `<div class="kv"><span>${f[0]}</span><b style="color:${ok?C.gr:C.rd}">${ok?"\u2713 on file":"missing"}</b></div>`; }).join("")}</div>`;
+        el.querySelector("#ixB").onclick = ()=>{ open = null; paint(); el.scrollTop = listY; };
+        el.querySelector("#ixO").onclick = ()=>openStudentDrawer(s.id);
+        el.querySelector("#ixCk").onclick = ()=>openStudentQuick(s.id);
       };
+      // when a profile / check-in sheet opened from here closes, refresh so changes show straight away
+      const mo = new MutationObserver(ms=>{ if(!el.isConnected){ mo.disconnect(); return; } if(ms.some(m=>[...m.removedNodes].some(n=>n.classList && n.classList.contains("overlay")))) setTimeout(()=>{ const y = el.scrollTop; if(open) deep(); else paint(); el.scrollTop = y; },0); });
+      mo.observe(document.body,{childList:true});
       paint();
     }
-    window.__openInsights = openInsights;
-    [["\uD83D\uDDA8 Printable attendance sheets", openPrint], ["\uD83D\uDCCA Insights dashboard", openInsights]].forEach(([t,fn])=>{ const b = document.createElement("button"); b.style.fontWeight = "600"; b.textContent = t; b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); fn(); }); $("moreMenu").insertBefore(b, $("moreMenu").firstChild); });
+    window.__openInsights = openInsights; window.__openPrint = openPrint;
+    [["\uD83D\uDDA8 Printable attendance sheets", openPrint], ["\uD83D\uDCCA Overview dashboard", openInsights]].forEach(([t,fn])=>{ const b = document.createElement("button"); b.style.fontWeight = "600"; b.textContent = t; b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); fn(); }); $("moreMenu").insertBefore(b, $("moreMenu").firstChild); });
+  })();
+
+  // ================= 3-DOTS MENU: Overview dashboard replaces the old overview / printout / report options =================
+  (function(){
+    const m = document.getElementById("moreMenu"); if(!m) return;
+    const KILL = /printable attendance|full school overview|whole-school report|weekly summary per rebbe|school snapshot|graphs: how|strengths\s*(&|&amp;)\s*interests|^\s*overview\s*$/i;
+    let busy = false;
+    const tidy = ()=>{
+      if(busy) return; busy = true;
+      try{
+        const btns = Array.from(m.querySelectorAll("button"));
+        btns.forEach(b=>{ if(KILL.test(b.textContent.trim())) b.style.display = "none"; });
+        const ib = btns.find(b=>/Overview dashboard/.test(b.textContent));
+        if(ib){ ib.style.fontWeight = "700"; ib.style.display = ""; if(m.firstElementChild !== ib) m.insertBefore(ib, m.firstElementChild); }
+        // hide section labels that no longer have any visible button under them
+        Array.from(m.children).forEach((n,idx,arr)=>{ if(!n.classList.contains("menu-label")) return;
+          let j = idx+1, any = false; while(j<arr.length && !arr[j].classList.contains("menu-label")){ const x = arr[j]; if(x.tagName==="BUTTON" ? x.style.display!=="none" : x.tagName==="DETAILS") any = true; j++; }
+          n.style.display = any ? "" : "none"; });
+      }finally{ busy = false; }
+    };
+    new MutationObserver(()=>setTimeout(tidy,0)).observe(m,{childList:true,subtree:true});
+    tidy(); setTimeout(tidy,400); setTimeout(tidy,1500);
+  })();
+
+  // ================= SHEET COMPARE: look at the uploaded photo next to what was read from it =================
+  (function(){
+    const esc = escapeHtml;
+    const LB = {present:"P", late:"L", absent:"A"}, CL = {present:"#1F9D55", late:"#E0A100", absent:"#C0392B"};
+    const dstr = d=>{ const p = String(d||"").split("-"); return p.length===3 ? (+p[1])+"/"+(+p[2]) : ""; };
+    // snapshot builders -> {img,title,sub,cols:[{k,label}],rows:[{name,sheet,cells:{k:{v,r}},flag,note}],notes:[]}
+    window.__daySnap = function(o){
+      const inv = {}; Object.keys(o.nameOf||{}).forEach(id=>{ inv[o.nameOf[id]] = id; });
+      const stu = id=> state.data.students.find(s=>s.id===id), cn = s=>{ const c = s && classById(s.classId); return c ? c.name : ""; };
+      const rows = [], used = new Set(), notes = [];
+      (o.entries||[]).forEach(e=>{
+        const id = inv[e.name], s = id && stu(id);
+        if(s && !used.has(id)){ used.add(id); const v = o.result ? o.result[id] : null;
+          rows.push({name:s.name, sheet:e.name, sub:cn(s), cells:{d:{v, r:(o.read||{})[id]||e.status}}, flag:(v!==((o.read||{})[id]||e.status)) ? "edited" : (o.doubt && o.doubt.has && o.doubt.has(id)) ? "check" : ""}); }
+        else if(!s) rows.push({name:e.name, sheet:"", sub:"", cells:{d:{v:null, r:e.status}}, flag:"unmatched", note:"Name on the sheet, not matched to a student"});
+      });
+      Object.keys(o.result||{}).forEach(id=>{ if(used.has(id)) return; const s = stu(id); if(!s) return;
+        rows.push({name:s.name, sheet:"", sub:cn(s), cells:{d:{v:o.result[id], r:null}}, flag:"off", note:"Not on the sheet"}); });
+      if(o.rest && o.rest!=="leave") notes.push("Students not on the sheet were marked "+o.rest+".");
+      return {img:o.img, title:"Attendance sheet", sub:(o.date?o.date:"")+(o.seder?" \u00b7 "+sederLabel(o.seder):""), cols:[{k:"d",label:"Saved"}], rows, notes};
+    };
+    window.__weekSnap = function(o){
+      const days = o.wk.days, stu = id=> state.data.students.find(s=>s.id===id), inv = {};
+      Object.keys(o.rawName||{}).forEach(id=>{ inv[o.rawName[id]] = id; });
+      const rows = [], used = new Set();
+      o.wk.rows.forEach(r=>{ const id = inv[r.name], s = id && stu(id);
+        if(s && !used.has(id)){ used.add(id); const cells = {}; let ed = false; days.forEach(k=>{ const v = (o.grid[id]||{})[k]||null, rd = (r.cells||{})[k]||null; cells[k] = {v, r:rd}; if(v!==rd) ed = true; });
+          rows.push({name:s.name, sheet:r.name, sub:"", cells, flag:ed?"edited":""}); }
+        else if(!s){ const cells = {}; days.forEach(k=>{ cells[k] = {v:null, r:(r.cells||{})[k]||null}; }); rows.push({name:r.name, sheet:"", sub:"", cells, flag:"unmatched", note:"Name on the sheet, not matched to a student"}); } });
+      return {img:o.img, title:"Weekly attendance sheet", sub:o.sub||"", cols:days.map(k=>({k, label:(o.labels&&o.labels[k])||k})), rows, notes:[]};
+    };
+    // rebuild a snapshot from an upload-history entry (or its batch)
+    window.__uploadSnap = function(u){
+      const ups = state.data.uploads||[], batch = u.batch ? ups.filter(x=>x.batch===u.batch) : [u];
+      const main = batch.find(x=>x.photo || x.weekSheet) || u;
+      const rec = state.data.attendance.find(a=>a.id===u.recId);
+      const img = main.photo || u.photo || (rec && rec.photo) || "";
+      if(main.weekSheet){
+        const ws = main.weekSheet, grid = {};
+        batch.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(x=>{ const k = (ws.dayOf||{})[x.date]; if(!k) return; Object.keys(x.result||{}).forEach(id=>{ (grid[id] = grid[id]||{})[k] = x.result[id]; }); });
+        const labels = {}; ws.days.forEach(k=>{ labels[k] = (ws.names||{})[k]+" "+dstr((ws.dates||{})[k]); });
+        const s = window.__weekSnap({img, wk:{days:ws.days, rows:ws.rows}, grid, rawName:main.nameOf||{}, labels, sub:(classById(u.classId)||{}).name||""});
+        return s;
+      }
+      const s = window.__daySnap({img, date:u.date, seder:u.seder, entries:u.entries||[], nameOf:u.nameOf||{}, read:u.read||{}, result:u.result||{}});
+      const cn = (classById(u.classId)||{}).name; if(cn) s.sub = cn+" \u00b7 "+s.sub;
+      if(!Object.keys(u.nameOf||{}).length && (u.entries||[]).length){ s.notes.push("This upload was saved before name matching was recorded, so the rows below show what was saved. The sheet's own lines are listed at the bottom."); s.raw = u.entries; s.rows = Object.keys(u.result||{}).map(id=>{ const st = state.data.students.find(x=>x.id===id); return st ? {name:st.name, sheet:"", sub:"", cells:{d:{v:u.result[id], r:null}}, flag:""} : null; }).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name)); }
+      return s;
+    };
+    window.__hasSheetPhoto = function(u){ const ups = state.data.uploads||[], rec = state.data.attendance.find(a=>a.id===u.recId);
+      return !!(u.photo || (u.batch && ups.some(x=>x.batch===u.batch && x.photo)) || (rec && rec.photo)); };
+
+    window.__sheetCompare = function(snap){
+      if(!document.getElementById("shcStyle")){ const st = document.createElement("style"); st.id = "shcStyle"; st.textContent = `
+        .shc{position:fixed;inset:0;z-index:120;background:#14122b;display:flex;flex-direction:column;font-family:-apple-system,system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+        .shc .hd{display:flex;align-items:center;gap:8px;padding:10px 12px;color:#fff} .shc .hd b{font-size:15px} .shc .hd small{display:block;color:#b9b6dd;font-size:11px} .shc .hd .grow{flex:1;min-width:0}
+        .shc button{font:inherit;cursor:pointer} .shc .xb{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:7px 12px;font-size:13px}
+        .shc .panes{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:0 8px 8px}
+        .shc .pp{position:relative;flex:1 1 45%;min-height:0;background:#000;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+        .shc .pv{flex:1;overflow:auto;touch-action:pan-x pan-y pinch-zoom;-webkit-overflow-scrolling:touch} .shc .pv img{display:block;max-width:none}
+        .shc .tb{display:flex;gap:6px;padding:6px;background:#1d1a3d;justify-content:center;align-items:center} .shc .tb button{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:6px 12px;font-size:14px;min-width:42px} .shc .tb span{color:#b9b6dd;font-size:12px;min-width:44px;text-align:center}
+        .shc .dp{flex:1 1 55%;min-height:0;background:var(--paper,#F7F4EC);color:var(--ink,#241D4A);border-radius:12px;overflow:auto;padding:10px 12px}
+        .shc .panes.photo .dp{display:none} .shc .panes.data .pp{display:none}
+        .shc .nofoto{color:#b9b6dd;padding:30px 16px;text-align:center;font-size:14px}
+        .shc .flt{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto} .shc .flt button{flex:none;border:1px solid var(--line,#E4DFCF);background:#fff;color:var(--ink-soft,#6B6558);border-radius:999px;padding:6px 12px;font-size:12px} .shc .flt button.on{background:var(--brand,#342B71);border-color:var(--brand,#342B71);color:#fff}
+        .shc .r{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line,#E4DFCF)} .shc .r.bad{background:#FBEFDD;border-radius:8px} .shc .r .m{flex:1;min-width:0} .shc .r .m b{display:block;font-size:14px} .shc .r .m small{display:block;font-size:11px;color:var(--ink-soft,#6B6558);margin-top:1px}
+        .shc .r .n{font-size:11px;color:#B8791E;margin-top:2px} .shc .cs{display:flex;gap:4px;flex:none}
+        .shc .c{min-width:30px;height:28px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:#C9C5B5;position:relative} .shc .c.ed{outline:2px solid #B8791E;outline-offset:1px}
+        .shc .c i{position:absolute;top:-6px;right:-4px;font-style:normal;font-size:9px;background:#B8791E;color:#fff;border-radius:6px;padding:0 3px}
+        .shc .cl{display:flex;gap:4px;justify-content:flex-end;font-size:10px;color:var(--ink-soft,#6B6558);text-align:center} .shc .cl span{min-width:30px}
+        .shc .sec{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft,#6B6558);margin:12px 0 4px}
+        .shc .hint2{font-size:12px;color:var(--ink-soft,#6B6558);margin:6px 0}
+        @media(min-width:820px){ .shc .panes{flex-direction:row} .shc .pp,.shc .dp{flex:1 1 50%} }`; document.head.appendChild(st); }
+      const el = document.createElement("div"); el.className = "shc";
+      let mode = "split", flt = "all", zoom = 1, img = snap.img || "";
+      const cell = (c,un)=>{ const v = c&&c.v, ed = c && c.r && v && v!==c.r; if(!v && un && c && c.r && CL[c.r]) return `<span class="c" style="background:${CL[c.r]};opacity:.5" title="Read from the sheet but not saved">${LB[c.r]}</span>`; return `<span class="c ${ed?"ed":""}" style="${v?`background:${CL[v]}`:""}" title="${ed?"Sheet read: "+c.r+" \u2192 saved: "+v:""}">${v?LB[v]:"\u2013"}${ed?`<i>edited</i>`:""}</span>`; };
+      const data = ()=>{
+        const multi = snap.cols.length>1;
+        const rows = snap.rows.filter(r=> flt==="all" || (flt==="np" && Object.values(r.cells).some(c=>c.v && c.v!=="present" || (!c.v && c.r && c.r!=="present"))) || (flt==="chk" && (r.flag)));
+        const nChk = snap.rows.filter(r=>r.flag).length;
+        return `<div class="flt"><button data-f="all" class="${flt==="all"?"on":""}">All ${snap.rows.length}</button><button data-f="np" class="${flt==="np"?"on":""}">Absent / late</button><button data-f="chk" class="${flt==="chk"?"on":""}">Worth a look${nChk?" ("+nChk+")":""}</button></div>
+          ${snap.notes.map(n=>`<p class="hint2">${esc(n)}</p>`).join("")}
+          ${multi?`<div class="cl"><span style="flex:1"></span>${snap.cols.map(c=>`<span>${esc(c.label)}</span>`).join("")}</div>`:""}
+          ${rows.map(r=>`<div class="r ${r.flag==="unmatched"||r.flag==="check"?"bad":""}"><div class="m"><b>${esc(r.name)}</b>${r.sheet&&r.sheet.toLowerCase()!==r.name.toLowerCase()?`<small>sheet says: \u201C${esc(r.sheet)}\u201D</small>`:""}${r.sub?`<small>${esc(r.sub)}</small>`:""}${r.note?`<div class="n">${esc(r.note)}</div>`:""}${r.flag==="check"?`<div class="n">Match was uncertain \u2014 check the name</div>`:""}</div><div class="cs">${snap.cols.map(c=>cell(r.cells[c.k], r.flag==="unmatched")).join("")}</div></div>`).join("")||'<p class="hint2">Nothing here.</p>'}
+          ${snap.raw&&snap.raw.length?`<div class="sec">Lines read from the sheet</div>${snap.raw.map(e=>`<div class="r"><div class="m"><b>${esc(e.name)}</b></div><div class="cs">${cell({v:e.status==="late"?"late":/abs/i.test(e.status)?"absent":"present"})}</div></div>`).join("")}`:""}
+          <p class="hint2" style="margin-top:12px">P present \u00b7 L late \u00b7 A absent \u00b7 \u2013 nothing marked. Orange outline = you changed what the sheet was read as. Faded = read from the sheet but not saved (no student matched).</p>`;
+      };
+      const paint = ()=>{
+        const oldPv = el.querySelector("#shcPv"), keep = oldPv ? [oldPv.scrollLeft, oldPv.scrollTop] : null, oldDp = el.querySelector(".dp"), keepD = oldDp ? oldDp.scrollTop : 0;
+        el.innerHTML = `<div class="hd"><div class="grow"><b>${esc(snap.title)}</b><small>${esc(snap.sub||"")}</small></div><button class="xb" data-m="x">Close</button></div>
+          <div class="panes ${mode==="split"?"":mode}"><div class="pp">${img?`<div class="pv" id="shcPv"><img id="shcImg" src="${img}" style="width:${Math.round(zoom*100)}%"></div><div class="tb"><button data-z="-">\u2212</button><span>${Math.round(zoom*100)}%</span><button data-z="+">+</button><button data-z="fit">Fit</button><button data-z="rot">\u21BB</button><button data-m="${mode==="photo"?"split":"photo"}">${mode==="photo"?"Split":"Bigger"}</button></div>`:`<div class="nofoto">No photo was kept for this upload.<br>(Uploads from before this feature, or typed/pasted text, have no image.)</div>`}</div>
+          <div class="dp">${data()}</div></div>
+          <div class="tb" style="border-radius:0;background:transparent;padding:0 8px 8px"><button style="flex:1;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px" data-m="${mode==="data"?"split":"data"}">${mode==="data"?"Show photo again":"Bigger data list"}</button></div>`;
+        const pv = el.querySelector("#shcPv"); if(pv && keep){ pv.scrollLeft = keep[0]; pv.scrollTop = keep[1]; } const dp = el.querySelector(".dp"); if(dp) dp.scrollTop = keepD;
+        el.querySelectorAll("[data-m]").forEach(b=> b.onclick = ()=>{ const m = b.dataset.m; if(m==="x"){ el.remove(); return; } mode = m; paint(); });
+        el.querySelectorAll("[data-f]").forEach(b=> b.onclick = ()=>{ flt = b.dataset.f; paint(); });
+        el.querySelectorAll("[data-z]").forEach(b=> b.onclick = async ()=>{ const z = b.dataset.z; if(z==="+") zoom = Math.min(5, zoom+0.5); else if(z==="-") zoom = Math.max(0.5, zoom-0.5); else if(z==="fit") zoom = 1; else { try{ img = await rotateImageDataUrl(img, 90); }catch(e){} } paint(); });
+      };
+      document.body.appendChild(el); paint();
+    };
   })();
 
   // ================= SETTINGS: edit shiurim + sedarim in-app =================
@@ -4377,15 +4578,16 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
         const ups = state.data.uploads||[], recs = state.data.attendance.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
         D.innerHTML = head("Upload history &amp; attendance log")+`<p class="pf-lbl">Photo &amp; file uploads</p>`+(ups.length?ups.map((u,i)=>`<div class="nm-card" style="${u.undone?"opacity:.55":""}"><div class="nm-name">${u.kind==="import"?"&#128196;":"&#128247;"} ${summ(u)}</div><div class="nm-sub">${fmt(u.ts)}${u.undone?" \u00b7 undone":""}</div>
           <details><summary class="hint">What was read</summary><div class="hint">${(u.entries||u.rows||[]).map(e=>escapeHtml(e.name)+(e.status?" \u2014 "+e.status:"")+(e.phone?" \u00b7 "+escapeHtml(e.phone):"")).join("<br>")}</div></details>
-          <div class="nm-actions">${u.undone?"":`<button class="nm-btn" data-u="${i}">Undo</button>`}${u.kind!=="import"&&state.data.attendance.some(a=>a.id===u.recId)?`<button class="nm-btn main" data-e="${u.recId}">Edit</button>`:""}</div></div>`).join(""):`<div class="nm-empty">Nothing uploaded yet.</div>`)
+          <div class="nm-actions">${u.kind!=="import"&&window.__hasSheetPhoto(u)?`<button class="nm-btn main" data-cmp="${i}">\uD83D\uDCF7 Compare photo</button>`:""}${u.undone?"":`<button class="nm-btn" data-u="${i}">Undo</button>`}${u.kind!=="import"&&state.data.attendance.some(a=>a.id===u.recId)?`<button class="nm-btn main" data-e="${u.recId}">Edit</button>`:""}</div></div>`).join(""):`<div class="nm-empty">Nothing uploaded yet.</div>`)
           +`<p class="pf-lbl" style="margin-top:14px;">All attendance (tap to edit)</p>`+recs.map(a=>{ const c = classById(a.classId), v = Object.values(a.records||{}); return `<div class="nm-card sh-row" data-e="${a.id}"><div class="nm-name">${c?escapeHtml(c.rebbi||c.name):"?"} \u00b7 ${a.date}</div><div class="nm-sub">${escapeHtml(sederLabel(recSeder(a)))} \u00b7 ${v.filter(x=>x==="absent").length} absent, ${v.filter(x=>x==="late").length} late</div></div>`; }).join("");
         D.querySelector("[data-x]").onclick = ()=>closeOverlay(ov);
         D.querySelectorAll("[data-u]").forEach(b=>b.onclick=async ()=>{ if(await undo(ups[+b.dataset.u])) paint(); });
         D.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editAtt(b.dataset.e, paint));
+        D.querySelectorAll("[data-cmp]").forEach(b=>b.onclick=()=>window.__sheetCompare(window.__uploadSnap(ups[+b.dataset.cmp])));
       };
       paint();
     }
-    window.__logUpload = u=>{ (state.data.uploads = state.data.uploads||[]).unshift(u); state.data.uploads.length = Math.min(state.data.uploads.length, 60); };
+    window.__logUpload = u=>{ (state.data.uploads = state.data.uploads||[]).unshift(u); state.data.uploads.length = Math.min(state.data.uploads.length, 60); let n = 0; state.data.uploads.forEach(x=>{ if(x.photo && ++n>30) x.photo = ""; }); };
 
     // ---------- entry points ----------
     [["\uD83D\uDDA8 Weekly summary per rebbe", openReports], ["\uD83D\uDDC2 Upload history, undo & edit attendance", openHistory]].forEach(([t,fn],i)=>{
@@ -5375,6 +5577,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       return list.map(c=>`<option value="${c.id}" ${c.id===sel?"selected":""}>${escapeHtml(c.id===pool.id && y==="alef" ? "Shana Alef \u2014 no shiur yet" : c.name)}</option>`).join(""); }
     const onStyle = "background:var(--brand);color:#fff;border-color:var(--brand);";
     window.__yearBlock = function(s, isNew){
+      if(PFX) return `<label for="stClass">Shiur</label><select id="stClass"><option value="">No shiur</option>${state.data.classes.map(c=>`<option value="${c.id}" ${s.classId===c.id?"selected":""}>${escapeHtml(c.name)}</option>`).join("")}</select>`;
       const y = (isNew && !s.classId) ? "alef" : studentYear(s);
       return `<label>Shana</label><div class="row" id="stYear" style="gap:8px;">${["alef","bet"].map(k=>`<button type="button" data-y="${k}" onclick="window.__stYear('${k}')" style="flex:1;${k===y?onStyle:""}">${k==="alef"?"Shana Alef":"Shana Bet"}</button>`).join("")}</div>
         <label for="stClass">Shiur</label><select id="stClass">${yearOptions(y, s.classId)}</select>`; };
@@ -5405,16 +5608,107 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderInterviewPicker(); updateAttentionBanner(); renderGlobalSearch(); try{ window.__renderHome(); }catch(e){} toast(`Done \u2014 ${alefNow.length+missing.length} in Shana Alef, ${toBet.length} moved to Shana Bet \u2713`,"success"); }
       catch(e){ if(!e.shown) toast("Couldn't save: "+(e.message||e),"error"); }
     }
-    const b = document.createElement("button"); b.style.fontWeight = "600"; b.textContent = "\uD83C\uDF93 Apply Shana Alef list (rest \u2192 Shana Bet)";
+    const b = document.createElement("button"); b.style.display = PFX ? "none" : ""; b.style.fontWeight = "600"; b.textContent = "\uD83C\uDF93 Apply Shana Alef list (rest \u2192 Shana Bet)";
     b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); state.data.yearListApplied = false; applyList(); }); $("moreMenu").insertBefore(b, $("moreMenu").firstChild);
-    const _sm = showMain; showMain = function(){ _sm(); setTimeout(()=>{ try{ if(state.data && !state.data.yearListApplied) applyList(); }catch(e){} }, 2500); };
+    if(!PFX){ const _sm = showMain; showMain = function(){ _sm(); setTimeout(()=>{ try{ if(state.data && !state.data.yearListApplied) applyList(); }catch(e){} }, 2500); }; }
     const sc = $("gsScope"); if(sc){ const l0 = window.__lab; window.__lab = function(){ sc.textContent = state.gsAll ? "Everyone" : "Shana Alef"; }; window.__lab(); sc.addEventListener("click", ()=>setTimeout(window.__lab,0)); }
+  })();
+
+  // ================= WORKSPACES, DEMO, GUIDE, UNDO =================
+  (function(){
+    const LS = {get:k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} }, del:k=>{ try{ localStorage.removeItem(k); }catch(e){} }};
+    const label = LS.get("ws-label");
+    if(PFX){ const h = document.querySelector(".topbar h1"); if(h && label) h.textContent = label; }
+
+    // ----- demo data (fictional) -----
+    function buildDemo(){
+      let seed = 7; const rnd = ()=>{ seed = (seed*9301+49297)%233280; return seed/233280; };
+      const classes = [{id:"d1",name:"Rabbi Cohen's Shiur",rebbi:"Rabbi Cohen",room:"101"},{id:"d2",name:"Rabbi Levy's Shiur",rebbi:"Rabbi Levy",room:"102"},{id:"d3",name:"Rabbi Katz's Shiur",rebbi:"Rabbi Katz",room:"103"}];
+      const names = ["Aaron Feldman","Binyamin Rosen","Chaim Goldberg","Daniel Weiss","Eli Shapiro","Gavriel Stern","Hillel Kaplan","Isaac Friedman","Jonah Berman","Kalman Segal","Levi Horowitz","Moshe Adler","Noam Klein","Oren Katz","Pinchas Roth","Reuven Mandel","Shimon Baum","Tzvi Gross","Uri Lowy","Yosef Brenner","Zev Hirsch","Avi Cohen","Ben Silver","Dovid Landau"];
+      const students = names.map((n,i)=>{ const o = {id:"ds"+i, name:n, classId:classes[i%3].id, photo:"", phone:"", parentPhone:"", dorm:"", strengths:[]};
+        if(rnd()>.25) o.phone = "555-01"+String(10+i); if(rnd()>.4) o.parentPhone = "555-02"+String(10+i); if(rnd()>.3) o.dorm = String(201+(i%12)); if(rnd()>.55) o.strengths = [["Gemara","Chesed","Leadership","Music","Sports","Writing"][i%6]]; return o; });
+      const attendance = [], days = []; const d = new Date(); while(days.length<24){ d.setDate(d.getDate()-1); if(d.getDay()!==5 && d.getDay()!==6) days.push(localDateStr(new Date(d))); } days.reverse();
+      const base = students.map(()=> 0.6 + rnd()*0.39);
+      days.forEach((dt,di)=> classes.forEach(c=>{ const rec = {}; students.forEach((s,i)=>{ if(s.classId!==c.id) return; const drift = (i%5===0 ? -di*0.008 : i%7===0 ? di*0.006 : 0), r = rnd(), p = base[i]+drift; rec[s.id] = r<p ? (rnd()<.1?"late":"present") : "absent"; }); attendance.push({id:"da"+dt+c.id, classId:c.id, date:dt, seder:"m1", records:rec, photo:""}); }));
+      const interviews = []; students.forEach((s,i)=>{ if(rnd()<.2) return; const n = 1 + (rnd()<.5?1:0); for(let k=0;k<n;k++){ const dt = days[days.length-1-k*6-(i%4)]; interviews.push({id:"di"+i+"_"+k, studentId:s.id, date:dt, notes:"Demo check-in: "+(["learning well, engaged","a bit quiet lately","needs a push with morning seder","great kabbalas ol"][(i+k)%4])+".", status:["thriving","steady","struggling"][ i%7===0 ? 2 : i%3===0 ? 1 : 0 ]}); } });
+      return {classes, students, attendance, interviews, trash:[]};
+    }
+    async function seedDemo(){ Object.assign(state.data, buildDemo()); window.__noUndo = true; try{ await persist(); }catch(e){} window.__noUndo = false; ["renderRoster","renderAttClassStrip","renderAttendanceTab","renderInterviewPicker","updateAttentionBanner","renderGlobalSearch"].forEach(f=>{ try{ eval(f)(); }catch(e){} }); }
+
+    // ----- welcome screen (first time on a device, or when switching) -----
+    window.__needWelcome = ()=> LS.get("ws-switch")==="1" || (!LS.get("ws-chosen") && !LS.get("derech-cache") && !LS.get("sb-config"));
+    window.__showWelcome = function(){
+      document.getElementById("loadingView") && document.getElementById("loadingView").classList.add("hidden");
+      const w = document.createElement("div"); w.style.cssText = "position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#2B2368,#5856D6 60%,#5CE1E6);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,system-ui,sans-serif;overflow:auto";
+      w.innerHTML = `<div style="background:#fff;border-radius:24px;padding:26px 22px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.35)">
+        <div style="font-size:34px">\uD83D\uDCDA</div><h1 style="margin:6px 0 4px;font-size:24px;color:#2B2368">Talmid Tracker</h1>
+        <p style="color:#555;margin:0 0 16px;font-size:14px;line-height:1.5">Attendance, check-ins and insights for your talmidim \u2014 snap a sheet, see who needs you.</p>
+        <label style="font-size:12px;font-weight:600">Start with your own data</label>
+        <input id="wsName" placeholder="Your yeshiva / class name" style="width:100%;margin:6px 0 8px;padding:12px;border:1px solid #ccc;border-radius:12px;font-size:16px">
+        <button id="wsOwn" class="primary" style="width:100%;padding:13px;font-size:16px">Create my workspace</button>
+        <button id="wsDemo" style="width:100%;padding:13px;font-size:16px;margin-top:10px">\u2728 Try it with sample students</button>
+        <p style="text-align:center;margin:14px 0 0"><a id="wsAdmin" style="font-size:12px;color:#888;cursor:pointer;text-decoration:underline">Derech admin: open main data</a></p></div>`;
+      document.body.appendChild(w);
+      const go = (code,lab,demo)=>{ LS.set("ws-code",code); LS.set("ws-label",lab||""); LS.set("ws-demo",demo?"1":""); LS.set("ws-chosen","1"); LS.del("ws-switch"); location.reload(); };
+      w.querySelector("#wsOwn").onclick = ()=>{ const n = w.querySelector("#wsName").value.trim(); const code = n.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,24); if(code.length<3){ alert("Please enter a name (at least 3 letters)."); return; } go(code+Math.random().toString(36).slice(2,5), n, false); };
+      w.querySelector("#wsDemo").onclick = ()=> go("demo"+Math.random().toString(36).slice(2,8), "Talmid Tracker (demo)", true);
+      w.querySelector("#wsAdmin").onclick = ()=> go("", "", false);
+    };
+
+    // ----- how it works -----
+    function guide(){
+      const ov = document.createElement("div"); ov.className = "overlay";
+      const steps = [["1","Add your shiurim & talmidim","Upload an Excel or CSV list (or add one by one with the + button).", ()=>{ const b = $("importBtn"); if(b) b.click(); }, "Import a list"],
+        ["2","Take attendance","Tap a name, or snap a photo of a sheet in the Attendance tab \u2014 it reads the names for you.", ()=>{ const t = document.querySelector('.tab[data-tab="attendance"]'); if(t) t.click(); }, "Open Attendance"],
+        ["3","Print a sheet","Typed sheets per shiur, one day or a week \u2014 the easiest for the photo reader.", ()=>{ window.__openPrint && window.__openPrint(); }, "Make a sheet"],
+        ["4","Log check-ins","Note how each talmid is doing and mark his standing.", ()=>{ const t = document.querySelector('.tab[data-tab="interviews"]'); if(t) t.click(); }, "Open Check-ins"],
+        ["5","See the big picture","Trends, who is slipping, and what you still don't know about each talmid.", ()=>{ window.__openInsights && window.__openInsights(); }, "Open Insights"]];
+      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:8px"><p class="setup-title" style="font-size:20px;margin:0;flex:1">How it works</p><button class="ghost" id="gX">Close</button></div>
+        ${steps.map((s,i)=>`<div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #eee"><div style="width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none">${s[0]}</div><div style="flex:1"><b>${s[1]}</b><div class="hint" style="margin:2px 0 0">${s[2]}</div></div><button data-i="${i}" style="flex:none">${s[4]}</button></div>`).join("")}
+        <p class="hint" style="margin-top:10px">Everything is saved automatically, and any change can be undone from the bar at the bottom.</p></div>`;
+      showOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); }); ov.querySelector("#gX").onclick = ()=>closeOverlay(ov);
+      ov.querySelectorAll("button[data-i]").forEach(b=> b.onclick = ()=>{ closeOverlay(ov); setTimeout(steps[+b.dataset.i][3], 250); });
+    }
+
+    // ----- undo bar -----
+    const bar = document.createElement("div"); bar.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:90;background:#1c1c2e;color:#fff;border-radius:14px;padding:10px 14px;display:none;align-items:center;gap:14px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)";
+    bar.innerHTML = `<span id="uMsg">Saved</span><button id="uBtn" style="background:transparent;color:#5CE1E6;border:0;font-weight:700;font-size:14px;padding:4px 6px">Undo</button>`; document.body.appendChild(bar);
+    const snap = ()=>{ try{ return JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v); }catch(e){ return null; } };
+    let last = null, base = null, timer = null, hideT = null, busy = false;
+    setTimeout(()=>{ last = snap(); }, 1500);
+    const _persist = persist;
+    persist = async function(){
+      const r = await _persist.apply(this, arguments);
+      if(window.__noUndo || busy){ last = snap(); return r; }
+      const cur = snap(); if(cur===null) return r;
+      if(last===null){ last = cur; return r; }
+      if(base===null) base = last; last = cur;
+      clearTimeout(timer); timer = setTimeout(()=>{ if(base!==null && base!==last){ bar.style.display = "flex"; clearTimeout(hideT); hideT = setTimeout(()=>{ bar.style.display = "none"; base = null; }, 9000); } else { base = null; } }, 700);
+      return r;
+    };
+    bar.querySelector("#uBtn").onclick = async ()=>{
+      if(base===null) return; const prev = JSON.parse(base); base = null; bar.style.display = "none"; clearTimeout(hideT);
+      const keep = {}; (state.data.students||[]).forEach(s=>{ if(s.photo) keep["s"+s.id] = s.photo; }); (state.data.attendance||[]).forEach(a=>{ if(a.photo) keep["a"+a.id] = a.photo; });
+      (prev.students||[]).forEach(s=>{ if(s.photo==="@") s.photo = keep["s"+s.id]||""; }); (prev.attendance||[]).forEach(a=>{ if(a.photo==="@") a.photo = keep["a"+a.id]||""; });
+      Object.keys(state.data).forEach(k=>delete state.data[k]); Object.assign(state.data, prev);
+      busy = true; try{ await _persist(); toast("Undone \u2713","success"); }catch(e){ toast("Couldn't undo: "+(e.message||e),"error"); } busy = false; last = snap();
+      ["renderRoster","renderAttClassStrip","renderAttendanceTab","renderInterviewPicker","updateAttentionBanner","renderGlobalSearch"].forEach(f=>{ try{ eval(f)(); }catch(e){} });
+    };
+
+    // ----- menu + startup -----
+    [["\u2753 How it works", guide], ["\uD83D\uDD00 Switch workspace / demo", ()=>{ LS.set("ws-switch","1"); location.reload(); }]].forEach(([t,fn])=>{ const b = document.createElement("button"); b.style.fontWeight = "600"; b.textContent = t; b.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); fn(); }); $("moreMenu").insertBefore(b, $("moreMenu").firstChild); });
+    const _sm2 = showMain; showMain = function(){ _sm2();
+      if(PFX){ state.gsAll = true; const sc = $("gsScope"); if(sc) sc.style.display = "none"; }
+      setTimeout(async ()=>{ try{
+        if(LS.get("ws-demo")==="1" && !state.data.students.length) await seedDemo();
+        if(!state.data.students.length && !LS.get("guide-seen"+PFX)){ LS.set("guide-seen"+PFX,"1"); guide(); }
+      }catch(e){} }, 1200); };
   })();
 
   const _showMainV3 = showMain;
   showMain = function(){ _showMainV3(); try{ tidyUi(); }catch(e){} };
 
-  boot();
+  if(window.__needWelcome()) window.__showWelcome(); else boot();
 })();
 </script>
 <script>
