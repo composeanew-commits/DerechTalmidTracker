@@ -605,11 +605,12 @@
             <button class="l" data-st="steady" style="flex:1;">Steady</button>
             <button class="p" data-st="thriving" style="flex:1;">Thriving</button>
           </div>
+          <div id="areaBox"></div>
           <label style="margin-top:14px;">Not sure what to cover? Tap to add a prompt</label>
           <div class="row" id="promptChips" style="gap:6px;flex-wrap:wrap;"></div>
           <div class="row" style="align-items:center;margin:10px 0 4px;">
             <label for="entryNotes" style="margin:0;flex:1;">Notes</label>
-            <button class="ghost" id="voiceBtn" type="button" title="Dictate" style="font-size:12px;">&#127908; Dictate</button>
+            <button class="ghost" id="aiBtn" type="button" style="font-size:12px;">&#10024; Clean up</button><button class="ghost" id="voiceBtn" type="button" title="Dictate" style="font-size:12px;">&#127908; Dictate</button>
           </div>
           <textarea id="entryNotes" placeholder="How is he doing? What did you talk about?"></textarea>
           <p class="hint" style="margin-top:4px;">Tip: for the best accuracy, tap the box and use the &#127908; on your keyboard.</p>
@@ -2334,6 +2335,7 @@
   $("addEntryBtn").addEventListener("click", ()=>{
     $("entryDate").value = todayStr();
     $("entryNotes").value = "";
+    window.__areas = {}; window.__paintAreas && window.__paintAreas();
     currentEntryStatus = "";
     $("entryStatusSeg").querySelectorAll("button").forEach(b=> b.classList.remove("active"));
     $("entryForm").classList.remove("hidden");
@@ -2341,8 +2343,8 @@
   $("cancelEntry").addEventListener("click", ()=> $("entryForm").classList.add("hidden"));
   $("saveEntry").addEventListener("click", async ()=>{
     const notes = $("entryNotes").value.trim();
-    if(!notes && !currentEntryStatus) { toast("Add some notes or pick how he's holding.", "error"); return; }
-    state.data.interviews.push({ id:uid(), studentId: state.activeInterviewStudent, date: $("entryDate").value || todayStr(), notes, status: currentEntryStatus||"" });
+    if(!notes && !currentEntryStatus && !Object.keys(window.__areas||{}).length) { toast("Add some notes or pick how he's holding.", "error"); return; }
+    state.data.interviews.push({ id:uid(), studentId: state.activeInterviewStudent, date: $("entryDate").value || todayStr(), notes, status: currentEntryStatus || (()=>{ const v = Object.values(window.__areas||{}); return v.includes("n") ? "struggling" : v.length && v.every(x=>x==="g") ? "thriving" : v.length ? "steady" : ""; })(), areas: Object.assign({}, window.__areas||{}) });
     $("saveEntry").disabled = true;
     try{ await persist(); $("entryForm").classList.add("hidden"); renderInterviewPanel(); if(state.ckFrom){ const id = state.ckFrom; state.ckFrom = null; openStudentQuick(id); } }
     catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
@@ -4805,6 +4807,109 @@
   }
   const _showMainV2 = showMain;
   showMain = function(){ _showMainV2(); maybeShiurBanner(); };
+
+  // ---- check-in areas, free AI cleanup, school snapshot printout, graphs ----
+  const AREAS = [["emo","Emotional"],["spi","Spiritual growth"],["soc","Social"],["lrn","Learning"],["phy","Physical / accommodations"]];
+  const RT = {g:["\u{1F44D}","Good"], o:["\u{1F610}","OK"], n:["\u26A0\uFE0F","Needs help"]};
+  window.__areas = {};
+  window.__paintAreas = function(){
+    const b = $("areaBox"); if(!b) return;
+    b.innerHTML = '<label style="margin-top:14px;">How is he doing? Tap each area</label>' + AREAS.map(([k,l])=>`<div class="mx-row"><div class="mx-n">${l}</div><div class="mx-b">${["g","o","n"].map(r=>`<button type="button" class="mx-c ${window.__areas[k]===r?({g:"p",o:"l",n:"a"})[r]:""}" data-ak="${k}" data-ar="${r}" style="min-width:52px;">${RT[r][0]}<i style="font-size:10px;font-weight:500;">${RT[r][1]}</i></button>`).join("")}</div></div>`).join("");
+    b.querySelectorAll("[data-ak]").forEach(x=> x.onclick = ()=>{ const k = x.dataset.ak, r = x.dataset.ar; if(window.__areas[k]===r) delete window.__areas[k]; else window.__areas[k] = r; window.__paintAreas(); });
+  };
+  window.__paintAreas();
+  const AIP = "You are helping a yeshiva rebbe keep clear records. Rewrite these dictated notes about one student into short, clear bullet points (each starting with '- '). Group by area when relevant: Emotional, Spiritual growth, Social, Learning, Physical/accommodations, Attendance, Next steps. Keep every fact, invent nothing, fix grammar, and wrap the most important points and action items in **double asterisks**. Output only the bullets.\n\nNotes:\n";
+  $("aiBtn").onclick = async ()=>{
+    const ta = $("entryNotes"), raw = ta.value.trim(), btn = $("aiBtn");
+    if(!raw){ toast("Type or dictate some notes first.", "error"); return; }
+    let k = ""; try{ k = localStorage.getItem("gemKey")||""; }catch(e){}
+    if(!k){ k = (prompt("Free AI cleanup: get a free key at aistudio.google.com/apikey (no card needed) and paste it here. It stays on this device. Leave blank to use the built-in tidy instead.")||"").trim(); if(k){ try{ localStorage.setItem("gemKey", k); }catch(e){} } }
+    if(!k){ ta.value = tidyNotes(raw); return; }
+    btn.disabled = true; btn.textContent = "Working\u2026";
+    try{
+      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key="+encodeURIComponent(k), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts:[{text:AIP+raw}]}]})});
+      const j = await r.json(), t = j.candidates && j.candidates[0].content.parts.map(p=>p.text).join("");
+      if(!t) throw new Error((j.error && j.error.message) || "no reply");
+      ta.value = t.trim().replace(/^[*\u2022] /gm,"- "); toast("Cleaned up \u2014 please read it over.", "success");
+    }catch(e){ ta.value = tidyNotes(raw); toast("AI unavailable ("+e.message+") \u2014 used the built-in tidy.", "error"); }
+    finally{ btn.disabled = false; btn.textContent = "\u2728 Clean up"; }
+  };
+  // ----- shared helpers
+  const DAY = n=>{ const o = []; for(let i=n-1;i>=0;i--){ const d = new Date(todayStr()+"T00:00:00"); d.setDate(d.getDate()-i); o.push(localDateStr(d)); } return o; };
+  const VAL = v=> v==="present"?1 : v==="late"?0.5 : v==="absent"?0 : null;
+  const PCT = a=>{ a = a.filter(v=>v!==null); return a.length ? Math.round(100*a.reduce((x,y)=>x+y,0)/a.length) : null; };
+  const inScope = c=> c && (state.gsAll || classYear(c)==="alef");
+  const scopeStudents = ()=> state.data.students.filter(x=> x.classId && inScope(classById(x.classId)));
+  const rangeVals = (from, to, pred)=>{ const o = []; state.data.attendance.forEach(a=>{ if(a.date>=from && a.date<=to && a.records && pred(a)) Object.values(a.records).forEach(v=> o.push(VAL(v))); }); return o; };
+  const stuVals = (sid, from, to)=>{ const o = []; state.data.attendance.forEach(a=>{ if(a.date>=from && a.date<=to && a.records && a.records[sid]) o.push(VAL(a.records[sid])); }); return o; };
+  const weekRange = k=>{ const e = new Date(todayStr()+"T00:00:00"); e.setDate(e.getDate()-7*k); const s = new Date(e); s.setDate(s.getDate()-6); return [localDateStr(s), localDateStr(e)]; };
+  const col = p=> p===null ? "#bbb" : p>=90 ? "#2e9e5b" : p>=80 ? "#d99a1a" : "#d64545";
+  const latestAreas = sid=>{ const e = state.data.interviews.filter(i=>i.studentId===sid && i.areas && Object.keys(i.areas).length).sort((a,b)=>b.date.localeCompare(a.date))[0]; return e ? e.areas : null; };
+  const latestNote = sid=> state.data.interviews.filter(i=>i.studentId===sid && i.notes).sort((a,b)=>b.date.localeCompare(a.date))[0] || null;
+  const md = t=> escapeHtml(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^- /gm,"\u2022 ").replace(/\n/g,"<br>");
+  function lineSvg(pts){
+    const W = 320, H = 130, P = 22, n = pts.length, xs = i=> P + (W-2*P)*(n>1 ? i/(n-1) : 0.5), ys = v=> H-P - (H-2*P)*v/100;
+    const ok = pts.map((p,i)=>({p,i})).filter(o=>o.p.v!==null), path = ok.map((o,j)=> (j?"L":"M")+xs(o.i).toFixed(1)+" "+ys(o.p.v).toFixed(1)).join(" ");
+    if(!ok.length) return '<p class="hint">Not enough data yet.</p>';
+    const area = path + ` L${xs(ok[ok.length-1].i).toFixed(1)} ${H-P} L${xs(ok[0].i).toFixed(1)} ${H-P} Z`;
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c5ce7" stop-opacity=".35"/><stop offset="1" stop-color="#6c5ce7" stop-opacity="0"/></linearGradient></defs>
+      ${[0,50,100].map(v=>`<line x1="${P}" x2="${W-P}" y1="${ys(v)}" y2="${ys(v)}" stroke="#ddd" stroke-dasharray="3 3"/><text x="2" y="${ys(v)+3}" font-size="8" fill="#888">${v}</text>`).join("")}
+      <path d="${area}" fill="url(#lg)"/><path d="${path}" fill="none" stroke="#6c5ce7" stroke-width="2.5" stroke-linejoin="round"/>
+      ${ok.map(o=>`<circle cx="${xs(o.i)}" cy="${ys(o.p.v)}" r="3.5" fill="${col(o.p.v)}" stroke="#fff" stroke-width="1.5"/><text x="${xs(o.i)}" y="${ys(o.p.v)-7}" font-size="8" text-anchor="middle" fill="#444">${o.p.v}</text>`).join("")}
+      ${pts.map((p,i)=>`<text x="${xs(i)}" y="${H-6}" font-size="8" text-anchor="middle" fill="#888">${p.l}</text>`).join("")}</svg>`;
+  }
+  const bars = list=> list.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px;"><div style="width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(o.l)}</div><div style="flex:1;background:#eee;border-radius:6px;height:14px;"><div style="width:${o.v||0}%;background:${col(o.v)};height:100%;border-radius:6px;"></div></div><b style="width:36px;text-align:right;">${o.v===null?"\u2014":o.v+"%"}</b></div>`).join("");
+  function donut(parts){ const tot = parts.reduce((a,p)=>a+p.n,0) || 1; let off = 0; const C = 251.3;
+    return `<div style="display:flex;align-items:center;gap:14px;"><svg viewBox="0 0 100 100" width="120" height="120"><g transform="rotate(-90 50 50)">${parts.map(p=>{ const len = C*p.n/tot, el = `<circle cx="50" cy="50" r="40" fill="none" stroke="${p.c}" stroke-width="16" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}"/>`; off += len; return el; }).join("")}</g><text x="50" y="54" text-anchor="middle" font-size="16" font-weight="700" fill="#333">${parts.reduce((a,p)=>a+p.n,0)}</text></svg><div style="font-size:13px;">${parts.map(p=>`<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${p.c};margin-right:6px;"></span>${p.l}: <b>${p.n}</b></div>`).join("")}</div></div>`; }
+  function heat(sid, cid, nDays){ const days = DAY(nDays); return `<div style="overflow-x:auto;"><table style="border-collapse:separate;border-spacing:2px;font-size:9px;"><tr><td></td>${days.map(d=>`<td style="text-align:center;color:#888;">${d.slice(8)}</td>`).join("")}</tr>${SEDARIM.map(sd=>`<tr><td style="color:#888;padding-right:4px;">${sd.id.toUpperCase()}</td>${days.map(d=>{ const r = findAttendanceRecord(cid, d, sd.id), v = r && r.records && r.records[sid]; return `<td style="width:14px;height:14px;border-radius:3px;background:${v==="present"?"#2e9e5b":v==="absent"?"#d64545":v==="late"?"#d99a1a":"#e6e6ea"};"></td>`; }).join("")}</tr>`).join("")}</table></div>`; }
+  function studentChart(s){
+    const pts = []; for(let k=7;k>=0;k--){ const [f,t] = weekRange(k); pts.push({l:f.slice(5), v:PCT(stuVals(s.id,f,t))}); }
+    return `<div class="pf-lbl">Weekly attendance trend</div>${lineSvg(pts)}<div class="pf-lbl">Last 3 weeks, every seder</div>${s.classId ? heat(s.id, s.classId, 21) : ""}`;
+  }
+  const _trajV3 = trajectoryHtml; trajectoryHtml = function(s){ let h = _trajV3(s); try{ h += studentChart(s); }catch(e){} return h; };
+  // ----- school graphs
+  function openGraphs(){
+    const ov = document.createElement("div"); ov.className = "overlay";
+    const st = scopeStudents(), cids = new Set(st.map(x=>x.classId)), d14 = DAY(14), f14 = d14[0], t14 = d14[13];
+    const trend = []; for(let k=9;k>=0;k--){ const [f,t] = weekRange(k); trend.push({l:f.slice(5), v:PCT(rangeVals(f,t,a=>cids.has(a.classId)))}); }
+    const bySd = SEDARIM.map(sd=>({l:sd.label, v:PCT(rangeVals(f14,t14,a=>cids.has(a.classId) && recSeder(a)===sd.id))}));
+    const byCl = state.data.classes.filter(c=>cids.has(c.id)).map(c=>({l:(c.rebbi||c.name), v:PCT(rangeVals(f14,t14,a=>a.classId===c.id))})).sort((a,b)=>(a.v===null)-(b.v===null) || (a.v||0)-(b.v||0));
+    const cnt = {thriving:0, steady:0, struggling:0, none:0}; st.forEach(x=>{ const s = latestStanding(x.id); cnt[s && s.status ? s.status : "none"]++; });
+    const ar = AREAS.map(([k,l])=>{ const c = {g:0,o:0,n:0}; st.forEach(x=>{ const a = latestAreas(x.id); if(a && a[k]) c[a[k]]++; }); const t = c.g+c.o+c.n; return {l, c, t}; });
+    const slip = st.map(x=>{ const [f1,t1] = weekRange(0), [f2,t2] = weekRange(1); return {x, a:PCT(stuVals(x.id,f1,t1)), b:PCT(stuVals(x.id,f2,t2))}; }).filter(r=>r.a!==null && r.b!==null && r.b-r.a>=15).sort((p,q)=>(q.b-q.a)-(p.b-p.a)).slice(0,8);
+    const box = (t,h)=>`<div style="border:1px solid var(--line,#ddd);border-radius:12px;padding:12px;margin:10px 0;background:#fff;"><div style="font-weight:700;margin-bottom:6px;">${t}</div>${h}</div>`;
+    ov.innerHTML = `<div class="drawer"><div class="drawer-head"><div class="name">\u{1F4CA} How the yeshiva is doing</div><button class="ghost" id="gX">Close</button></div>
+      ${box("Attendance, last 10 weeks", lineSvg(trend))}
+      ${box("Where is he holding? (latest status)", donut([{l:"Thriving",n:cnt.thriving,c:"#2e9e5b"},{l:"Steady",n:cnt.steady,c:"#6c5ce7"},{l:"Needs attention",n:cnt.struggling,c:"#d64545"},{l:"Not checked in",n:cnt.none,c:"#c9c9d1"}]))}
+      ${box("By seder, last 14 days", bars(bySd))}
+      ${box("By shiur, last 14 days (weakest first)", bars(byCl))}
+      ${box("Check-in areas (latest per student)", ar.map(a=>`<div style="margin:6px 0;font-size:12px;">${a.l} <span style="color:#888;">(${a.t} rated)</span><div style="display:flex;height:14px;border-radius:6px;overflow:hidden;background:#eee;margin-top:2px;">${a.t?`<div style="width:${100*a.c.g/a.t}%;background:#2e9e5b"></div><div style="width:${100*a.c.o/a.t}%;background:#d99a1a"></div><div style="width:${100*a.c.n/a.t}%;background:#d64545"></div>`:""}</div></div>`).join("") + '<div style="font-size:11px;color:#888;">green good \u00b7 amber OK \u00b7 red needs help</div>')}
+      ${box("Biggest drops this week vs last", slip.length ? slip.map(r=>`<div data-g="${r.x.id}" style="cursor:pointer;padding:5px 0;font-size:13px;"><b>${escapeHtml(r.x.name)}</b> \u2014 ${r.b}% \u2192 <b style="color:#d64545">${r.a}%</b></div>`).join("") : '<p class="hint">No big drops.</p>')}</div>`;
+    showOverlay(ov); ov.querySelector("#gX").onclick = ()=> closeOverlay(ov);
+    ov.querySelectorAll("[data-g]").forEach(e=> e.onclick = ()=>{ closeOverlay(ov); openStudentQuick(e.dataset.g); });
+  }
+  // ----- printable school snapshot
+  function snapshotHtml(){
+    const days = DAY(7), gen = new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+    const lab = {struggling:"NEEDS ATTENTION", steady:"Steady", thriving:"Thriving"};
+    const cell = (s,d,sd)=>{ const r = findAttendanceRecord(s.classId, d, sd), v = r && r.records && r.records[s.id]; return `<td class="c ${v?v[0]:"n"}">${v?(v==="present"?"\u2713":v==="absent"?"\u2717":"L"):""}</td>`; };
+    const rows = c=> studentsInClass(c.id).sort(byName).map(s=>{
+      const sg = latestStanding(s.id), a = latestAreas(s.id), n = latestNote(s.id), p = PCT(stuVals(s.id, days[0], days[6])), needs = a ? AREAS.filter(([k])=>a[k]==="n").map(x=>x[1]) : [];
+      return `<tr><td class="nm">${sg&&sg.status==="struggling"?`<b>${escapeHtml(s.name)}</b>`:escapeHtml(s.name)}<br><small style="color:${col(p)}"><b>${p===null?"\u2014":p+"%"}</b> this week</small></td>
+        <td><table class="g"><tr><td></td>${days.map(d=>`<td class="h">${d.slice(8)}</td>`).join("")}</tr>${SEDARIM.map(sd=>`<tr><td class="h">${sd.id.toUpperCase()}</td>${days.map(d=>cell(s,d,sd.id)).join("")}</tr>`).join("")}</table></td>
+        <td>${sg&&sg.status?`<span class="b ${sg.status}">${lab[sg.status]}</span>`:""}${a?AREAS.filter(([k])=>a[k]).map(([k,l])=>`<div class="ar ${a[k]}">${l}: ${a[k]==="n"?"<b>Needs help</b>":a[k]==="g"?"Good":"OK"}</div>`).join(""):""}${needs.length?`<div class="need"><b>Needs: ${needs.join(", ")}</b></div>`:""}</td>
+        <td class="nt">${n?`<small>${escapeHtml(n.date)}</small><br>${md(n.notes)}`:""}</td></tr>`; }).join("");
+    return `<!doctype html><html><head><meta charset="utf-8"><title>School snapshot</title><style>
+      body{font-family:Georgia,serif;color:#241d4a;margin:18px;font-size:12px}h1{font-size:20px;margin:0}h2{font-size:15px;border-bottom:2px solid #241d4a;margin:22px 0 4px;padding-bottom:3px}
+      table{border-collapse:collapse;width:100%}td{vertical-align:top;padding:5px;border-bottom:1px solid #e5e5ea}.nm{width:110px}.nt{font-size:11px}
+      table.g{width:auto}table.g td{padding:0;border:1px solid #fff;width:13px;height:11px;text-align:center;font-size:8px;color:#fff}.h{color:#888!important;font-size:7px!important}
+      .c.p{background:#2e9e5b}.c.a{background:#d64545}.c.l{background:#d99a1a}.c.n{background:#e6e6ea}
+      .b{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;color:#fff}.b.struggling{background:#d64545}.b.steady{background:#6c5ce7}.b.thriving{background:#2e9e5b}
+      .ar{font-size:10px}.ar.n{color:#d64545}.need{color:#d64545;margin-top:3px}tr{page-break-inside:avoid}.np{margin-bottom:12px}@media print{.np{display:none}body{margin:6px}}</style></head><body>
+      <div class="np"><button onclick="window.print()" style="padding:8px 16px">Print / Save as PDF</button></div><h1>School snapshot</h1><div style="color:#6b6480">${escapeHtml(gen)} \u00b7 attendance for the last 7 days (\u2713 present, \u2717 absent, L late; rows are the 5 sedarim)</div>
+      ${state.data.classes.filter(inScope).filter(c=>studentsInClass(c.id).length).map(c=>`<h2>${escapeHtml(c.name)}${c.rebbi?" \u2014 "+escapeHtml(c.rebbi):""}</h2><table>${rows(c)}</table>`).join("")}</body></html>`;
+  }
+  [["\u{1F4CA} Graphs: how the yeshiva is doing", openGraphs], ["\u{1F5A8} School snapshot (printout)", ()=>{ const w = window.open("","_blank"); if(!w){ toast("Allow pop-ups and try again.","error"); return; } w.document.open(); w.document.write(snapshotHtml()); w.document.close(); }]].forEach(([t,fn])=>{ const b = document.createElement("button"); b.textContent = t; b.onclick = ()=>{ $("moreMenu").classList.add("hidden"); fn(); }; $("moreMenu").insertBefore(b, $("moreMenu").firstChild); });
 
   // ---- tidy pass: grouped menu, calmer tab order, collapsed alerts ----
   function tidyMenu(){
