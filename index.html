@@ -3854,6 +3854,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       .sn-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);} .sn-row .n{flex:1;min-width:0;font-size:14px;}
       .sn-row.off{background:#FBF6E8;} .sn-sum{display:flex;gap:8px;font-size:12px;margin:8px 0;} .sn-sum b{font-size:16px;}
       .sn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;} .sn-big{display:block;text-align:center;padding:16px 10px;border-radius:12px;border:1px solid var(--line);background:var(--brand-soft);cursor:pointer;font-size:14px;font-weight:600;color:var(--brand);}
+      #talkFab{position:fixed;right:16px;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:40;border-radius:999px;padding:11px 16px;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(43,35,104,.3);}
       .sn-save{position:sticky;bottom:0;background:var(--card);padding:10px 0 4px;margin-top:8px;}`;
     document.head.appendChild(style);
     const fab = document.createElement("button"); fab.id="snapFab"; fab.className="primary"; fab.innerHTML="&#128247; Snap attendance"; document.body.appendChild(fab);
@@ -3862,8 +3863,8 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     window.addEventListener("online", ()=>{ const n = getQ().length; if(n) toast(`Back online \u2014 ${n} photo(s) waiting. Tap Snap attendance.`, "success"); });
 
     async function askAI(img, note){
-      const sdr = window.__snapSeder; window.__snapSeder = null;
-      if(note){ try{ const r = await window.__aiRead({text:note, seder:sdr}); if(r) return r; }catch(e){} const r0 = Object.assign(window.__parseAttText(note,true),{isNote:true}); if(sdr) r0.seder = sdr; return r0; }
+      const sdr = window.__snapSeder; window.__snapSeder = null; const talk = !!window.__snapTalk; window.__snapTalk = false;
+      if(note){ try{ const r = await window.__aiRead({text:note, seder:sdr, talk}); if(r) return r; }catch(e){} const r0 = talk ? window.__parseAttText(note,true,true) : Object.assign(window.__parseAttText(note,true),{isNote:true}); if(sdr) r0.seder = sdr; return r0; }
       if(img){ try{ const r = await window.__aiRead({img}); if(r) return r; }catch(e){ try{ toast("AI reading unavailable \u2014 using basic reading.","error"); }catch(_){} } }
       const ocr = await window.__ocrWords(img);
       const wk = window.__parseWeek(ocr.words);
@@ -3882,9 +3883,9 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       const ov = document.createElement("div"); ov.className="overlay";
       ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128247; Snap attendance sheet</p><button class="ghost" id="snX">Close</button></div><div id="snBody"></div></div>`;
       showOverlay(ov); const body = ov.querySelector("#snBody");
-      ov.querySelector("#snX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+      ov.querySelector("#snX").onclick = ()=>{ stopAllDictation(); closeOverlay(ov); }; ov.addEventListener("click", e=>{ if(e.target===ov){ stopAllDictation(); closeOverlay(ov); } });
       const home = ()=>{
-        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
+        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snTalk" style="width:100%;margin:0 0 10px;">\uD83C\uDFA4 Talk it in &mdash; say who came and who didn't</button><button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
           ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
           <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="snCam" accept="image/*" capture="environment" multiple hidden></label><label class="sn-big">&#128444; Choose image<input type="file" id="snPick" accept="image/*" multiple hidden></label></div>
           <label style="margin-top:14px;">Paste WhatsApp attendance text, or type it</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button id="snTxt">Read it</button></div>
@@ -3895,6 +3896,12 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
           body.innerHTML = `<p class="hint">Paste the message from the afternoon attendance-taker (ChatGPT output, WhatsApp, anything). The AI matches every name to your roster.</p><textarea id="afT" rows="9" placeholder="Paste here\u2026"></textarea><div class="row" style="gap:8px;margin-top:8px;"><button class="primary" data-sd="a1" style="flex:1">1st afternoon</button><button class="primary" data-sd="a2" style="flex:1">2nd afternoon</button></div><div class="row" style="margin-top:8px;"><button id="afB">Back</button></div>`;
           body.querySelector("#afB").onclick = home;
           body.querySelectorAll("[data-sd]").forEach(b=> b.onclick = ()=>{ const t = body.querySelector("#afT").value.trim(); if(!t){ toast("Paste the message first.","error"); return; } window.__snapSeder = b.dataset.sd; run(null,t); });
+        };
+        body.querySelector("#snTalk").onclick = ()=>{
+          body.innerHTML = `<p class="hint">Tap Dictate and just talk, or type. Say it any way you like &mdash; e.g. &ldquo;Moshe and Dovid have been coming, Yossi hasn't been in, Shmuel came late.&rdquo; Only the guys you name get updated. You check it before it saves, and it lands in each talmid's profile. Say &ldquo;yesterday&rdquo; or a day name to log a different day.</p><textarea id="tkT" rows="7" placeholder="Say or type it here\u2026"></textarea><div class="row" style="gap:8px;margin-top:8px;"><button id="tkV" class="ghost">\uD83C\uDFA4 Dictate</button><button class="primary" id="tkGo" style="flex:1">Read it</button></div><div class="row" style="margin-top:8px;"><button id="tkB">Back</button></div>`;
+          const ta = body.querySelector("#tkT"), dict = attachDictation(body.querySelector("#tkV"), ta);
+          body.querySelector("#tkB").onclick = ()=>{ dict.stop(); home(); };
+          body.querySelector("#tkGo").onclick = ()=>{ dict.stop(); const t = ta.value.trim(); if(!t){ toast("Say or type something first.","error"); return; } window.__snapTalk = true; run(null,t); };
         };
         const qb = body.querySelector("#snQ"); if(qb) qb.onclick = async ()=>{ if(!navigator.onLine){ toast("Still offline.","error"); return; } const q = getQ(), it = q[0]; body.innerHTML = '<p class="hint">Reading&hellip;</p>'; try{ const res = await askAI(it.img); window.__qTs = it.ts; review(res, it.img); }catch(err){ toast("Couldn\'t read it: "+(err.message||err),"error"); home(); } };
         body.querySelector("#snTxt").onclick = ()=>{ const t = body.querySelector("#snNote").value.trim(); if(!t) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(null,t); };
@@ -4028,6 +4035,8 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       home();
     }
     fab.addEventListener("click", open);
+    const tfab = document.createElement("button"); tfab.id = "talkFab"; tfab.className = "primary"; tfab.innerHTML = "&#127908; Talk it in"; document.body.appendChild(tfab);
+    tfab.addEventListener("click", ()=>{ open(); const b = document.getElementById("snTalk"); if(b) b.click(); });
     const mb = document.createElement("button"); mb.textContent = "\uD83D\uDCF7 Snap attendance sheet";
     mb.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); open(); }); $("moreMenu").insertBefore(mb, $("moreMenu").firstChild);
   })();
@@ -4701,7 +4710,24 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     async function fileData(f){ if(/^image\//.test(f.type||"")) return await compressImage(f,1100,0.6); if(f.size<400000) return await readDataUrl(f); return ""; }
 
     // ---------- attendance text -> entries (used by "Snap attendance") ----------
-    window.__parseAttText = function(text, isNote){
+    window.__parseAttText = function(text, isNote, talk){
+      if(isNote && talk){
+        const t = String(text).replace(/[\u2018\u2019]/g,"'");
+        const LT = /\b(late|tardy)\b/i, NEG = /\b(not|no|never|absent|abs|missing|out|sick|skipped|skipping|off)\b|n't/i, OK = /\b(coming|came|come|here|present|showed|attending|attended|attends|in|there)\b/i;
+        const stOf = p=> LT.test(p) ? "late" : NEG.test(p) ? "absent" : OK.test(p) ? "present" : null;
+        const FILL = /\b(absent|abs|out|sick|missing|late|tardy|present|here|there|rabbi|rebbe|rebbi|rav|is|are|was|were|and|not|no|never|has|have|had|hasn't|haven't|didn't|isn't|wasn't|been|being|coming|came|come|showed|show|showing|up|attending|attended|attends|in|today|yesterday|this|that|the|guy|kid|boy|bochur|he|his|him|also|still|all|week|morning|afternoon|day|so|far|on|time|to|class|shiur|seder|skipped|off|good|fine|just|only|well)\b/ig;
+        const entries = [];
+        t.split(/[\n,;.!?]+/).forEach(g=>{
+          const parts = g.split(/\s+and\s+|&|\+/i).map(x=>x.trim()).filter(Boolean); if(!parts.length) return;
+          const own = parts.map(stOf);
+          for(let i=own.length-1;i>=0;i--) if(!own[i]) own[i] = own[i+1] || null;
+          for(let i=0;i<own.length;i++) if(!own[i]) own[i] = own[i-1] || null;
+          parts.forEach((pt,i)=>{ const nm = pt.replace(FILL," ").replace(/[^A-Za-z\u0590-\u05FF'\- ]/g," ").replace(/\s+/g," ").trim(); if(nm.length>=2) entries.push({name:nm, status:own[i]||"absent"}); });
+        });
+        const out = {mode:"marks", entries};
+        if(/\byesterday\b/i.test(t)){ const d = new Date(); d.setDate(d.getDate()-1); out.date = localDateStr(d); }
+        return out;
+      }
       const ABS = /\b(absent|abs|out|sick|missing|x|a)\b/i, LATE = /\b(late|tardy|l)\b/i, PRES = /\b(present|here|p)\b/i, MA = /[\u2717\u2718\u274c]/, CK = /[\u2713\u2714\u2705]/;
       const clean = s=> s.replace(/[\u2717\u2718\u274c\u2713\u2714\u2705]/g," ").replace(/\b(absent|abs|out|sick|missing|late|tardy|present|here|rabbi|rebbe|rebbi|rav|is|are|was|were|and)\b/ig," ").replace(/\b[xalp]\b/ig," ").replace(/[^A-Za-z\u0590-\u05FF'\u2019\- ]/g," ").replace(/\s+/g," ").trim();
       const entries = [];
@@ -5785,7 +5811,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       let key = DEFAULT_GEM; try{ key = localStorage.getItem("gemKey")||DEFAULT_GEM; }catch(e){}
       if(!key) return null;
       const roster = state.data.students.filter(inSc), byN = new Map(roster.map(s=>[normText(s.name), s]));
-      const sd = o.seder ? ` This is for the ${o.seder==="a1"?"1st":"2nd"} AFTERNOON seder.` : "";
+      const sd = (o.seder ? ` This is for the ${o.seder==="a1"?"1st":"2nd"} AFTERNOON seder.` : "") + (o.talk ? " The message is someone SPEAKING casually (dictated), like: Moshe has been coming, David hasn't. Understand natural speech: came / coming / been here / showed up / in = present; hasn't / not / didn't come / missing / out / sick / no show = absent; late / came in late = late. Use mode marks and include ONLY the people explicitly mentioned (everyone else stays untouched), unless the speaker clearly says everyone else is here (absent_only) or lists only who came (present_only). Turn words like yesterday or a weekday name into the date field, relative to today." : "");
       const p = "You read yeshiva attendance for a school. Today is "+todayStr()+"."+sd+" The source is "+(o.img?"a photo of an attendance sheet (printed or handwritten)":"a pasted message")+". Match every person to the EXACT roster name below (be forgiving of spelling, order, nicknames, typos, partial names). Return ONLY JSON: {\"mode\": \"marks\" if each person has an explicit status, \"absent_only\" if it only lists who is absent/late/missing (everyone else is present), \"present_only\" if it only lists who is present, \"listed\" if it is just a list of names with no status; \"date\": \"YYYY-MM-DD\" if a date is visible else null; \"entries\": [{\"name\": <exact roster name>, \"status\": \"present\"|\"absent\"|\"late\"}]}. Marks: check = present, X = absent, O/excused = absent, CL/late = late, LE = present. For mode listed use status present. Skip anyone not on the roster. Roster:\n"+names().join("\n");
       const parts = []; if(o.img) parts.push({inline_data:{mime_type:"image/jpeg", data:o.img.split(",")[1]}}); parts.push({text:p+(o.text?"\n\nMESSAGE:\n"+o.text:"")});
       const r = await fetch(GEM+encodeURIComponent(key), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts}], generationConfig:{responseMimeType:"application/json"}})});
