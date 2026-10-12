@@ -3864,7 +3864,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
 
     async function askAI(img, note){
       const sdr = window.__snapSeder; window.__snapSeder = null; const talk = !!window.__snapTalk; window.__snapTalk = false;
-      if(note){ try{ const r = await window.__aiRead({text:note, seder:sdr, talk}); if(r) return r; }catch(e){} const r0 = talk ? window.__parseAttText(note,true,true) : Object.assign(window.__parseAttText(note,true),{isNote:true}); if(sdr) r0.seder = sdr; return r0; }
+      if(note){ let r = null; try{ r = await window.__aiRead({text:note, seder:sdr, talk}); }catch(e){} if(!r){ r = talk ? window.__parseAttText(note,true,true) : Object.assign(window.__parseAttText(note,true),{isNote:true}); if(sdr) r.seder = sdr; } if(talk){ r.spoken = true; r.said = note; } return r; }
       if(img){ try{ const r = await window.__aiRead({img}); if(r) return r; }catch(e){ try{ toast("AI reading unavailable \u2014 using basic reading.","error"); }catch(_){} } }
       const ocr = await window.__ocrWords(img);
       const wk = window.__parseWeek(ocr.words);
@@ -3884,6 +3884,20 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128247; Snap attendance sheet</p><button class="ghost" id="snX">Close</button></div><div id="snBody"></div></div>`;
       showOverlay(ov); const body = ov.querySelector("#snBody");
       ov.querySelector("#snX").onclick = ()=>{ stopAllDictation(); closeOverlay(ov); }; ov.addEventListener("click", e=>{ if(e.target===ov){ stopAllDictation(); closeOverlay(ov); } });
+      function talk(){
+        body.innerHTML = `<p style="margin:0 0 4px;font-size:17px;font-weight:600;">Who came and who didn't?</p><p class="hint" style="margin:0 0 8px;">Just talk &mdash; it's listening. Say it like you'd tell a person: &ldquo;Moshe and Dovid have been coming, Yossi hasn't been in, Shmuel came late.&rdquo; Only the guys you name are updated. Say &ldquo;yesterday&rdquo; or a day name to log another day.</p><textarea id="tkT" rows="6" placeholder="What you say shows up here. You can fix any word before tapping Read it."></textarea><div class="row" style="gap:8px;margin-top:8px;"><button id="tkV" class="ghost">\uD83C\uDFA4 Dictate</button><button class="primary" id="tkGo" style="flex:1">Read it</button></div><p class="hint" style="margin-top:8px;">Next you'll see exactly what it understood, with a button to fix anyone, before anything is saved.</p><div class="row" style="margin-top:4px;"><button id="tkB">Back</button></div>`;
+        const ta = body.querySelector("#tkT"), dict = attachDictation(body.querySelector("#tkV"), ta);
+        body.querySelector("#tkB").onclick = ()=>{ dict.stop(); home(); };
+        body.querySelector("#tkGo").onclick = ()=>{ dict.stop(); const t = ta.value.trim(); if(!t){ toast("Say or type something first.","error"); return; } window.__snapTalk = true; run(null,t); };
+        if(SpeechRec) dict.toggle(); else ta.focus();
+      }
+      function spokenDone(eff, date, seder){
+        const ids = Object.keys(eff).map(id=>state.data.students.find(x=>x.id===id)).filter(Boolean).sort(byName);
+        const LB = {present:"Present", late:"Late", absent:"Absent"}, CL = {present:"var(--green)", late:"var(--amber)", absent:"var(--red)"};
+        const dl = new Date(date+"T12:00:00").toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
+        body.innerHTML = `<div class="nm-card" style="text-align:center;"><div style="font-size:32px;color:var(--green);">&#10003;</div><div class="nm-name">Logged for ${ids.length} talmid${ids.length===1?"":"im"}</div><p class="hint" style="margin:4px 0 0;">${escapeHtml(dl)} &middot; ${escapeHtml(sederLabel(seder))}</p></div>${ids.map(x=>`<div class="sn-row"><span class="n">${escapeHtml(x.name)}</span><b style="color:${CL[eff[x.id]]}">${LB[eff[x.id]]}</b></div>`).join("")}<p class="hint" style="margin-top:8px;">This is now on each talmid's profile. Made a mistake? Open the &#8942; menu &rarr; Upload history to undo it.</p><div class="row" style="gap:8px;margin-top:10px;"><button class="primary" id="sdMore" style="flex:1;">Add more</button><button id="sdOk" style="flex:1;">Done</button></div>`;
+        body.querySelector("#sdMore").onclick = talk; body.querySelector("#sdOk").onclick = ()=>closeOverlay(ov);
+      }
       const home = ()=>{
         body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snTalk" style="width:100%;margin:0 0 10px;">\uD83C\uDFA4 Talk it in &mdash; say who came and who didn't</button><button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
           ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
@@ -3897,12 +3911,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
           body.querySelector("#afB").onclick = home;
           body.querySelectorAll("[data-sd]").forEach(b=> b.onclick = ()=>{ const t = body.querySelector("#afT").value.trim(); if(!t){ toast("Paste the message first.","error"); return; } window.__snapSeder = b.dataset.sd; run(null,t); });
         };
-        body.querySelector("#snTalk").onclick = ()=>{
-          body.innerHTML = `<p class="hint">Tap Dictate and just talk, or type. Say it any way you like &mdash; e.g. &ldquo;Moshe and Dovid have been coming, Yossi hasn't been in, Shmuel came late.&rdquo; Only the guys you name get updated. You check it before it saves, and it lands in each talmid's profile. Say &ldquo;yesterday&rdquo; or a day name to log a different day.</p><textarea id="tkT" rows="7" placeholder="Say or type it here\u2026"></textarea><div class="row" style="gap:8px;margin-top:8px;"><button id="tkV" class="ghost">\uD83C\uDFA4 Dictate</button><button class="primary" id="tkGo" style="flex:1">Read it</button></div><div class="row" style="margin-top:8px;"><button id="tkB">Back</button></div>`;
-          const ta = body.querySelector("#tkT"), dict = attachDictation(body.querySelector("#tkV"), ta);
-          body.querySelector("#tkB").onclick = ()=>{ dict.stop(); home(); };
-          body.querySelector("#tkGo").onclick = ()=>{ dict.stop(); const t = ta.value.trim(); if(!t){ toast("Say or type something first.","error"); return; } window.__snapTalk = true; run(null,t); };
-        };
+        body.querySelector("#snTalk").onclick = talk;
         const qb = body.querySelector("#snQ"); if(qb) qb.onclick = async ()=>{ if(!navigator.onLine){ toast("Still offline.","error"); return; } const q = getQ(), it = q[0]; body.innerHTML = '<p class="hint">Reading&hellip;</p>'; try{ const res = await askAI(it.img); window.__qTs = it.ts; review(res, it.img); }catch(err){ toast("Couldn\'t read it: "+(err.message||err),"error"); home(); } };
         body.querySelector("#snTxt").onclick = ()=>{ const t = body.querySelector("#snNote").value.trim(); if(!t) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(null,t); };
         const c = body.querySelector("#snChg"); if(c) c.onclick = e=>{ e.preventDefault(); try{ localStorage.removeItem(KEYK); }catch(_){} home(); };
@@ -3990,7 +3999,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
         const m0 = matchEvery(); let st = {}, unm = m0.miss, onSheet = new Set();
         const nameOf = {}, read0 = {}; m0.hit.forEach(h=>{ st[h.s.id]=h.st; onSheet.add(h.s.id); nameOf[h.s.id]=h.name; read0[h.s.id]=h.st; });
         const doubt = new Set(m0.hit.filter(h=>h.v<0.85).map(h=>h.s.id));
-        let rest = (res.mode==="absent_only" || res.isNote) ? "present" : res.mode==="present_only" ? "absent" : "leave";
+        let rest = res.spoken ? ((res.mode==="absent_only" && /\b(everyone|everybody|the rest|all the others|all others|else)\b/i.test(res.said||"")) ? "present" : (res.mode==="present_only" && /\b(only|just|nobody else|no one else)\b/i.test(res.said||"")) ? "absent" : "leave") : ((res.mode==="absent_only" || res.isNote) ? "present" : res.mode==="present_only" ? "absent" : "leave");
         const hsh = img ? img.length+":"+img.slice(1000,1120)+img.slice(-80) : null;
         const paint = ()=>{
           const ids = Object.keys(st), cids = [...new Set(ids.map(id=>state.data.students.find(s=>s.id===id)).filter(Boolean).map(s=>s.classId))];
@@ -4000,13 +4009,13 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
           const cnt = k=> Object.values(eff).filter(v=>v===k).length;
           const groups = cids.map(c=>({c, list:studentsInClass(c).filter(s=>s.id in eff).sort(byName)})).sort((a,b)=>cname(a.c).localeCompare(cname(b.c)));
           const free = all.filter(s=>!(s.id in st)).sort(byName);
-          body.innerHTML = `<div class="row"><div style="flex:1"><label>Date</label><input type="date" id="snD" value="${date}"></div><div style="flex:1"><label>Seder</label><select id="snS">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select></div></div>
-            <div class="sn-sum"><span><b style="color:var(--green)">${cnt("present")}</b> present</span><span><b style="color:var(--amber)">${cnt("late")}</b> late</span><span><b style="color:var(--red)">${cnt("absent")}</b> absent</span><span style="color:var(--ink-soft)">${m0.hit.length} of ${entries.length} names matched</span></div>${doubt.size?`<p class="hint" style="color:var(--amber)">${doubt.size} match${doubt.size===1?"":"es"} worth a quick look (marked &ldquo;check match&rdquo;). Everything else was a confident match.</p>`:""}${(()=>{ const dup = hsh && state.data.attendance.some(a=>a.photoHash===hsh); const ex = cids.map(c=>{ const r = findAttendanceRecord(c,date,seder); const n = r ? Object.keys(r.records||{}).length : 0; return n ? cname(c)+" ("+n+")" : null; }).filter(Boolean); return (dup||ex.length) ? `<div style="background:#FFF4DB;border:1px solid #F0C36D;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.5">\u26A0\uFE0F <b>${dup?"This exact photo was uploaded before.":"Attendance already recorded for this date and seder."}</b>${ex.length?` Already on file: ${escapeHtml(ex.join(", "))}.`:""} Saving <b>updates</b> those students \u2014 it won't create doubles.</div>` : ""; })()}
-            ${img?`<button class="nm-btn main" id="snCmp" style="width:100%;margin:8px 0 4px;">\uD83D\uDCF7 View sheet photo next to this data</button>`:""}<label>Students in those shiurim who are not on the sheet</label><select id="snR"><option value="leave" ${rest==="leave"?"selected":""}>Leave unchanged</option><option value="present" ${rest==="present"?"selected":""}>Mark present</option><option value="absent" ${rest==="absent"?"selected":""}>Mark absent</option></select>
+          body.innerHTML = `${res.said?`<div class="nm-card" style="margin:0 0 8px;font-size:13px;"><span class="hint" style="display:block;margin-bottom:2px;">You said</span>&ldquo;${escapeHtml(res.said)}&rdquo;</div>`:""}<div class="row"><div style="flex:1"><label>Date</label><input type="date" id="snD" value="${date}"></div><div style="flex:1"><label>Seder</label><select id="snS">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select></div></div>
+            ${res.spoken?`<p class="hint" style="margin:6px 0 0;">Logging for <b>${escapeHtml(new Date(date+"T12:00:00").toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}))}</b> &middot; <b>${escapeHtml(sederLabel(seder))}</b>. Wrong day or seder? Change it above.</p>`:""}<div class="sn-sum"><span><b style="color:var(--green)">${cnt("present")}</b> present</span><span><b style="color:var(--amber)">${cnt("late")}</b> late</span><span><b style="color:var(--red)">${cnt("absent")}</b> absent</span><span style="color:var(--ink-soft)">${m0.hit.length} of ${entries.length} names matched</span></div>${doubt.size?`<p class="hint" style="color:var(--amber)">${doubt.size} match${doubt.size===1?"":"es"} worth a quick look (marked &ldquo;check match&rdquo;). Everything else was a confident match.</p>`:""}${(()=>{ const dup = hsh && state.data.attendance.some(a=>a.photoHash===hsh); const ex = cids.map(c=>{ const r = findAttendanceRecord(c,date,seder); const n = r ? Object.keys(r.records||{}).length : 0; return n ? cname(c)+" ("+n+")" : null; }).filter(Boolean); return (dup||ex.length) ? `<div style="background:#FFF4DB;border:1px solid #F0C36D;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.5">\u26A0\uFE0F <b>${dup?"This exact photo was uploaded before.":"Attendance already recorded for this date and seder."}</b>${ex.length?` Already on file: ${escapeHtml(ex.join(", "))}.`:""} Saving <b>updates</b> those students \u2014 it won't create doubles.</div>` : ""; })()}
+            ${img?`<button class="nm-btn main" id="snCmp" style="width:100%;margin:8px 0 4px;">\uD83D\uDCF7 View sheet photo next to this data</button>`:""}<label>${res.spoken?"Guys you didn't mention":"Students in those shiurim who are not on the sheet"}</label><select id="snR"><option value="leave" ${rest==="leave"?"selected":""}>Leave unchanged</option><option value="present" ${rest==="present"?"selected":""}>Mark present</option><option value="absent" ${rest==="absent"?"selected":""}>Mark absent</option></select>
             ${groups.map(g=>`<p class="pf-lbl">${escapeHtml(cname(g.c))}</p>${g.list.map(s=>{ const fromSheet = s.id in st, dbt = doubt.has(s.id);
               return `<div class="sn-row ${fromSheet?"":"off"}" data-id="${s.id}"><span class="n">${escapeHtml(s.name)}${fromSheet?(dbt?' <span class="hint" style="color:var(--amber)">\u2022 check match</span>':""):' <span class="hint">(not on sheet)</span>'}</span><div class="seg">${[["present","p","P"],["late","l","L"],["absent","a","A"]].map(([v,c,t])=>`<button class="${c} ${eff[s.id]===v?"active":""}" data-v="${v}">${t}</button>`).join("")}</div></div>`; }).join("")}`).join("")}
             ${unm.length?`<p class="pf-lbl">Couldn't match &mdash; tap to pick the student</p>${unm.map((u,i)=>`<div class="sn-row"><span class="n">${escapeHtml(u.name)} <span class="hint">${u.st}</span></span><select data-u="${i}" style="width:52%"><option value="">Pick student&hellip;</option>${(u.cand&&u.cand.length?`<optgroup label="Closest">${u.cand.filter(s=>!(s.id in st)).map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}</optgroup>`:"")}<optgroup label="Everyone">${free.map(s=>`<option value="${s.id}">${escapeHtml(s.name)} \u00b7 ${escapeHtml(cname(s.classId))}</option>`).join("")}</optgroup></select><button data-skip="${i}" class="ghost" style="padding:4px 8px">Skip</button></div>`).join("")}`:""}
-            <div class="sn-save row row-end"><button id="snRe">Retake</button><button class="primary" id="snGo" ${ids.length?"":"disabled"}>Save attendance</button></div>`;
+            <div class="sn-save row row-end"><button id="snRe">Retake</button><button class="primary" id="snGo" ${ids.length?"":"disabled"}>${res.spoken?"Save to profiles":"Save attendance"}</button></div>`;
           body.querySelector("#snD").onchange = e=>{ date = e.target.value||todayStr(); paint(); };
           body.querySelector("#snS").onchange = e=>{ seder = e.target.value; paint(); };
           body.querySelector("#snR").onchange = e=>{ rest = e.target.value; paint(); };
@@ -4026,7 +4035,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
               rec.records = Object.assign(rec.records||{}, byClass[cid]);
               const lid = uid(); if(!firstId) firstId = lid; window.__logUpload({id:lid, ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries, result:JSON.parse(JSON.stringify(byClass[cid])), batch:bid, nameOf:Object.assign({},nameOf), read:Object.assign({},read0), photo:(lid===firstId && img) ? img : ""});
             });
-            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } const fin = Object.assign({}, eff), nm = Object.assign({}, nameOf), rd = Object.assign({}, read0), dd = date, sd = seder, ur = unm.slice(); savedDone(`Saved to ${cl.length} shiur${cl.length===1?"":"im"} \u2713`, img, ()=> window.__daySnap({img, date:dd, seder:sd, entries, nameOf:nm, read:rd, result:fin})); }
+            try{ await persist(); renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); if(window.__qTs){ setQ(getQ().filter(x=>x.ts!==window.__qTs)); window.__qTs = null; badge(); } const fin = Object.assign({}, eff), nm = Object.assign({}, nameOf), rd = Object.assign({}, read0), dd = date, sd = seder, ur = unm.slice(); if(res.spoken){ spokenDone(fin, dd, sd); return; } savedDone(`Saved to ${cl.length} shiur${cl.length===1?"":"im"} \u2713`, img, ()=> window.__daySnap({img, date:dd, seder:sd, entries, nameOf:nm, read:rd, result:fin})); }
             catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); }
           };
         };
@@ -4715,17 +4724,37 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
         const t = String(text).replace(/[\u2018\u2019]/g,"'");
         const LT = /\b(late|tardy)\b/i, NEG = /\b(not|no|never|absent|abs|missing|out|sick|skipped|skipping|off)\b|n't/i, OK = /\b(coming|came|come|here|present|showed|attending|attended|attends|in|there)\b/i;
         const stOf = p=> LT.test(p) ? "late" : NEG.test(p) ? "absent" : OK.test(p) ? "present" : null;
-        const FILL = /\b(absent|abs|out|sick|missing|late|tardy|present|here|there|rabbi|rebbe|rebbi|rav|is|are|was|were|and|not|no|never|has|have|had|hasn't|haven't|didn't|isn't|wasn't|been|being|coming|came|come|showed|show|showing|up|attending|attended|attends|in|today|yesterday|this|that|the|guy|kid|boy|bochur|he|his|him|also|still|all|week|morning|afternoon|day|so|far|on|time|to|class|shiur|seder|skipped|off|good|fine|just|only|well)\b/ig;
-        const entries = [];
-        t.split(/[\n,;.!?]+/).forEach(g=>{
-          const parts = g.split(/\s+and\s+|&|\+/i).map(x=>x.trim()).filter(Boolean); if(!parts.length) return;
-          const own = parts.map(stOf);
-          for(let i=own.length-1;i>=0;i--) if(!own[i]) own[i] = own[i+1] || null;
-          for(let i=0;i<own.length;i++) if(!own[i]) own[i] = own[i-1] || null;
-          parts.forEach((pt,i)=>{ const nm = pt.replace(FILL," ").replace(/[^A-Za-z\u0590-\u05FF'\- ]/g," ").replace(/\s+/g," ").trim(); if(nm.length>=2) entries.push({name:nm, status:own[i]||"absent"}); });
+        const STAT = new Set("absent abs out sick missing late tardy present here there rabbi rebbe rebbi rav is are was were and not never has have had hasn't haven't didn't isn't wasn't doesn't don't been being coming came come showed show showing up attending attended attends in today yesterday this that the guy kid boy bochur he his him also still all week morning afternoon day so far on time to class shiur seder skipped off good fine just only well okay please thanks hello tell say note update mark log attendance monday tuesday wednesday thursday friday saturday sunday mon tue tues wed thu thur thurs fri sat sun for from with but then because they them their who that's it's one two three days first second night".split(" "));
+        const nt = x=> String(x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/['\u2019`]/g,"").split(/[^a-z\u0590-\u05FF]+/).filter(y=>y.length>=2);
+        const roster = state.data.students.filter(x=>x.classId).map(x=>({id:x.id, tk:nt(x.name)}));
+        const cand = w=>{ const lw = nt(w)[0]; const out = new Set(); if(!lw) return out; roster.forEach(r=>{ if(r.tk.some(k=> k===lw || near(k,lw) || (lw.length>=3 && k.startsWith(lw)))) out.add(r.id); }); return out; };
+        const words = t.match(/[A-Za-z\u0590-\u05FF][A-Za-z\u0590-\u05FF'\-]*/g) || [];
+        const ments = []; let cur = null, pre = [];
+        words.forEach(w=>{
+          const lw = w.toLowerCase();
+          if(!STAT.has(lw)){
+            const c = cand(w);
+            if(c.size){
+              if(cur && cur.open && cur.cand){ const inter = new Set([...cur.cand].filter(x=>c.has(x))); if(inter.size){ cur.toks.push(w); cur.cand = inter; return; } }
+              cur = {toks:[w], cand:c, span:[], open:true}; ments.push(cur); return;
+            }
+            if(/^[A-Z\u0590-\u05FF]/.test(w) && w.length>=3){
+              if(cur && cur.open && !cur.cand){ cur.toks.push(w); return; }
+              cur = {toks:[w], cand:null, span:[], open:true}; ments.push(cur); return;
+            }
+          }
+          if(cur){ cur.span.push(lw); cur.open = false; } else pre.push(lw);
         });
+        const own = ments.map(m=> stOf(m.span.join(" ")));
+        for(let i=own.length-1;i>=0;i--) if(!own[i]) own[i] = own[i+1] || null;
+        for(let i=0;i<own.length;i++) if(!own[i]) own[i] = own[i-1] || null;
+        const dflt = stOf(pre.join(" ")) || "absent";
+        const seen = {}, entries = [];
+        ments.forEach((m,i)=>{ const nm = m.toks.join(" "), k = nm.toLowerCase(); const st = own[i] || dflt; if(k in seen) entries[seen[k]].status = st; else { seen[k] = entries.length; entries.push({name:nm, status:st}); } });
         const out = {mode:"marks", entries};
+        const DN = ["sun","mon","tue","wed","thu","fri","sat"], dm = t.match(/\b(sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)[a-z]*day\b/i);
         if(/\byesterday\b/i.test(t)){ const d = new Date(); d.setDate(d.getDate()-1); out.date = localDateStr(d); }
+        else if(dm){ const want = DN.indexOf(dm[1].toLowerCase().slice(0,3)), d = new Date(); let back = (d.getDay()-want+7)%7; d.setDate(d.getDate()-back); out.date = localDateStr(d); }
         return out;
       }
       const ABS = /\b(absent|abs|out|sick|missing|x|a)\b/i, LATE = /\b(late|tardy|l)\b/i, PRES = /\b(present|here|p)\b/i, MA = /[\u2717\u2718\u274c]/, CK = /[\u2713\u2714\u2705]/;
@@ -5811,14 +5840,14 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       let key = DEFAULT_GEM; try{ key = localStorage.getItem("gemKey")||DEFAULT_GEM; }catch(e){}
       if(!key) return null;
       const roster = state.data.students.filter(inSc), byN = new Map(roster.map(s=>[normText(s.name), s]));
-      const sd = (o.seder ? ` This is for the ${o.seder==="a1"?"1st":"2nd"} AFTERNOON seder.` : "") + (o.talk ? " The message is someone SPEAKING casually (dictated), like: Moshe has been coming, David hasn't. Understand natural speech: came / coming / been here / showed up / in = present; hasn't / not / didn't come / missing / out / sick / no show = absent; late / came in late = late. Use mode marks and include ONLY the people explicitly mentioned (everyone else stays untouched), unless the speaker clearly says everyone else is here (absent_only) or lists only who came (present_only). Turn words like yesterday or a weekday name into the date field, relative to today." : "");
+      const sd = (o.seder ? ` This is for the ${o.seder==="a1"?"1st":"2nd"} AFTERNOON seder.` : "") + (o.talk ? " The message is someone SPEAKING casually (dictated), like: Moshe has been coming, David hasn't. Understand natural speech: came / coming / been here / showed up / in = present; hasn't / not / didn't come / missing / out / sick / no show = absent; late / came in late = late. Use mode marks and include ONLY the people explicitly mentioned (everyone else stays untouched), unless the speaker clearly says everyone else is here (absent_only) or lists only who came (present_only). Turn words like yesterday or a weekday name into the date field, relative to today. IMPORTANT exceptions to the skip rule below: if a first name or nickname could be more than one roster person and you cannot tell which, do NOT guess; return the name exactly as spoken. If someone is not on the roster, still include them exactly as spoken. Never invent people or statuses that were not said." : "");
       const p = "You read yeshiva attendance for a school. Today is "+todayStr()+"."+sd+" The source is "+(o.img?"a photo of an attendance sheet (printed or handwritten)":"a pasted message")+". Match every person to the EXACT roster name below (be forgiving of spelling, order, nicknames, typos, partial names). Return ONLY JSON: {\"mode\": \"marks\" if each person has an explicit status, \"absent_only\" if it only lists who is absent/late/missing (everyone else is present), \"present_only\" if it only lists who is present, \"listed\" if it is just a list of names with no status; \"date\": \"YYYY-MM-DD\" if a date is visible else null; \"entries\": [{\"name\": <exact roster name>, \"status\": \"present\"|\"absent\"|\"late\"}]}. Marks: check = present, X = absent, O/excused = absent, CL/late = late, LE = present. For mode listed use status present. Skip anyone not on the roster. Roster:\n"+names().join("\n");
       const parts = []; if(o.img) parts.push({inline_data:{mime_type:"image/jpeg", data:o.img.split(",")[1]}}); parts.push({text:p+(o.text?"\n\nMESSAGE:\n"+o.text:"")});
       const r = await fetch(GEM+encodeURIComponent(key), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts}], generationConfig:{responseMimeType:"application/json"}})});
       const j = await r.json(), t = j.candidates && j.candidates[0].content.parts.map(x=>x.text).join("");
       if(!t) throw new Error((j.error && j.error.message) || "no reply");
       const res = JSON.parse(t.replace(/```json|```/g,"").trim()), seen = new Set(), entries = [];
-      (res.entries||[]).forEach(e=>{ const s = byN.get(normText(e.name||"")); if(s && !seen.has(s.id)){ seen.add(s.id); entries.push({name:s.name, status:/abs|excus/i.test(e.status)?"absent":/late/i.test(e.status)?"late":"present"}); } });
+      (res.entries||[]).forEach(e=>{ const s = byN.get(normText(e.name||"")), stt = /abs|excus/i.test(e.status)?"absent":/late/i.test(e.status)?"late":"present"; if(s && !seen.has(s.id)){ seen.add(s.id); entries.push({name:s.name, status:stt}); } else if(!s && o.talk && e.name){ entries.push({name:String(e.name), status:stt}); } });
       if(!entries.length) return null;
       const out = {mode:res.mode==="listed"?"marks":(res.mode||"marks"), entries, date:/^\d{4}-\d\d-\d\d$/.test(res.date||"")?res.date:undefined};
       if(o.seder) out.seder = o.seder; return out;
