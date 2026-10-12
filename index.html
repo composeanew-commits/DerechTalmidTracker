@@ -520,6 +520,14 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
 .mx-c.x{background:#E8EAF6;color:#4B4ACF;border-color:transparent;}
 .mx-c.e{background:#F3E8FF;color:#8944AB;border-color:transparent;}
 .mx-c i{font-size:15px;}
+/* v10 bright dashboard look */
+:root{--paper:#EEF0FB;--brand:#4B3FD1;--brand-soft:#E8E6FB;}
+body{background:radial-gradient(1000px 420px at 85% -80px,#D9D4FF 0%,transparent 70%),radial-gradient(800px 400px at -10% 0,#CFEFFA 0%,transparent 65%),#EEF0FB!important;}
+.topbar{background:linear-gradient(120deg,#2c2470,#4b3fd1 65%,#2aa9d6)!important;color:#fff!important;border-radius:0 0 18px 18px;box-shadow:0 8px 24px -10px rgba(75,63,209,.55)}
+.topbar h1{color:#fff!important}.topbar .ghost{background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.3)!important;border-radius:12px}
+.nm-card,.card{border-radius:16px!important;box-shadow:0 8px 22px -14px rgba(75,63,209,.35)!important;border:1px solid #E1E3F3!important}
+button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;border:0!important;color:#fff!important;border-radius:12px!important}
+.tab.active{color:#4B3FD1!important}
 </style>
 </head>
 <body>
@@ -3854,7 +3862,9 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     window.addEventListener("online", ()=>{ const n = getQ().length; if(n) toast(`Back online \u2014 ${n} photo(s) waiting. Tap Snap attendance.`, "success"); });
 
     async function askAI(img, note){
-      if(note) return Object.assign(window.__parseAttText(note,true),{isNote:true});
+      const sdr = window.__snapSeder; window.__snapSeder = null;
+      if(note){ try{ const r = await window.__aiRead({text:note, seder:sdr}); if(r) return r; }catch(e){} const r0 = Object.assign(window.__parseAttText(note,true),{isNote:true}); if(sdr) r0.seder = sdr; return r0; }
+      if(img){ try{ const r = await window.__aiRead({img}); if(r) return r; }catch(e){ try{ toast("AI reading unavailable \u2014 using basic reading.","error"); }catch(_){} } }
       const ocr = await window.__ocrWords(img);
       const wk = window.__parseWeek(ocr.words);
       if(wk) return {week:wk, mode:"marks", entries:[]};
@@ -3874,13 +3884,18 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
       showOverlay(ov); const body = ov.querySelector("#snBody");
       ov.querySelector("#snX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
       const home = ()=>{
-        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
+        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
           ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
           <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="snCam" accept="image/*" capture="environment" multiple hidden></label><label class="sn-big">&#128444; Choose image<input type="file" id="snPick" accept="image/*" multiple hidden></label></div>
           <label style="margin-top:14px;">Paste WhatsApp attendance text, or type it</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button id="snTxt">Read it</button></div>
           `;
         const go = f=>{ if(!f || !f.length) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
         body.querySelector("#snCam").onchange = e=>go([...e.target.files]); body.querySelector("#snPick").onchange = e=>go([...e.target.files]);
+        body.querySelector("#snAft").onclick = ()=>{
+          body.innerHTML = `<p class="hint">Paste the message from the afternoon attendance-taker (ChatGPT output, WhatsApp, anything). The AI matches every name to your roster.</p><textarea id="afT" rows="9" placeholder="Paste here\u2026"></textarea><div class="row" style="gap:8px;margin-top:8px;"><button class="primary" data-sd="a1" style="flex:1">1st afternoon</button><button class="primary" data-sd="a2" style="flex:1">2nd afternoon</button></div><div class="row" style="margin-top:8px;"><button id="afB">Back</button></div>`;
+          body.querySelector("#afB").onclick = home;
+          body.querySelectorAll("[data-sd]").forEach(b=> b.onclick = ()=>{ const t = body.querySelector("#afT").value.trim(); if(!t){ toast("Paste the message first.","error"); return; } window.__snapSeder = b.dataset.sd; run(null,t); });
+        };
         const qb = body.querySelector("#snQ"); if(qb) qb.onclick = async ()=>{ if(!navigator.onLine){ toast("Still offline.","error"); return; } const q = getQ(), it = q[0]; body.innerHTML = '<p class="hint">Reading&hellip;</p>'; try{ const res = await askAI(it.img); window.__qTs = it.ts; review(res, it.img); }catch(err){ toast("Couldn\'t read it: "+(err.message||err),"error"); home(); } };
         body.querySelector("#snTxt").onclick = ()=>{ const t = body.querySelector("#snNote").value.trim(); if(!t) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(null,t); };
         const c = body.querySelector("#snChg"); if(c) c.onclick = e=>{ e.preventDefault(); try{ localStorage.removeItem(KEYK); }catch(_){} home(); };
@@ -3958,7 +3973,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
             const sc = all.filter(s=>!used.has(s.id)).map(s=>({s,v:score(e.name,s)})).sort((a,b)=>b.v-a.v);
             const top = sc[0], tie = sc[1] && sc[1].v>=top.v-0.001 && top.v>0;
             if(top && top.v>=0.6 && !tie){ used.add(top.s.id); hit.push({s:top.s, st:e.status, name:e.name, v:top.v}); }
-            else if(top && top.v>=0.5 && !tie && sc[1].v<0.34){ used.add(top.s.id); hit.push({s:top.s, st:e.status, name:e.name, v:top.v}); }
+            else if(top && top.v>=0.5 && !tie && (!sc[1] || sc[1].v<0.34)){ used.add(top.s.id); hit.push({s:top.s, st:e.status, name:e.name, v:top.v}); }
             else miss.push({name:e.name, st:e.status, cand:sc.filter(x=>x.v>=0.34).slice(0,3).map(x=>x.s)});
           });
           return {hit, miss};
@@ -3968,7 +3983,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
         const m0 = matchEvery(); let st = {}, unm = m0.miss, onSheet = new Set();
         const nameOf = {}, read0 = {}; m0.hit.forEach(h=>{ st[h.s.id]=h.st; onSheet.add(h.s.id); nameOf[h.s.id]=h.name; read0[h.s.id]=h.st; });
         const doubt = new Set(m0.hit.filter(h=>h.v<0.85).map(h=>h.s.id));
-        let rest = (res.mode==="absent_only" || res.isNote) ? "present" : "leave";
+        let rest = (res.mode==="absent_only" || res.isNote) ? "present" : res.mode==="present_only" ? "absent" : "leave";
         const hsh = img ? img.length+":"+img.slice(1000,1120)+img.slice(-80) : null;
         const paint = ()=>{
           const ids = Object.keys(st), cids = [...new Set(ids.map(id=>state.data.students.find(s=>s.id===id)).filter(Boolean).map(s=>s.classId))];
@@ -4109,11 +4124,11 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     function openInsights(){
       const el = document.createElement("div"); el.className = "ix";
       if(!document.getElementById("ixStyle")){ const st = document.createElement("style"); st.id = "ixStyle"; st.textContent = `
-        .ix{position:fixed;inset:0;z-index:70;overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,#2a1f6e 0%,transparent 60%),radial-gradient(900px 500px at -10% 20%,#0b3b5c 0%,transparent 55%),#070a1c;color:#e8ecff;font-family:-apple-system,system-ui,sans-serif;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(40px + env(safe-area-inset-bottom,0px));}
+        .ix{position:fixed;inset:0;z-index:70;overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,#5b49d6 0%,transparent 60%),radial-gradient(900px 500px at -10% 20%,#1d6f9c 0%,transparent 55%),#1a1f4a;color:#e8ecff;font-family:-apple-system,system-ui,sans-serif;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(40px + env(safe-area-inset-bottom,0px));}
         .ix ~ .overlay{z-index:80} .ix ~ #toastStack{z-index:90}
         .ix h2{margin:0;font-size:22px;letter-spacing:.3px;background:linear-gradient(90deg,#fff,${C.cy});-webkit-background-clip:text;background-clip:text;color:transparent} .ix .top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
         .ix .x{margin-left:auto;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:7px 12px}
-        .ix .gl{background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;margin-bottom:12px;backdrop-filter:blur(8px);box-shadow:0 10px 30px -12px rgba(92,225,230,.25)}
+        .ix .gl{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;margin-bottom:12px;backdrop-filter:blur(8px);box-shadow:0 10px 30px -12px rgba(92,225,230,.25)}
         .ix .gl.alert{border-color:rgba(255,93,115,.45);box-shadow:0 10px 30px -12px rgba(255,93,115,.35)}
         .ix .gl h3{margin:0 0 8px;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#9aa3c7;font-weight:600} .ixh{color:#9aa3c7;font-size:12px;margin:4px 0}
         .ix .kp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px} .ix .kp .gl{margin:0;text-align:center} .ix .kp b{display:block;font-size:28px;line-height:1.1} .ix .kp span{font-size:11px;color:#9aa3c7}
@@ -5551,6 +5566,8 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
     [["School photo grid","home"],["Check-ins","interviews"]].forEach(([l,t])=>{ const bt = document.createElement("button"); bt.textContent = l; bt.onclick = ()=>{ mm.classList.add("hidden"); document.querySelector('.tab[data-tab="'+t+'"]').click(); }; mm.insertBefore(bt, first); });
     [["Rabbeim","rabbeimBtn"],["Add a class","addClassBtn"],["Add a student","addStudentBtn"]].forEach(([l,id])=>{ const bt = document.createElement("button"); bt.textContent = l; bt.onclick = ()=>{ mm.classList.add("hidden"); $(id).click(); }; mm.insertBefore(bt, first); });
     { const pb = document.createElement("button"); pb.style.fontWeight = "700"; pb.textContent = "🖨 Printable overview (1–2 pages)"; pb.onclick = ()=>{ mm.classList.add("hidden"); window.__openPO(); }; mm.insertBefore(pb, mm.firstChild); }
+    window.__tidyAdd(mm);
+    if(!PFX && !window.__gsInit){ window.__gsInit = 1; state.gsAll = false; if(window.__lab) window.__lab(); }
     { const ot = $("ovTop"); if(ot){ ot.style.display = ""; ot.onclick = ()=>window.__openInsights(); } }
     let ui = {}; try{ ui = JSON.parse(localStorage.getItem(UIK)||"{}"); }catch(e){}
     if(ui.cls && (ui.cls==="__all" || classById(ui.cls))) state.activeClass = ui.cls;
@@ -5757,6 +5774,104 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
         </div><script>document.getElementById("lgIn").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){document.getElementById("lg").style.visibility="visible";document.getElementById("lg").src=r.result;try{localStorage.setItem("poLogo",r.result)}catch(x){}};r.readAsDataURL(f)};<\/script></body></html>`;
     }
     window.__openPO = function(){ const w = window.open("","_blank"); if(!w){ toast("Allow pop-ups and try again.","error"); return; } w.document.open(); w.document.write(build()); w.document.close(); };
+  })();
+
+  // ================= AI READING (photo or pasted text) + DAILY SWEEP =================
+  (function(){
+    const esc = escapeHtml;
+    const inSc = s=> !!s.classId;
+    const names = ()=> state.data.students.filter(inSc).map(s=>s.name);
+    window.__aiRead = async function(o){
+      let key = DEFAULT_GEM; try{ key = localStorage.getItem("gemKey")||DEFAULT_GEM; }catch(e){}
+      if(!key) return null;
+      const roster = state.data.students.filter(inSc), byN = new Map(roster.map(s=>[normText(s.name), s]));
+      const sd = o.seder ? ` This is for the ${o.seder==="a1"?"1st":"2nd"} AFTERNOON seder.` : "";
+      const p = "You read yeshiva attendance for a school. Today is "+todayStr()+"."+sd+" The source is "+(o.img?"a photo of an attendance sheet (printed or handwritten)":"a pasted message")+". Match every person to the EXACT roster name below (be forgiving of spelling, order, nicknames, typos, partial names). Return ONLY JSON: {\"mode\": \"marks\" if each person has an explicit status, \"absent_only\" if it only lists who is absent/late/missing (everyone else is present), \"present_only\" if it only lists who is present, \"listed\" if it is just a list of names with no status; \"date\": \"YYYY-MM-DD\" if a date is visible else null; \"entries\": [{\"name\": <exact roster name>, \"status\": \"present\"|\"absent\"|\"late\"}]}. Marks: check = present, X = absent, O/excused = absent, CL/late = late, LE = present. For mode listed use status present. Skip anyone not on the roster. Roster:\n"+names().join("\n");
+      const parts = []; if(o.img) parts.push({inline_data:{mime_type:"image/jpeg", data:o.img.split(",")[1]}}); parts.push({text:p+(o.text?"\n\nMESSAGE:\n"+o.text:"")});
+      const r = await fetch(GEM+encodeURIComponent(key), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts}], generationConfig:{responseMimeType:"application/json"}})});
+      const j = await r.json(), t = j.candidates && j.candidates[0].content.parts.map(x=>x.text).join("");
+      if(!t) throw new Error((j.error && j.error.message) || "no reply");
+      const res = JSON.parse(t.replace(/```json|```/g,"").trim()), seen = new Set(), entries = [];
+      (res.entries||[]).forEach(e=>{ const s = byN.get(normText(e.name||"")); if(s && !seen.has(s.id)){ seen.add(s.id); entries.push({name:s.name, status:/abs|excus/i.test(e.status)?"absent":/late/i.test(e.status)?"late":"present"}); } });
+      if(!entries.length) return null;
+      const out = {mode:res.mode==="listed"?"marks":(res.mode||"marks"), entries, date:/^\d{4}-\d\d-\d\d$/.test(res.date||"")?res.date:undefined};
+      if(o.seder) out.seder = o.seder; return out;
+    };
+
+    // ---- Daily sweep: who/what is falling through the cracks, with one-tap contact
+    function sweep(){
+      const today = todayStr(), cls = state.data.classes.filter(c=>studentsInClass(c.id).length && (state.gsAll || classYear(c)==="alef"));
+      const stus = state.data.students.filter(s=>s.classId && cls.some(c=>c.id===s.classId));
+      const sed = SEDARIM.filter(x=>x.id!=="n");
+      const gaps = []; cls.forEach(c=>{ const miss = sed.filter(x=>{ const r = findAttendanceRecord(c.id,today,x.id); return !r || !Object.keys(r.records||{}).length; }); if(miss.length) gaps.push({c, miss}); });
+      const streak = stus.map(s=>({s, n:absentStreak(s)})).filter(x=>x.n>=2).sort((a,b)=>b.n-a.n);
+      const noCi = stus.map(s=>({s, li:lastInterviewDate(s.id)})).filter(x=>!x.li || daysSince(x.li)>=CHECKIN_STALE_DAYS).sort((a,b)=>(a.li?daysSince(a.li):9999)-(b.li?daysSince(b.li):9999)).reverse();
+      const noPh = stus.filter(s=>!s.phone && !s.parentPhone).length;
+      const wa = s=>{ const l = waLink(s.parentPhone||s.phone); return l ? ` <a href="${l}" target="_blank" style="text-decoration:none">💬</a>` : ""; };
+      const ov = document.createElement("div"); ov.className = "overlay";
+      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:8px"><p class="setup-title" style="font-size:18px;margin:0;flex:1">✅ Daily sweep</p><button class="ghost" id="swX">Close</button></div>
+        <div class="nm-card"><b>Attendance not taken yet today</b>${gaps.length?gaps.map(g=>`<div style="margin-top:6px;font-size:13px">${esc(g.c.name)}: <span style="color:var(--red)">${g.miss.map(x=>esc(x.label)).join(", ")}</span></div>`).join(""):'<div style="color:var(--green);margin-top:4px">All sedarim recorded ✓</div>'}</div>
+        <div class="nm-card" style="margin-top:8px"><b>Absent 2+ sessions in a row · ${streak.length}</b>${streak.map(x=>`<div style="margin-top:5px;font-size:13px">${esc(x.s.name)} <span style="color:var(--red)">${x.n} in a row</span>${wa(x.s)}</div>`).join("")||'<div style="color:var(--green);margin-top:4px">Nobody ✓</div>'}</div>
+        <div class="nm-card" style="margin-top:8px"><b>No check-in in ${CHECKIN_STALE_DAYS}+ days · ${noCi.length}</b>${noCi.slice(0,40).map(x=>`<div style="margin-top:5px;font-size:13px">${esc(x.s.name)} <span style="color:var(--ink-soft)">${x.li?daysSince(x.li)+" days":"never"}</span>${wa(x.s)}</div>`).join("")||'<div style="color:var(--green);margin-top:4px">Everyone seen recently ✓</div>'}${noCi.length>40?`<div class="hint">+${noCi.length-40} more — see the printable overview</div>`:""}</div>
+        ${noPh?`<p class="hint" style="margin-top:8px">${noPh} talmid${noPh===1?"":"im"} have no phone number on file.</p>`:""}</div>`;
+      showOverlay(ov); ov.querySelector("#swX").onclick = ()=>closeOverlay(ov); ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+    }
+    window.__sweep = sweep;
+    window.__tidyAdd = function(mm){
+      const mk = (txt, fn)=>{ const b = document.createElement("button"); b.style.fontWeight = "700"; b.textContent = txt; b.onclick = ()=>{ mm.classList.add("hidden"); fn(); }; mm.insertBefore(b, mm.firstChild); };
+      mk("🌇 Paste afternoon attendance", ()=>{ const f = document.getElementById("snapFab"); if(f){ f.click(); setTimeout(()=>{ const b = document.getElementById("snAft"); if(b) b.click(); }, 150); } });
+      mk("✅ Daily sweep — who needs attention today", sweep);
+    };
+  })();
+
+  // ================= ATTENDANCE BOARD: everyone x every seder, tap to mark =================
+  (function(){
+    const esc = escapeHtml, SD = SEDARIM.filter(x=>["m1","m2","a1","a2"].includes(x.id)), NEXT = {"":"present", present:"late", late:"absent", absent:""};
+    const LB = {present:"✓", late:"L", absent:"A"}, CL = {present:"#1f9d57", late:"#e0a100", absent:"#d63c3c"};
+    let date = todayStr(), view = "day", q = "", saveT = null;
+    const stu = ()=> state.data.students.filter(x=> x.classId && (state.gsAll || classYear(classById(x.classId)||{})==="alef")).sort(byName);
+    const get = (s,d,sd)=>{ const r = findAttendanceRecord(s.classId,d,sd); return (r && r.records && r.records[s.id]) || ""; };
+    function set(s,d,sd,v){ let r = findAttendanceRecord(s.classId,d,sd); if(!r){ if(!v) return; r = {id:uid(), classId:s.classId, date:d, seder:sd, records:{}, photo:""}; state.data.attendance.push(r); } r.records = r.records||{}; if(v) r.records[s.id] = v; else delete r.records[s.id]; }
+    function save(){ clearTimeout(saveT); saveT = setTimeout(async ()=>{ try{ await persist(); }catch(e){ if(!e.shown) toast("Couldn't save: "+e.message,"error"); } }, 500); }
+    const shift = n=>{ const d = new Date(date+"T12:00:00"); d.setDate(d.getDate()+n); date = localDateStr(d); };
+    function open(){
+      const el = document.createElement("div"); el.id = "brd";
+      el.style.cssText = "position:fixed;inset:0;z-index:70;overflow:auto;background:#eef0fb;font-family:-apple-system,system-ui,sans-serif;color:#1d1a3f;padding:calc(10px + env(safe-area-inset-top,0px)) 10px 80px";
+      document.body.appendChild(el);
+      const css = `<style>#brd .bt{display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:sticky;top:0;background:#eef0fb;padding:4px 0 8px;z-index:2}#brd button,#brd input{font:inherit;border-radius:10px;border:1px solid #cfd0ee;background:#fff;color:#4b3fd1;padding:8px 11px;font-weight:600}#brd .on{background:#4b3fd1;color:#fff}
+        #brd table{border-collapse:separate;border-spacing:0 3px;width:100%}#brd td,#brd th{padding:0 2px}#brd th{font-size:11px;color:#6b6f92;font-weight:700;position:sticky;top:46px;background:#eef0fb}#brd td.n{font-size:14px;padding:6px 8px;background:#fff;border-radius:10px 0 0 10px;white-space:nowrap;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
+        #brd td.c button{width:100%;min-width:42px;height:38px;padding:0;border:0;border-radius:9px;background:#dfe1ee;color:#fff;font-weight:800;font-size:15px}#brd .sm{font-size:11px;padding:3px 6px;margin-top:2px}#brd .b{display:inline-block;width:100%;height:30px;border-radius:7px}</style>`;
+      const paint = ()=>{
+        const L = stu().filter(s=>!q || s.name.toLowerCase().includes(q)), dd = new Date(date+"T12:00:00");
+        const head = `<div class="bt"><button id="bX">✕</button><button class="${view==="day"?"on":""}" id="bD">Day</button><button class="${view==="week"?"on":""}" id="bW">Week</button><input id="bQ" placeholder="Search" value="${esc(q)}" style="flex:1;min-width:90px">${view==="day"?`<button id="bP">◀</button><input type="date" id="bT" value="${date}"><button id="bN">▶</button>`:""}</div>`;
+        let body;
+        if(view==="day"){
+          const tot = SD.map(x=>{ const v = L.map(s=>get(s,date,x.id)); return {p:v.filter(a=>a==="present"||a==="late").length, a:v.filter(a=>a==="absent").length, e:v.filter(a=>!a).length}; });
+          body = `<div style="font-size:13px;color:#6b6f92;margin-bottom:4px">${dd.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})} · tap a box: ✓ present → L late → A absent → clear</div><table><tr><th></th>${SD.map((x,i)=>`<th>${esc(x.label.replace(/ seder| \(.*\)/,""))}<br><span style="color:#d63c3c">${tot[i].a}A</span> · <span style="color:#9aa0b4">${tot[i].e} open</span><br><button class="sm" data-all="${x.id}">All ✓ open</button></th>`).join("")}</tr>
+            ${L.map(s=>`<tr><td class="n">${esc(s.name)}</td>${SD.map(x=>{ const v = get(s,date,x.id); return `<td class="c"><button data-s="${s.id}" data-x="${x.id}" style="${v?`background:${CL[v]}`:""}">${v?LB[v]:""}</button></td>`; }).join("")}</tr>`).join("")}</table>`;
+        } else {
+          const days = DAY(14).filter(d=>state.data.attendance.some(a=>a.date===d)); const cols = days.slice(-7);
+          const avg = (s,d)=>{ const a = SD.map(x=>VAL(get(s,d,x.id))).filter(v=>v!==null); return a.length ? a.reduce((p,c)=>p+c,0)/a.length : null; };
+          body = `<div style="font-size:13px;color:#6b6f92;margin-bottom:4px">Last school days · tap a box to open that day</div><table><tr><th></th>${cols.map(d=>`<th>${d.slice(5).replace("-","/")}</th>`).join("")}<th>7d</th></tr>
+            ${L.map(s=>{ const p = PCT(stuVals(s.id, cols[0]||date, cols[cols.length-1]||date)); return `<tr><td class="n">${esc(s.name)}</td>${cols.map(d=>{ const v = avg(s,d); return `<td class="c"><button data-d="${d}" style="background:${v===null?"#dfe1ee":v>=0.9?"#1f9d57":v>=0.4?"#e0a100":"#d63c3c"}">${v===null?"":Math.round(v*100)}</button></td>`; }).join("")}<td style="font-weight:800;font-size:13px;color:${col(p)};padding-left:4px">${p===null?"—":p+"%"}</td></tr>`; }).join("")}</table>`;
+        }
+        const keep = el.scrollTop; el.innerHTML = css+head+body; el.scrollTop = keep;
+        el.querySelector("#bX").onclick = ()=>{ el.remove(); try{ renderRoster(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner(); renderKpis(); }catch(e){} };
+        el.querySelector("#bD").onclick = ()=>{ view = "day"; paint(); }; el.querySelector("#bW").onclick = ()=>{ view = "week"; paint(); };
+        el.querySelector("#bQ").oninput = e=>{ q = e.target.value.toLowerCase(); const p = e.target.selectionStart; paint(); const i = el.querySelector("#bQ"); i.focus(); i.setSelectionRange(p,p); };
+        if(view==="day"){
+          el.querySelector("#bP").onclick = ()=>{ shift(-1); paint(); }; el.querySelector("#bN").onclick = ()=>{ shift(1); paint(); }; el.querySelector("#bT").onchange = e=>{ date = e.target.value||date; paint(); };
+          el.querySelectorAll("td.c button").forEach(b=> b.onclick = ()=>{ const s = state.data.students.find(x=>x.id===b.dataset.s), v = NEXT[get(s,date,b.dataset.x)]; set(s,date,b.dataset.x,v); b.style.background = v?CL[v]:"#dfe1ee"; b.textContent = v?LB[v]:""; save(); });
+          el.querySelectorAll("[data-all]").forEach(b=> b.onclick = ()=>{ L.forEach(s=>{ if(!get(s,date,b.dataset.all)) set(s,date,b.dataset.all,"present"); }); save(); paint(); });
+        } else el.querySelectorAll("td.c button").forEach(b=> b.onclick = ()=>{ date = b.dataset.d; view = "day"; paint(); });
+      };
+      paint();
+    }
+    window.__board = open;
+    const t0 = window.__tidyAdd;
+    window.__tidyAdd = function(mm){ t0(mm);
+      const b = document.createElement("button"); b.style.fontWeight = "700"; b.textContent = "📋 Attendance board"; b.onclick = ()=>{ mm.classList.add("hidden"); open(); }; mm.insertBefore(b, mm.firstChild);
+      if(!$("brTop")){ const t = document.createElement("button"); t.id = "brTop"; t.className = "ghost"; t.style.fontWeight = "700"; t.innerHTML = "&#128203; Board"; t.onclick = open; const ot = $("ovTop"); ot.parentNode.insertBefore(t, ot); } };
   })();
 
   const _showMainV3 = showMain;
