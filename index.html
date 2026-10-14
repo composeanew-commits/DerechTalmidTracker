@@ -198,8 +198,6 @@
   .qs-st button.a.active{background:var(--red);border-color:var(--red);color:#fff;}
   .qs-head{display:flex;align-items:center;gap:14px;}
   .qs-head .photo{margin:0 !important;flex:none;}
-  .rec-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#d33;margin-right:6px;animation:dotpulse 1s ease-in-out infinite;}
-  textarea.dictating{border-color:#d33 !important;box-shadow:0 0 0 3px rgba(221,51,51,.15);}
   .spinner{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;border:4px solid var(--brand-soft);border-top-color:var(--brand);animation:spin .8s linear infinite;}
   .spinner.sm{width:16px;height:16px;border-width:2px;margin:0;}
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -528,6 +526,49 @@ body{background:radial-gradient(1000px 420px at 85% -80px,#D9D4FF 0%,transparent
 .nm-card,.card{border-radius:16px!important;box-shadow:0 8px 22px -14px rgba(75,63,209,.35)!important;border:1px solid #E1E3F3!important}
 button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;border:0!important;color:#fff!important;border-radius:12px!important}
 .tab.active{color:#4B3FD1!important}
+
+/* ---- check-in sections, progress, red tag ---- */
+.sec{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff;}
+.sec>summary{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;list-style:none;}
+.sec>summary::-webkit-details-marker{display:none;}
+.sec .sec-n{flex:1;min-width:0;font-size:14px;font-weight:600;}
+.sec .sec-last{display:block;font-style:normal;font-size:11px;font-weight:400;color:var(--ink-soft);}
+.sec-body{padding:2px 10px 10px;border-top:1px solid var(--line);}
+.qa{margin-top:10px;} .qa-q{font-size:13px;margin-bottom:4px;}
+.qa-o{display:flex;gap:6px;flex-wrap:wrap;}
+.qa-c{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;}
+.qa-c.on{background:var(--brand);color:#fff;border-color:var(--brand);}
+.qa-last{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+.pr{border-bottom:1px solid var(--line);}
+.pr>summary{display:flex;align-items:center;gap:8px;padding:9px 2px;cursor:pointer;list-style:none;}
+.pr>summary::-webkit-details-marker{display:none;}
+.pr-n{flex:1;font-size:14px;font-weight:600;} .pr-d{display:flex;gap:3px;align-items:center;}
+.pd{display:inline-block;width:11px;height:11px;border-radius:50%;background:#ddd;}
+.pd.g{background:var(--green);} .pd.o{background:var(--amber);} .pd.n{background:var(--red);}
+.pr-t{font-size:11px;min-width:76px;text-align:right;color:var(--ink-soft);}
+.pr-t.up{color:var(--green);font-weight:700;} .pr-t.down{color:var(--red);font-weight:700;}
+.pr-b{padding:0 2px 10px;} .ph{font-size:13px;margin:6px 0;line-height:1.4;}
+.entry.tap{cursor:pointer;} .ea-row{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0;}
+.ea{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:600;}
+.ea.g{background:var(--green-bg);color:var(--green);} .ea.o{background:var(--amber-bg);color:var(--amber);} .ea.n{background:var(--red-bg);color:var(--red);}
+#rosterGrid .card.struggle{border:2px solid var(--red);background:var(--red-bg);}
+#rosterGrid .sg-tag{position:absolute;top:8px;left:8px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;z-index:1;}
+.student-pill.sg{border-color:var(--red);color:var(--red);font-weight:700;}
+
+/* ---- simpler cards + student screen ---- */
+#rosterGrid .quick-class-select{display:none !important;}
+#rosterGrid .card-sub{font-size:11px;line-height:1.3;margin-top:3px;}
+#rosterGrid .card-sub b{color:var(--red);}
+.stu-acts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px;}
+.stu-acts a,.stu-acts button{padding:8px 12px;font-size:13px;border-radius:9px;text-decoration:none;}
+
+/* ---- attendance: bigger taps, less clutter ---- */
+.att-row-tap{padding:16px 12px !important;font-size:17px;}
+#attPhotoWrap{display:none !important;}
+
+/* ---- simpler: hidden for now (delete these two lines to bring them back) ---- */
+.tab[data-tab="shiurim"]{display:none !important;}
+#ovTop{display:none !important;}
 </style>
 </head>
 <body>
@@ -699,30 +740,33 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
           <p class="setup-title" style="font-size:16px;margin:0;flex:1;" id="interviewStudentName">Select a student</p>
           <button class="primary hidden" id="addEntryBtn">+ New entry</button>
         </div>
+        <div id="stuHead"></div>
         <div id="stuBoxes"></div>
         <div id="entryForm" class="hidden" style="margin-top:12px;">
+          <div class="row" style="align-items:center;"><b id="entryFormTitle" style="flex:1;font-size:16px;">New check-in</b></div>
           <label for="entryDate">Date</label>
           <input type="date" id="entryDate" />
-          <label>How's he holding?</label>
+          <label>How's he holding overall?</label>
           <div class="seg" id="entryStatusSeg">
             <button class="a" data-st="struggling" style="flex:1;">Needs attention</button>
             <button class="l" data-st="steady" style="flex:1;">Steady</button>
             <button class="p" data-st="thriving" style="flex:1;">Thriving</button>
           </div>
           <div id="areaBox"></div>
-          <label style="margin-top:14px;">Not sure what to cover? Tap to add a prompt</label>
-          <div class="row" id="promptChips" style="gap:6px;flex-wrap:wrap;"></div>
-          <div class="row" style="align-items:center;margin:10px 0 4px;">
-            <label for="entryNotes" style="margin:0;flex:1;">Notes</label>
-            <button class="ghost" id="aiBtn" type="button" style="font-size:12px;">&#10024; Clean up</button><button class="ghost" id="voiceBtn" type="button" title="Dictate" style="font-size:12px;">&#127908; Dictate</button>
+          <div class="row" style="align-items:center;margin:14px 0 4px;">
+            <label for="entryNotes" style="margin:0;flex:1;">Other notes</label>
+            <button class="ghost" id="tidyBtn" type="button" style="font-size:12px;">&#10024; Tidy</button>
           </div>
-          <textarea id="entryNotes" placeholder="How is he doing? What did you talk about?"></textarea>
-          <p class="hint" style="margin-top:4px;">Tip: for the best accuracy, tap the box and use the &#127908; on your keyboard.</p>
-          <div class="row row-end" style="margin-top:10px;">
+          <textarea id="entryNotes" placeholder="Anything else? What did you talk about?"></textarea>
+          <label for="entryFollow">Follow-up / next step</label>
+          <input type="text" id="entryFollow" placeholder="e.g. Speak to Rabbi Dadush" />
+          <div class="row row-end" style="margin-top:12px;">
+            <button class="danger hidden" id="deleteEntry" type="button" style="margin-right:auto;">Delete</button>
             <button class="ghost" id="cancelEntry">Cancel</button>
             <button class="primary" id="saveEntry">Save</button>
           </div>
         </div>
+        <div id="progressBox"></div>
         <div class="hint" id="entryHistoryLabel" style="margin-top:16px;"></div>
         <div id="entryList" style="margin-top:8px;"></div>
       </div>
@@ -938,11 +982,15 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     try{
       localStorage.setItem("derech-cache"+PFX, JSON.stringify(state.data, (k,v)=> (k==="photo" && typeof v==="string" && v.startsWith("data:")) ? "@" : v));
       localStorage.setItem("derech-pending"+PFX, pending ? "1" : "");
-    }catch(e){}
+      return true;
+    }catch(e){
+      if(!window.__cacheWarned){ window.__cacheWarned = true; try{ toast("Phone storage is full \u2014 changes may not survive offline until they sync.", "error"); }catch(_){} }
+      return false;
+    }
   }
   async function persist(){
     _dirty = true; cacheLocal(true);
-    if(state.offline){ showBar("offline"); return; }
+    if(state.offline){ showBar("offline"); return Promise.resolve(); }
     if(!_q){
       showBar("saving");
       _q = (async()=>{
@@ -1012,6 +1060,14 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     const saved = loadLocal("sb-config") || BUILT_IN_SUPABASE;
     $("sbUrl").value = saved.url; $("sbKey").value = saved.key;
     $("connectBtn").textContent = "Retry connection";
+    if(navigator.onLine === false){   // no signal: open straight from the saved copy instead of waiting on retries
+      const c0 = loadLocal("derech-cache"+PFX);
+      if(c0){
+        state.config = saved; state.data = Object.assign(emptyData(), c0);
+        photoHolders(state.data).forEach(h=>{ if(h.obj.photo==="@") h.obj.photo = ""; });
+        state.offline = true; setConn(false, "offline"); showMain(); showBar("offline"); return;
+      }
+    }
     const attempts = 4;
     for(let i=1; i<=attempts; i++){
       setConn(false, i===1 ? "connecting\u2026" : `still connecting (try ${i} of ${attempts})\u2026`, true);
@@ -1398,19 +1454,20 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     grid.innerHTML = "";
     $("rosterEmpty").classList.toggle("hidden", list.length!==0);
     list.forEach(s=>{
-      const status = studentStatus(s);
+      const status = studentStatus(s), sgl = isStruggling(s.id);
       const cls = s.classId ? classById(s.classId) : null;
       const sub = [cls ? cls.name : "No shiur", cls && cls.room ? "Room "+cls.room : null, s.dorm ? "Dorm "+s.dorm : null].filter(Boolean).join(" \u00b7 ");
       const missing = missingFields(s);
       const classOptions = `<option value="">No class</option>` + state.data.classes.map(c=>`<option value="${c.id}" ${s.classId===c.id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card" + (sgl ? " struggle" : "");
       card.innerHTML = `
+        ${sgl ? '<span class="sg-tag">Needs attention</span>' : ""}
         ${s.phone ? `<a href="tel:${escapeHtml(s.phone)}" class="quick-call" title="Call ${escapeHtml(s.name)}" onclick="event.stopPropagation()">&#9742;</a>` : ""}
         ${missing.length && showMissingDots() ? `<span class="card-flag" title="Missing: ${escapeHtml(missing.join(', '))}"></span>` : ""}
         <div class="photo ${status}">${s.photo ? `<img src="${s.photo}" alt="">` : initials(s.name)}</div>
         <div class="name">${escapeHtml(s.name)}</div>
-        <div class="card-sub">${escapeHtml(sub)}</div>${weekBadge5(s)}
+        <div class="card-sub">${summaryLine(s)}</div>
         <select class="quick-class-select">${classOptions}</select>
         <span class="status-label ${status}">${status==="unknown"?"No data":status==="red"?"Needs attention":status==="yellow"?"Steady":"Thriving"}</span>
       `;
@@ -1438,6 +1495,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     list.forEach(i=>{ if(i.date >= best.date) best = i; });
     return best;
   }
+  function isStruggling(id){ const x = latestStanding(id); return !!(x && x.status === "struggling"); }
   function setStanding(studentId, st){
     const today = todayStr();
     let e = state.data.interviews.find(i=> i.studentId===studentId && i.date===today && !i.notes);
@@ -1530,6 +1588,10 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
   function openStudentQuick(studentId, startMode){
     const student = state.data.students.find(x=>x.id===studentId);
     if(!student) return;
+    if(startMode !== "att"){
+      state.activeInterviewStudent = studentId; state.ciClass = studentYear(student)==="alef" ? "__alef" : null;
+      document.querySelector('.tab[data-tab="interviews"]').click(); return;
+    }
     const cls = student.classId ? classById(student.classId) : null;
     const status = studentStatus(student);
     const overlay = document.createElement("div");
@@ -1567,42 +1629,6 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       overlay.querySelector("#qsModeCheck").classList.toggle("on", m==="check");
       overlay.querySelector("#qsModeAtt").classList.toggle("on", m==="att");
     };
-
-    function checkInMode(){
-      setMode("check"); stopAllDictation();
-      let st = "";
-      body.innerHTML = `
-        <label for="qsDate">Date</label><input type="date" id="qsDate" value="${todayStr()}" />
-        <label>How's he holding?</label>
-        <div class="qs-st" id="qsCkSt">
-          <button class="a" data-st="struggling">Needs attention</button>
-          <button class="l" data-st="steady">Steady</button>
-          <button class="p" data-st="thriving">Thriving</button>
-        </div>
-        <div class="row" style="align-items:center;margin:12px 0 4px;">
-          <label for="qsNotes" style="margin:0;flex:1;">Notes</label>
-          <button class="ghost" id="qsVoice" type="button" style="font-size:12px;">&#127908; Dictate</button>
-        </div>
-        <textarea id="qsNotes" rows="6" placeholder="How is he doing? What did you talk about? (optional if you picked a status)"></textarea>
-        <p class="hint" style="margin-top:4px;">Tip: for the best accuracy, tap the box and use the &#127908; on your keyboard.</p>
-        <div class="row row-end" style="margin-top:12px;"><button class="primary" id="qsSaveCheck">Save check-in</button></div>`;
-      { const sw = document.createElement("div"); body.appendChild(sw); try{ renderSwitchBox(student, sw, false); }catch(e){} }
-      body.querySelectorAll("#qsCkSt button").forEach(b=> b.addEventListener("click", ()=>{
-        st = (st===b.dataset.st) ? "" : b.dataset.st;
-        body.querySelectorAll("#qsCkSt button").forEach(x=> x.classList.toggle("active", x.dataset.st===st));
-      }));
-      const dict = attachDictation(body.querySelector("#qsVoice"), body.querySelector("#qsNotes"));
-      body.querySelector("#qsSaveCheck").addEventListener("click", async ()=>{
-        dict.stop();
-        const notes = body.querySelector("#qsNotes").value.trim();
-        if(!notes && !st){ toast("Add some notes or pick how he's holding.", "error"); return; }
-        state.data.interviews.push({ id:uid(), studentId:student.id, date: body.querySelector("#qsDate").value || todayStr(), notes, status: st });
-        renderRoster(); renderInterviewPanel(); renderGlobalSearch();
-        close();
-        toast("Check-in for " + student.name + " \u2014 saving\u2026", "success");
-        persist().catch(()=>{});
-      });
-    }
 
     function attendanceMode(){
       setMode("att"); stopAllDictation();
@@ -2009,6 +2035,15 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       (allDone ? "background:var(--green-bg);color:var(--green);" : "background:var(--amber-bg);color:var(--amber);");
     summary.textContent = allDone ? `All ${withStudents.length} shiurim taken for ${sederLabel(state.activeSeder)} \u2713` : `${sederLabel(state.activeSeder)}: ${takenCount} of ${withStudents.length} shiurim taken \u2014 ${withStudents.length-takenCount} still to go`;
     strip.appendChild(summary);
+    if(!allDone){
+      const nx = withStudents.find(c=> !findAttendanceRecord(c.id, today, state.activeSeder));
+      if(nx){
+        const nb = document.createElement("button"); nb.className = "primary"; nb.style.cssText = "width:100%;padding:14px;font-size:16px;margin-bottom:12px;";
+        nb.textContent = "Take next: " + (nx.rebbi || nx.name) + " \u2192";
+        nb.addEventListener("click", ()=>{ state.activeAttClass = nx.id; $("attClassPickerPanel").classList.add("hidden"); $("attTakePanel").classList.remove("hidden"); renderAttendanceTab(); });
+        strip.appendChild(nb);
+      }
+    }
     state.data.classes.forEach(c=>{
       const n = studentsInClass(c.id).length;
       const sub = [c.rebbi||null, c.room?("Room "+c.room):null].filter(Boolean).join(" \u00b7 ");
@@ -2294,7 +2329,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     if(state.ciClass==="__alef") list = list.filter(s=>studentYear(s)==="alef"); else if(state.ciClass) list = list.filter(s=>s.classId===state.ciClass);
     list.forEach(s=>{
       const pill = document.createElement("div");
-      pill.className = "student-pill" + (state.activeInterviewStudent===s.id ? " active":"");
+      pill.className = "student-pill" + (state.activeInterviewStudent===s.id ? " active":"") + (isStruggling(s.id) ? " sg" : "");
       pill.textContent = s.name + (s.wantsSwitch ? " \uD83D\uDD04" : "");
       pill.addEventListener("click", ()=>{ state.activeInterviewStudent = s.id; renderInterviewPanel(); renderInterviewPicker(); });
       wrap.appendChild(pill);
@@ -2308,49 +2343,123 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     const student = sid ? state.data.students.find(s=>s.id===sid) : null;
     $("interviewStudentName").textContent = student ? student.name : "Select a student";
     $("addEntryBtn").classList.toggle("hidden", !student);
-    $("entryForm").classList.add("hidden");
+    const keep = !!student && state.formFor===sid && !$("entryForm").classList.contains("hidden");
+    if(!keep){ $("entryForm").classList.add("hidden"); state.formFor = null; state.editingEntry = null; }
     try{ window.__renderStudentBoxes && window.__renderStudentBoxes(student); }catch(e){}
-    const list = $("entryList");
+    const list = $("entryList"), pb = $("progressBox");
     list.innerHTML = "";
-    if(!student){ $("entryHistoryLabel").textContent = ""; list.innerHTML = '<p class="hint">Pick a student above to view or add check-in notes.</p>'; return; }
-    const entries = state.data.interviews.filter(i=>i.studentId===sid).sort((a,b)=> b.date.localeCompare(a.date));
-    $("entryHistoryLabel").textContent = entries.length ? `Previous check-ins (${entries.length})` : "";
-    if(!entries.length){ list.innerHTML = '<p class="hint">No check-ins yet \u2014 tap "+ New entry" to log the first one.</p>'; return; }
+    $("interviewPicker").style.display = student ? "none" : "";
+    try{ renderStuHead(student, $("stuHead")); }catch(e){}
+    if(!student){ pb.innerHTML = ""; $("entryHistoryLabel").textContent = ""; list.innerHTML = '<p class="hint">Pick a student above to view or add check-in notes.</p>'; return; }
+    renderProgress(student, pb);
+    const entries = entriesFor(sid);
+    $("entryHistoryLabel").textContent = entries.length ? `Past check-ins (${entries.length}) \u2014 tap one to view or edit` : "";
+    if(!entries.length) list.innerHTML = '<p class="hint">No check-ins yet \u2014 fill in the form above to log the first one.</p>';
     entries.forEach(entry=>{
       const div = document.createElement("div");
-      div.className = "entry";
+      div.className = "entry tap";
       const statusLabel = entry.status ? `<span class="status-label ${entry.status==='thriving'?'green':entry.status==='struggling'?'red':'yellow'}" style="margin-right:6px;">${entry.status}</span>` : "";
-      div.innerHTML = `<div class="entry-date"><span>${statusLabel}${entry.date}</span><span><a href="#" data-del="${entry.id}" style="color:var(--red);font-size:12px;text-decoration:none;">delete</a></span></div>
-        ${entry.notes ? `<div class="entry-notes">${mdB(escapeHtml(entry.notes))}</div>` : ""}`;
-      div.querySelector("[data-del]").addEventListener("click", async e=>{
-        e.preventDefault();
-        if(!(await confirmDialog("Delete this entry?", {okLabel:"Delete", danger:true}))) return;
-        state.data.interviews = state.data.interviews.filter(i=>i.id!==entry.id);
-        await persist(); renderInterviewPanel();
-      });
+      const ao = areasOf(entry);
+      const chips = SECTIONS.map(sec=> ao[sec.k] ? `<span class="ea ${ao[sec.k]}">${escapeHtml(sec.l.split(/[ &]/)[0])}</span>` : "").join("");
+      div.innerHTML = `<div class="entry-date"><span>${statusLabel}${escapeHtml(entry.date)}</span><span style="color:var(--brand);">View / edit \u203A</span></div>
+        ${chips ? `<div class="ea-row">${chips}</div>` : ""}
+        ${entry.notes ? `<div class="entry-notes">${mdB(escapeHtml(entry.notes))}</div>` : ""}
+        ${entry.follow ? `<div class="hint" style="margin:4px 0 0;">Follow-up: ${escapeHtml(entry.follow)}</div>` : ""}`;
+      div.addEventListener("click", ()=> openEntryForm(entry));
       list.appendChild(div);
     });
+    // a new check-in form opens by itself the first time you land on a student
+    if(!keep && state.autoNewFor !== sid) openEntryForm(null);
   }
 
-  const CHECKIN_PROMPTS = ["Learning", "Home life", "Chavrusa", "Davening", "Goals for the week", "Anything on his mind"];
-  (function renderPromptChips(){
-    const wrap = $("promptChips");
-    CHECKIN_PROMPTS.forEach(p=>{
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "ghost";
-      chip.style.cssText = "font-size:11px;padding:5px 10px;";
-      chip.textContent = p;
-      chip.addEventListener("click", ()=>{
-        const ta = $("entryNotes");
-        const prefix = ta.value && !ta.value.endsWith("\n") ? "\n" : "";
-        ta.value += `${prefix}${p}: `;
-        ta.focus();
-        ta.selectionStart = ta.selectionEnd = ta.value.length;
-      });
-      wrap.appendChild(chip);
-    });
-  })();
+  // ---- what we track for each talmid across the year ----
+  const SECTIONS = [
+    {k:"jud", l:"Yeshiva & Judaism", qs:[
+      {k:"happy", q:"Happy in yeshiva, likes his classes?", o:["Yes","Mostly","No"]},
+      {k:"shabbos", q:"Keeping Shabbos?", o:["Fully","Partly","Not yet"]},
+      {k:"motiv", q:"Motivation to grow in Judaism", o:["High","Some","Low"]},
+      {k:"why", q:"Wants to understand the reasons behind it?", o:["Yes","Somewhat","No"]},
+      {k:"vision", q:"Vision for his future family / lifestyle", t:1} ]},
+    {k:"bg", l:"Personal background", qs:[
+      {k:"fam", q:"Relationship with family", o:["Close","OK","Strained"]},
+      {k:"free", q:"Feels free to make his own choices?", o:["Yes","Sometimes","Feels pressured"]},
+      {k:"money", q:"Money situation", o:["Fine","Tight","Stressed"]},
+      {k:"clar", q:"Needs clarifying (mentioned but unclear)", t:1} ]},
+    {k:"hab", l:"Habits & relationships", qs:[
+      {k:"subs", q:"Weed / vaping / substances", o:["None","Cut back","Still using"]},
+      {k:"phone", q:"Phone", o:["Filtered","Unfiltered, OK","Unfiltered, concern"]},
+      {k:"gf", q:"Girlfriend / dating", o:["No","Yes, healthy","Yes, concern"]},
+      {k:"friends", q:"Close friends", t:1} ]},
+    {k:"emo", l:"Emotional well-being", qs:[
+      {k:"anger", q:"Anger / mood", o:["Calm","Some","Struggling"]},
+      {k:"tx", q:"Therapy / support", o:["In it","Open to it","Not interested"]} ]},
+    {k:"car", l:"Career goals", qs:[
+      {k:"dir", q:"Direction", o:["Clear","Exploring","None yet"]},
+      {k:"plans", q:"Interests / plans", t:1} ]}
+  ];
+  const LEGACY = {spi:"jud", lrn:"jud", soc:"hab"}, RANKV = {g:2,o:1,n:0};
+  const shortD = d=>{ try{ return new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}); }catch(e){ return d; } };
+  function entriesFor(sid){ return state.data.interviews.map((e,i)=>({e,i})).filter(x=>x.e.studentId===sid).sort((a,b)=> b.e.date.localeCompare(a.e.date) || b.i-a.i).map(x=>x.e); }
+  function areasOf(e){ const o = {}, a = e.areas || {}; Object.keys(a).forEach(k=>{ const kk = LEGACY[k] || k, v = a[k]; if(!(kk in o) || RANKV[v] < RANKV[o[kk]]) o[kk] = v; }); return o; }
+  function lastQa(sid, skipId){ const o = {}; entriesFor(sid).forEach(e=>{ if(e.id===skipId) return; const q = e.qa||{}; Object.keys(q).forEach(k=>{ if(!(k in o) && q[k]) o[k] = {v:q[k], d:e.date}; }); }); return o; }
+  function lastAreaMap(sid, skipId){ const o = {}; entriesFor(sid).forEach(e=>{ if(e.id===skipId) return; const a = areasOf(e); Object.keys(a).forEach(k=>{ if(!(k in o)) o[k] = {v:a[k], d:e.date}; }); }); return o; }
+
+  function areaSeries(sid, k){ return entriesFor(sid).slice().reverse().map(e=>({v:areasOf(e)[k], d:e.date})).filter(p=>p.v); }
+  function areaArrow(pts){
+    if(pts.length<2) return "";
+    const last = RANKV[pts[pts.length-1].v], prev = pts.slice(0,-1), avg = prev.reduce((a,p)=>a+RANKV[p.v],0)/prev.length;
+    return last>avg+0.25 ? "\u2191" : last<avg-0.25 ? "\u2193" : "\u2192";
+  }
+  function summaryLine(s){
+    const li = lastInterviewDate(s.id), d = li ? daysSince(li) : null, parts = [];
+    parts.push(!li ? "No check-in yet" : d===0 ? "Checked in today" : "Check-in " + d + "d ago");
+    const la = latestAreas(s.id) || {}, bad = SECTIONS.filter(x=>la[x.k]==="n").map(x=>x.l.split(/[ &]/)[0]);
+    if(bad.length) parts.push("<b>\u26A0 " + escapeHtml(bad.join(", ")) + "</b>");
+    return parts.join(" \u00b7 ");
+  }
+  function renderStuHead(student, el){
+    if(!el) return;
+    if(!student){ el.innerHTML = ""; return; }
+    const sg = latestStanding(student.id), st = sg ? sg.status : "";
+    const lab = st==="struggling" ? ["Needs attention","red"] : st==="thriving" ? ["Thriving","green"] : st==="steady" ? ["Steady","yellow"] : ["No status yet","unknown"];
+    const cls = student.classId ? classById(student.classId) : null;
+    const tel = String(student.phone || student.parentPhone || "").replace(/[^\d+]/g,"");
+    el.innerHTML = `<div class="qs-head"><div class="photo ${studentStatus(student)}">${student.photo ? `<img src="${student.photo}" alt="">` : initials(student.name)}</div>
+        <div><span class="status-label ${lab[1]}">${lab[0]}</span>
+        <div class="hint" style="margin:4px 0 0;">${escapeHtml(cls ? cls.name : "No shiur")}${student.dorm ? " \u00b7 Dorm " + escapeHtml(student.dorm) : ""}</div>
+        <div class="hint" style="margin:2px 0 0;">${summaryLine(student)}</div></div></div>
+      <div class="stu-acts"><button id="shAtt">Attendance</button><button id="shProf">Profile</button>${tel ? `<a class="nm-btn" href="tel:${tel}">\u260E Call</a>` : ""}<button class="ghost" id="shAll">All talmidim</button></div>`;
+    el.querySelector("#shAtt").onclick = ()=> openStudentQuick(student.id, "att");
+    el.querySelector("#shProf").onclick = ()=> openStudentDrawer(student.id);
+    el.querySelector("#shAll").onclick = ()=>{ const r = document.querySelector('.tab[data-tab="roster"]'); if(r) r.click(); };
+  }
+
+  function renderProgress(student, el){
+    const es = entriesFor(student.id).slice().reverse();   // oldest first
+    const rows = SECTIONS.map(sec=>{
+      const pts = es.map(e=>({v:areasOf(e)[sec.k], d:e.date})).filter(p=>p.v);
+      let trend = "\u2014", tc = "";
+      if(pts.length>=2){
+        const last = RANKV[pts[pts.length-1].v], prev = pts.slice(0,-1), avg = prev.reduce((a,p)=>a+RANKV[p.v],0)/prev.length;
+        if(last>avg+0.25){ trend = "\u2191 Improving"; tc = "up"; } else if(last<avg-0.25){ trend = "\u2193 Slipping"; tc = "down"; } else trend = "\u2192 Steady";
+      } else if(pts.length===1) trend = "1 rating";
+      const dots = pts.slice(-12).map(p=>`<i class="pd ${p.v}" title="${escapeHtml(shortD(p.d))}"></i>`).join("") || '<span class="hint" style="margin:0;">no ratings yet</span>';
+      const qh = sec.qs.concat([{k:"note", q:"Details", t:1}]).map(q=>{
+        const key = sec.k+"."+q.k, vals = es.map(e=>({v:(e.qa||{})[key], d:e.date})).filter(x=>x.v);
+        if(!vals.length) return "";
+        if(q.t){ const l = vals[vals.length-1]; return `<div class="ph"><b>${escapeHtml(q.q)}:</b> ${escapeHtml(l.v)} <span class="hint">(${escapeHtml(shortD(l.d))})</span></div>`; }
+        const seq = []; vals.forEach(x=>{ if(!seq.length || seq[seq.length-1].v!==x.v) seq.push(x); });
+        return `<div class="ph"><b>${escapeHtml(q.q)}</b><br>${seq.map(x=>`${escapeHtml(x.v)} <span class="hint">(${escapeHtml(shortD(x.d))})</span>`).join(" \u2192 ")}</div>`;
+      }).join("");
+      return `<details class="pr"><summary><span class="pr-n">${escapeHtml(sec.l)}</span><span class="pr-d">${dots}</span><span class="pr-t ${tc}">${trend}</span></summary><div class="pr-b">${qh || '<div class="hint">No answers recorded yet.</div>'}</div></details>`;
+    }).join("");
+    const fu = entriesFor(student.id).find(e=>e.follow);
+    el.innerHTML = `<div class="pf-lbl" style="margin-top:14px;">Progress this year</div>${rows}
+      ${fu ? `<p class="hint">Last follow-up (${escapeHtml(shortD(fu.date))}): ${escapeHtml(fu.follow)}</p>` : ""}
+      <label for="approachTa" style="margin-top:10px;">Approach with him</label>
+      <textarea id="approachTa" rows="2" placeholder="e.g. Give him space to ask questions and make his own choices.">${escapeHtml(student.approach||"")}</textarea>`;
+    el.querySelector("#approachTa").addEventListener("change", e=>{ student.approach = e.target.value.trim(); persist().catch(()=>{}); });
+  }
 
   let currentEntryStatus = "";
   $("entryStatusSeg").querySelectorAll("button").forEach(btn=>{
@@ -2360,103 +2469,85 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     });
   });
 
-  // ---- voice dictation (reusable; keeps listening until you tap Stop) ----
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const _dictations = new Set();
-  function stopAllDictation(){ _dictations.forEach(d=> d.stop()); }
-  function attachDictation(btn, ta){
-    const IDLE = "\u{1F3A4} Dictate";
-    let rec = null, want = false, committed = "", failCount = 0;
-    const ui = on=>{
-      btn.innerHTML = on ? '<span class="rec-dot"></span>Listening\u2026 tap to stop' : IDLE;
-      ta.classList.toggle("dictating", on);
-    };
-    const sep = t=> (t && !/\s$/.test(t)) ? t + " " : t;
-    const tidy = (chunk, before)=>{
-      chunk = chunk.trim();
-      if(!chunk) return "";
-      if(!before.trim() || /[.!?]\s*$/.test(before)) chunk = chunk.charAt(0).toUpperCase() + chunk.slice(1);
-      return chunk;
-    };
-    // if you type or fix a word while dictating, keep your edit
-    ta.addEventListener("input", ()=>{ if(want) committed = ta.value; });
-    function begin(){
-      rec = new SpeechRec();
-      rec.lang = "en-US";
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.maxAlternatives = 1;
-      committed = ta.value;
-      rec.onresult = e=>{
-        failCount = 0;
-        let interim = "";
-        for(let i=e.resultIndex;i<e.results.length;i++){
-          const r = e.results[i];
-          if(r.isFinal){
-            const t = tidy(r[0].transcript, committed);
-            if(t) committed = sep(committed) + t;
-          } else interim += r[0].transcript;
-        }
-        // finals are kept for good; the grey-ish interim guess is shown but never saved
-        ta.value = interim.trim() ? sep(committed) + interim.trim() : committed;
-        ta.scrollTop = ta.scrollHeight;
-      };
-      rec.onerror = e=>{
-        if(e.error==="not-allowed" || e.error==="service-not-allowed"){
-          want = false; toast("Microphone access was blocked. Allow the microphone for this app in Android settings, then try again.", "error");
-        } else if(e.error==="network"){
-          want = false; toast("Dictation needs an internet connection.", "error");
-        } else if(e.error==="audio-capture"){
-          want = false; toast("No microphone found.", "error");
-        }
-      };
-      rec.onend = ()=>{
-        ta.value = committed;   // drop any unconfirmed guess
-        if(want && failCount < 8){
-          failCount++;
-          setTimeout(()=>{ if(want){ try{ begin(); }catch(err){ want=false; ui(false); } } }, 200);
-        } else { want = false; ui(false); }
-      };
-      rec.start();
-    }
-    const api = {
-      stop(){ want = false; try{ rec && rec.stop(); }catch(e){} ui(false); },
-      toggle(){
-        if(!SpeechRec){ toast("Voice dictation isn't supported in this browser. It works in Chrome on Android and on desktop Chrome.", "error"); return; }
-        if(want){ api.stop(); return; }
-        want = true; failCount = 0; ui(true);
-        try{ begin(); }catch(err){ want=false; ui(false); toast("Couldn't start dictation.", "error"); }
-      }
-    };
-    _dictations.add(api);
-    btn.addEventListener("click", api.toggle);
-    return api;
-  }
-  attachDictation($("voiceBtn"), $("entryNotes"));
-  $("cancelEntry").addEventListener("click", stopAllDictation);
-  { const tb = document.createElement("button"); tb.type = "button"; tb.className = "ghost"; tb.style.cssText = "font-size:12px;"; tb.textContent = "\u2728 Tidy"; tb.title = "Clean up and organize these notes"; $("voiceBtn").insertAdjacentElement("afterend", tb);
-    tb.addEventListener("click", ()=>{ const ta = $("entryNotes"); ta.value = tidyNotes(ta.value); toast("Tidied \u2014 important points are bolded. Edit if needed.", "success"); }); }
-  $("saveEntry").addEventListener("click", ()=>{ const ta = $("entryNotes"); if(ta.value.trim() && !/^- /.test(ta.value.trim())) ta.value = tidyNotes(ta.value); }, true);
-  $("saveEntry").addEventListener("click", stopAllDictation);
+  function stopAllDictation(){}   // dictation removed; kept as a no-op so older calls are harmless
 
-  $("addEntryBtn").addEventListener("click", ()=>{
-    $("entryDate").value = todayStr();
-    $("entryNotes").value = "";
-    window.__areas = {}; window.__paintAreas && window.__paintAreas();
-    currentEntryStatus = "";
-    $("entryStatusSeg").querySelectorAll("button").forEach(b=> b.classList.remove("active"));
+  window.__areas = {}; window.__qa = {}; window.__open = new Set();
+  window.__paintAreas = function(){
+    const b = $("areaBox"); if(!b) return;
+    const sid = state.activeInterviewStudent, skip = state.editingEntry || null;
+    const lq = sid ? lastQa(sid, skip) : {}, la = sid ? lastAreaMap(sid, skip) : {};
+    const qa = window.__qa, ar = window.__areas;
+    b.innerHTML = `<div class="row" style="align-items:center;margin:14px 0 4px;"><label style="margin:0;flex:1;">Areas to track</label>${Object.keys(lq).length ? '<button type="button" class="ghost" id="sameLast" style="font-size:12px;">\u21BA Same answers as last time</button>' : ""}</div>` +
+      SECTIONS.map(sec=>{
+        const cur = ar[sec.k], last = la[sec.k];
+        return `<details class="sec" data-s="${sec.k}" ${window.__open.has(sec.k) ? "open" : ""}><summary><span class="sec-n">${escapeHtml(sec.l)}${last ? `<i class="sec-last">last: ${RT[last.v][0]} ${escapeHtml(shortD(last.d))}</i>` : ""}</span><span class="mx-b">${["g","o","n"].map(r=>`<button type="button" class="mx-c ${cur===r ? ({g:"p",o:"l",n:"a"})[r] : ""}" data-ak="${sec.k}" data-ar="${r}">${RT[r][0]}<i>${RT[r][1]}</i></button>`).join("")}</span></summary>
+          <div class="sec-body">${sec.qs.map(q=>{
+            const key = sec.k+"."+q.k, v = qa[key] || "", l = lq[key];
+            return `<div class="qa"><div class="qa-q">${escapeHtml(q.q)}</div>${q.t
+              ? `<input type="text" data-qt="${key}" value="${escapeHtml(v)}" placeholder="${l ? escapeHtml("Last: "+l.v) : ""}">`
+              : `<div class="qa-o">${q.o.map(o=>`<button type="button" class="qa-c ${v===o ? "on" : ""}" data-qk="${key}" data-qv="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join("")}</div>${l ? `<div class="qa-last">Last: ${escapeHtml(l.v)} \u00b7 ${escapeHtml(shortD(l.d))}</div>` : ""}`}</div>`;
+          }).join("")}
+          <div class="qa"><input type="text" data-qt="${sec.k}.note" value="${escapeHtml(qa[sec.k+".note"] || "")}" placeholder="Details for ${escapeHtml(sec.l)} (optional)"></div></div></details>`;
+      }).join("");
+    b.querySelectorAll("summary").forEach(x=> x.addEventListener("click", e=>{ if(e.target.closest("button")) e.preventDefault(); }));
+    b.querySelectorAll("details.sec").forEach(d=> d.addEventListener("toggle", ()=>{ if(d.open) window.__open.add(d.dataset.s); else window.__open.delete(d.dataset.s); }));
+    b.querySelectorAll("[data-ak]").forEach(x=> x.onclick = ()=>{ const k = x.dataset.ak, r = x.dataset.ar; if(ar[k]===r) delete ar[k]; else ar[k] = r; window.__paintAreas(); });
+    b.querySelectorAll("[data-qk]").forEach(x=> x.onclick = ()=>{ const k = x.dataset.qk, v = x.dataset.qv; if(qa[k]===v) delete qa[k]; else qa[k] = v; window.__open.add(k.split(".")[0]); window.__paintAreas(); });
+    b.querySelectorAll("[data-qt]").forEach(x=> x.addEventListener("input", ()=>{ if(x.value.trim()) qa[x.dataset.qt] = x.value; else delete qa[x.dataset.qt]; }));
+    const sl = b.querySelector("#sameLast");
+    if(sl) sl.onclick = ()=>{ const l = lastQa(sid, skip); Object.keys(l).forEach(k=>{ if(!(k in qa) && !/\.note$/.test(k)) qa[k] = l[k].v; }); window.__paintAreas(); toast("Filled with last answers \u2014 change whatever is different.", "success"); };
+  };
+
+  function openEntryForm(entry){
+    const sid = state.activeInterviewStudent; if(!sid) return;
+    state.editingEntry = entry ? entry.id : null; state.formFor = sid; state.autoNewFor = sid;
+    $("entryFormTitle").textContent = entry ? "Edit check-in \u2014 " + entry.date : "New check-in";
+    $("entryDate").value = entry ? entry.date : todayStr();
+    $("entryNotes").value = entry ? (entry.notes || "") : "";
+    $("entryFollow").value = entry ? (entry.follow || "") : "";
+    window.__areas = entry ? areasOf(entry) : {};
+    window.__qa = entry ? Object.assign({}, entry.qa || {}) : {};
+    currentEntryStatus = entry ? ((entry.manual || !Object.keys(areasOf(entry)).length) ? (entry.status || "") : "") : "";
+    $("entryStatusSeg").querySelectorAll("button").forEach(b=> b.classList.toggle("active", b.dataset.st===currentEntryStatus));
+    $("deleteEntry").classList.toggle("hidden", !entry);
+    window.__paintAreas();
     $("entryForm").classList.remove("hidden");
+    if(entry){ try{ $("entryForm").scrollIntoView({behavior:"smooth", block:"start"}); }catch(e){} }
+  }
+  function closeEntryForm(){ state.editingEntry = null; state.formFor = null; $("entryForm").classList.add("hidden"); }
+  function afterEntryChange(){
+    renderInterviewPanel();
+    try{ renderRoster(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); }catch(e){}
+    persist().catch(e=>{ if(!e.shown) toast("Couldn't save: " + e.message, "error"); });
+  }
+  $("addEntryBtn").addEventListener("click", ()=> openEntryForm(null));
+  $("cancelEntry").addEventListener("click", closeEntryForm);
+  $("tidyBtn").addEventListener("click", ()=>{ const ta = $("entryNotes"); if(!ta.value.trim()) return; ta.value = tidyNotes(ta.value); toast("Tidied \u2014 important points are bolded. Edit if needed.", "success"); });
+  $("deleteEntry").addEventListener("click", async ()=>{
+    if(!state.editingEntry) return;
+    if(!(await confirmDialog("Delete this check-in?", {okLabel:"Delete", danger:true}))) return;
+    const id = state.editingEntry;
+    state.data.interviews = state.data.interviews.filter(i=>i.id!==id);
+    closeEntryForm(); afterEntryChange();
   });
-  $("cancelEntry").addEventListener("click", ()=> $("entryForm").classList.add("hidden"));
-  $("saveEntry").addEventListener("click", async ()=>{
-    const notes = $("entryNotes").value.trim();
-    if(!notes && !currentEntryStatus && !Object.keys(window.__areas||{}).length) { toast("Add some notes or pick how he's holding.", "error"); return; }
-    state.data.interviews.push({ id:uid(), studentId: state.activeInterviewStudent, date: $("entryDate").value || todayStr(), notes, status: currentEntryStatus || (()=>{ const v = Object.values(window.__areas||{}); return v.includes("n") ? "struggling" : v.length && v.every(x=>x==="g") ? "thriving" : v.length ? "steady" : ""; })(), areas: Object.assign({}, window.__areas||{}) });
-    $("saveEntry").disabled = true;
-    try{ await persist(); $("entryForm").classList.add("hidden"); renderInterviewPanel(); if(state.ckFrom){ const id = state.ckFrom; state.ckFrom = null; openStudentQuick(id); } }
-    catch(e){ if(!e.shown) toast("Couldn't save: " + e.message, "error"); }
-    finally{ $("saveEntry").disabled = false; }
+  $("saveEntry").addEventListener("click", ()=>{
+    const sid = state.activeInterviewStudent; if(!sid) return;
+    let notes = $("entryNotes").value.trim();
+    if(notes && !/^- /.test(notes)) notes = tidyNotes(notes);   // built-in tidy, no AI
+    const follow = $("entryFollow").value.trim(), areas = Object.assign({}, window.__areas || {}), qa = {};
+    Object.keys(window.__qa || {}).forEach(k=>{ const v = String(window.__qa[k]).trim(); if(v) qa[k] = v; });
+    if(!notes && !follow && !currentEntryStatus && !Object.keys(areas).length && !Object.keys(qa).length){ toast("Add a note, answer a question, or pick how he's holding.", "error"); return; }
+    const vals = Object.values(areas);
+    const status = currentEntryStatus || (vals.includes("n") ? "struggling" : vals.length && vals.every(x=>x==="g") ? "thriving" : vals.length ? "steady" : "");
+    const date = $("entryDate").value || todayStr(), manual = !!currentEntryStatus;
+    if(state.editingEntry){ const e = state.data.interviews.find(i=>i.id===state.editingEntry); if(e) Object.assign(e, {date, notes, status, areas, qa, follow, manual}); }
+    else state.data.interviews.push({ id:uid(), studentId:sid, date, notes, status, areas, qa, follow, manual });
+    closeEntryForm();
+    afterEntryChange();
+    state.ckFrom = null;
   });
+  // leaving the Check-ins tab means the next visit starts a fresh entry
+  document.querySelectorAll(".tab").forEach(b=> b.addEventListener("click", ()=>{ if(b.dataset.tab!=="interviews") state.autoNewFor = null; }));
 
   // ================= FULL SCHOOL OVERVIEW =================
   let ovOverlay = null;
@@ -3884,25 +3975,18 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128247; Snap attendance sheet</p><button class="ghost" id="snX">Close</button></div><div id="snBody"></div></div>`;
       showOverlay(ov); const body = ov.querySelector("#snBody");
       ov.querySelector("#snX").onclick = ()=>{ stopAllDictation(); closeOverlay(ov); }; ov.addEventListener("click", e=>{ if(e.target===ov){ stopAllDictation(); closeOverlay(ov); } });
-      function talk(){
-        body.innerHTML = `<p style="margin:0 0 4px;font-size:17px;font-weight:600;">Who came and who didn't?</p><p class="hint" style="margin:0 0 8px;">Just talk &mdash; it's listening. Say it like you'd tell a person: &ldquo;Moshe and Dovid have been coming, Yossi hasn't been in, Shmuel came late.&rdquo; Only the guys you name are updated. Say &ldquo;yesterday&rdquo; or a day name to log another day.</p><textarea id="tkT" rows="6" placeholder="What you say shows up here. You can fix any word before tapping Read it."></textarea><div class="row" style="gap:8px;margin-top:8px;"><button id="tkV" class="ghost">\uD83C\uDFA4 Dictate</button><button class="primary" id="tkGo" style="flex:1">Read it</button></div><p class="hint" style="margin-top:8px;">Next you'll see exactly what it understood, with a button to fix anyone, before anything is saved.</p><div class="row" style="margin-top:4px;"><button id="tkB">Back</button></div>`;
-        const ta = body.querySelector("#tkT"), dict = attachDictation(body.querySelector("#tkV"), ta);
-        body.querySelector("#tkB").onclick = ()=>{ dict.stop(); home(); };
-        body.querySelector("#tkGo").onclick = ()=>{ dict.stop(); const t = ta.value.trim(); if(!t){ toast("Say or type something first.","error"); return; } window.__snapTalk = true; run(null,t); };
-        if(SpeechRec) dict.toggle(); else ta.focus();
-      }
       function spokenDone(eff, date, seder){
         const ids = Object.keys(eff).map(id=>state.data.students.find(x=>x.id===id)).filter(Boolean).sort(byName);
         const LB = {present:"Present", late:"Late", absent:"Absent"}, CL = {present:"var(--green)", late:"var(--amber)", absent:"var(--red)"};
         const dl = new Date(date+"T12:00:00").toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
         body.innerHTML = `<div class="nm-card" style="text-align:center;"><div style="font-size:32px;color:var(--green);">&#10003;</div><div class="nm-name">Logged for ${ids.length} talmid${ids.length===1?"":"im"}</div><p class="hint" style="margin:4px 0 0;">${escapeHtml(dl)} &middot; ${escapeHtml(sederLabel(seder))}</p></div>${ids.map(x=>`<div class="sn-row"><span class="n">${escapeHtml(x.name)}</span><b style="color:${CL[eff[x.id]]}">${LB[eff[x.id]]}</b></div>`).join("")}<p class="hint" style="margin-top:8px;">This is now on each talmid's profile. Made a mistake? Open the &#8942; menu &rarr; Upload history to undo it.</p><div class="row" style="gap:8px;margin-top:10px;"><button class="primary" id="sdMore" style="flex:1;">Add more</button><button id="sdOk" style="flex:1;">Done</button></div>`;
-        body.querySelector("#sdMore").onclick = talk; body.querySelector("#sdOk").onclick = ()=>closeOverlay(ov);
+        body.querySelector("#sdMore").onclick = home; body.querySelector("#sdOk").onclick = ()=>closeOverlay(ov);
       }
       const home = ()=>{
-        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snTalk" style="width:100%;margin:0 0 10px;">\uD83C\uDFA4 Talk it in &mdash; say who came and who didn't</button><button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
+        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
           ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
           <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="snCam" accept="image/*" capture="environment" multiple hidden></label><label class="sn-big">&#128444; Choose image<input type="file" id="snPick" accept="image/*" multiple hidden></label></div>
-          <label style="margin-top:14px;">Paste WhatsApp attendance text, or type it</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button id="snTxt">Read it</button></div>
+          <label style="margin-top:14px;">Or paste attendance text (WhatsApp message, a list, anything)</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button class="primary" id="snTxt">Read text</button></div>
           `;
         const go = f=>{ if(!f || !f.length) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
         body.querySelector("#snCam").onchange = e=>go([...e.target.files]); body.querySelector("#snPick").onchange = e=>go([...e.target.files]);
@@ -3911,7 +3995,6 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
           body.querySelector("#afB").onclick = home;
           body.querySelectorAll("[data-sd]").forEach(b=> b.onclick = ()=>{ const t = body.querySelector("#afT").value.trim(); if(!t){ toast("Paste the message first.","error"); return; } window.__snapSeder = b.dataset.sd; run(null,t); });
         };
-        body.querySelector("#snTalk").onclick = talk;
         const qb = body.querySelector("#snQ"); if(qb) qb.onclick = async ()=>{ if(!navigator.onLine){ toast("Still offline.","error"); return; } const q = getQ(), it = q[0]; body.innerHTML = '<p class="hint">Reading&hellip;</p>'; try{ const res = await askAI(it.img); window.__qTs = it.ts; review(res, it.img); }catch(err){ toast("Couldn\'t read it: "+(err.message||err),"error"); home(); } };
         body.querySelector("#snTxt").onclick = ()=>{ const t = body.querySelector("#snNote").value.trim(); if(!t) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(null,t); };
         const c = body.querySelector("#snChg"); if(c) c.onclick = e=>{ e.preventDefault(); try{ localStorage.removeItem(KEYK); }catch(_){} home(); };
@@ -4044,8 +4127,6 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       home();
     }
     fab.addEventListener("click", open);
-    const tfab = document.createElement("button"); tfab.id = "talkFab"; tfab.className = "primary"; tfab.innerHTML = "&#127908; Talk it in"; document.body.appendChild(tfab);
-    tfab.addEventListener("click", ()=>{ open(); const b = document.getElementById("snTalk"); if(b) b.click(); });
     const mb = document.createElement("button"); mb.textContent = "\uD83D\uDCF7 Snap attendance sheet";
     mb.addEventListener("click", ()=>{ $("moreMenu").classList.add("hidden"); open(); }); $("moreMenu").insertBefore(mb, $("moreMenu").firstChild);
   })();
@@ -4227,6 +4308,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
         $$(el,"[data-s]").forEach(b=> b.onclick = ()=>{ listY = el.scrollTop; open = b.dataset.s; deep(); el.scrollTop = 0; });
         const qi = el.querySelector("#ixQ"); qi.oninput = ()=>{ q = qi.value.toLowerCase().trim(); const pos = qi.selectionStart; paint(); const n = el.querySelector("#ixQ"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} };
         el.querySelector("#ixSo").onchange = e=>{ sort = e.target.value; paint(); };
+        $$(el,".gl").forEach(g=>{ const h = g.querySelector("h3"); if(h && /Standing|By shiur|Strength/i.test(h.textContent)) g.style.display = "none"; });
         el.scrollTop = y0;
       };
       const deep = ()=>{
@@ -5171,7 +5253,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     el.querySelectorAll("[data-n]").forEach(i=> i.onchange = ()=>{ const f = F.find(x=>x[0]===i.dataset.n); s[f[1]] = i.value.trim(); sv(); });
   }
   window.__renderSwitchBox = renderSwitchBox;
-  window.__renderStudentBoxes = function(s, el){ const t = el || $("stuBoxes"); renderSwitchBox(s, t, !el); if(!el && s){ const d = document.createElement("div"); d.innerHTML = "<label>Quick check-in: how is he doing?</label>" + standingHtml(s.id); t.insertBefore(d, t.firstChild); wireStanding(d, s.id); } };
+  window.__renderStudentBoxes = function(s, el){ const t = el || $("stuBoxes"); renderSwitchBox(s, t, !el); };
   window.__swCk = function(on, lbl, s){ if(!on) return; const note = "Wants to switch: " + lbl.replace("Wants to switch ","").replace("Wants to switch","rooms").toLowerCase(), d = todayStr(); if(!state.data.interviews.some(i=>i.studentId===s.id && i.date===d && i.notes===note)) state.data.interviews.push({id:uid(), studentId:s.id, date:d, notes:note, status:""}); try{ renderInterviewPanel(); }catch(e){} };
 
   // profile autosave
@@ -5370,31 +5452,8 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
   showMain = function(){ _showMainV2(); maybeShiurBanner(); };
 
   // ---- check-in areas, free AI cleanup, school snapshot printout, graphs ----
-  const AREAS = [["emo","Emotional"],["spi","Spiritual growth"],["soc","Social"],["lrn","Learning"],["phy","Physical / accommodations"]];
+  const AREAS = SECTIONS.map(x=>[x.k, x.l]);
   const RT = {g:["\u{1F44D}","Good"], o:["\u{1F610}","OK"], n:["\u26A0\uFE0F","Needs help"]};
-  window.__areas = {};
-  window.__paintAreas = function(){
-    const b = $("areaBox"); if(!b) return;
-    b.innerHTML = '<label style="margin-top:14px;">How is he doing? Tap each area</label>' + AREAS.map(([k,l])=>`<div class="mx-row"><div class="mx-n">${l}</div><div class="mx-b">${["g","o","n"].map(r=>`<button type="button" class="mx-c ${window.__areas[k]===r?({g:"p",o:"l",n:"a"})[r]:""}" data-ak="${k}" data-ar="${r}" style="min-width:52px;">${RT[r][0]}<i style="font-size:10px;font-weight:500;">${RT[r][1]}</i></button>`).join("")}</div></div>`).join("");
-    b.querySelectorAll("[data-ak]").forEach(x=> x.onclick = ()=>{ const k = x.dataset.ak, r = x.dataset.ar; if(window.__areas[k]===r) delete window.__areas[k]; else window.__areas[k] = r; window.__paintAreas(); });
-  };
-  window.__paintAreas();
-  const AIP = "You are helping a yeshiva rebbe keep clear records. Rewrite these dictated notes about one student into short, clear bullet points (each starting with '- '). Group by area when relevant: Emotional, Spiritual growth, Social, Learning, Physical/accommodations, Attendance, Next steps. Keep every fact, invent nothing, fix grammar, and wrap the most important points and action items in **double asterisks**. Output only the bullets.\n\nNotes:\n";
-  $("aiBtn").onclick = async ()=>{
-    const ta = $("entryNotes"), raw = ta.value.trim(), btn = $("aiBtn");
-    if(!raw){ toast("Type or dictate some notes first.", "error"); return; }
-    let k = DEFAULT_GEM; try{ k = localStorage.getItem("gemKey")||DEFAULT_GEM; }catch(e){}
-    if(!k){ k = (prompt("Free AI cleanup: get a free key at aistudio.google.com/apikey (no card needed) and paste it here. It stays on this device. Leave blank to use the built-in tidy instead.")||"").trim(); if(k){ try{ localStorage.setItem("gemKey", k); }catch(e){} } }
-    if(!k){ ta.value = tidyNotes(raw); return; }
-    btn.disabled = true; btn.textContent = "Working\u2026";
-    try{
-      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key="+encodeURIComponent(k), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts:[{text:AIP+raw}]}]})});
-      const j = await r.json(), t = j.candidates && j.candidates[0].content.parts.map(p=>p.text).join("");
-      if(!t) throw new Error((j.error && j.error.message) || "no reply");
-      ta.value = t.trim().replace(/^[*\u2022] /gm,"- "); toast("Cleaned up \u2014 please read it over.", "success");
-    }catch(e){ ta.value = tidyNotes(raw); toast("AI unavailable ("+e.message+") \u2014 used the built-in tidy.", "error"); }
-    finally{ btn.disabled = false; btn.textContent = "\u2728 Clean up"; }
-  };
   // ----- shared helpers
   const DAY = n=>{ const o = []; for(let i=n-1;i>=0;i--){ const d = new Date(todayStr()+"T00:00:00"); d.setDate(d.getDate()-i); o.push(localDateStr(d)); } return o; };
   const VAL = v=> v==="present"?1 : v==="early"?0.75 : v==="late"?0.5 : v==="absent"?0 : null;
@@ -5405,7 +5464,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
   const stuVals = (sid, from, to)=>{ const o = []; state.data.attendance.forEach(a=>{ if(a.date>=from && a.date<=to && a.records && a.records[sid]) o.push(VAL(a.records[sid])); }); return o; };
   const weekRange = k=>{ const e = new Date(todayStr()+"T00:00:00"); e.setDate(e.getDate()-7*k); const s = new Date(e); s.setDate(s.getDate()-6); return [localDateStr(s), localDateStr(e)]; };
   const col = p=> p===null ? "#bbb" : p>=90 ? "#2e9e5b" : p>=80 ? "#d99a1a" : "#d64545";
-  const latestAreas = sid=>{ const e = state.data.interviews.filter(i=>i.studentId===sid && i.areas && Object.keys(i.areas).length).sort((a,b)=>b.date.localeCompare(a.date))[0]; return e ? e.areas : null; };
+  const latestAreas = sid=>{ const m = lastAreaMap(sid), o = {}; Object.keys(m).forEach(k=> o[k] = m[k].v); return Object.keys(o).length ? o : null; };
   const latestNote = sid=> state.data.interviews.filter(i=>i.studentId===sid && i.notes).sort((a,b)=>b.date.localeCompare(a.date))[0] || null;
   const md = t=> escapeHtml(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^- /gm,"\u2022 ").replace(/\n/g,"<br>");
   function lineSvg(pts){
@@ -5569,7 +5628,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     h += `<div style="display:flex;gap:8px;margin:10px 0;"><div style="flex:1;background:#F2F2F7;border-radius:14px;padding:9px 12px;"><b style="font-size:20px;color:${col(p)}">${p===null?"\u2014":p+"%"}</b><div style="font-size:11px;color:#6E6E73;">attendance this week</div></div><div style="flex:1;background:#F2F2F7;border-radius:14px;padding:9px 12px;"><b style="font-size:20px;color:${ab>=3?"#D70015":"inherit"}">${ab}</b><div style="font-size:11px;color:#6E6E73;">absences, last 2 weeks</div></div><div style="flex:1;background:#F2F2F7;border-radius:14px;padding:9px 12px;"><b style="font-size:20px;color:${n===null||n>=14?"#B25E00":"inherit"}">${n===null?"never":n+"d"}</b><div style="font-size:11px;color:#6E6E73;">since check-in</div></div></div>`; }catch(e){} return h; };
 
   // ---- v9: built-in AI key, auto-enhance check-ins, undo, remember where I was ----
-  const DEFAULT_GEM = "AQ.Ab8RN6IvpUIsnXT8vCojqv99cWlDLv1GTk6_hBBqOnB_yvJ2zw";
+  const DEFAULT_GEM = "AQ.Ab8RN6JOVTOyOTq4HnlC19nwMamj5m0AbYZvdK6wFseYp5v8Fg";
   const hideUndo = ()=>{ const b = $("undoBar"); if(b) b.style.display = "none"; window.__prevAtt = null; };
   let undoT = null; window.__prevAtt = null;
   window.__snap = function(){
@@ -5583,23 +5642,6 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
   const UIK = "uiLast:" + location.pathname;
   window.__saveUi = ()=>{ try{ const a = document.querySelector(".tab.active"); localStorage.setItem(UIK, JSON.stringify({tab:a && a.dataset.tab, cls:state.activeClass, d:state.attAllDate, on:todayStr()})); }catch(e){} };
   document.addEventListener("click", ()=> setTimeout(window.__saveUi, 60));
-  const ENH = "You help a yeshiva rebbe keep clear records. Rewrite these dictated notes about one student as short bullet points (each starting with '- '), grouped by area when relevant: Emotional, Spiritual growth, Social, Learning, Physical/accommodations, Attendance, Next steps. Keep every fact, invent nothing, fix grammar, wrap the most important points and action items in **double asterisks**. Also rate each area ONLY if the notes clearly say something about it. Return ONLY JSON: {\"notes\":\"- bullet\\n- bullet\",\"areas\":{\"emo\":\"good|ok|needs\",\"spi\":\"...\",\"soc\":\"...\",\"lrn\":\"...\",\"phy\":\"...\"},\"status\":\"thriving|steady|struggling or empty\"}. Omit areas that aren't mentioned.\n\nNotes:\n";
-  $("saveEntry").addEventListener("click", async e=>{
-    const ta = $("entryNotes"), raw = ta.value.trim(); if(window.__enh || !raw) return;
-    let k = ""; try{ k = localStorage.getItem("gemKey") || DEFAULT_GEM; }catch(err){ k = DEFAULT_GEM; } if(!k) return;
-    e.stopImmediatePropagation(); e.preventDefault(); const btn = $("saveEntry"), old = btn.textContent; btn.disabled = true; btn.textContent = "Enhancing\u2026";
-    try{
-      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + encodeURIComponent(k), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts:[{text:ENH+raw}]}], generationConfig:{responseMimeType:"application/json"}})});
-      const j = await r.json(), t = j.candidates && j.candidates[0].content.parts.map(p=>p.text).join(""); if(!t) throw new Error((j.error && j.error.message) || "no reply");
-      const o = JSON.parse(t.replace(/```json|```/g,"").trim()), mp = {good:"g", ok:"o", needs:"n"};
-      if(o.notes) ta.value = String(o.notes).replace(/^[*\u2022] /gm,"- ");
-      Object.keys(o.areas||{}).forEach(a=>{ if(mp[o.areas[a]] && !window.__areas[a] && AREAS.some(x=>x[0]===a)) window.__areas[a] = mp[o.areas[a]]; });
-      window.__paintAreas && window.__paintAreas();
-      if(!currentEntryStatus && ({thriving:1,steady:1,struggling:1})[o.status]) currentEntryStatus = o.status;
-    }catch(err){ toast("AI unavailable \u2014 saved with the built-in tidy.", "error"); }
-    btn.disabled = false; btn.textContent = old; window.__enh = true; btn.click(); setTimeout(()=>{ window.__enh = false; }, 0);
-  }, true);
-
   // ---- tidy pass: grouped menu, calmer tab order, collapsed alerts ----
   function tidyMenu(){
     const m = $("moreMenu"); if(!m || m.dataset.tidy) return; m.dataset.tidy = "1";
@@ -5613,6 +5655,55 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       if(k.indexOf("Setup")===0){ const d = document.createElement("details"); d.className = "menu-setup"; const sm = document.createElement("summary"); sm.textContent = k; d.appendChild(sm); G[k].forEach(b=> d.appendChild(b)); m.appendChild(d); }
       else { const l = document.createElement("div"); l.className = "menu-label"; l.textContent = k; m.appendChild(l); G[k].forEach(b=> m.appendChild(b)); } });
   }
+  // ---- cohesion pass: one home for each thing, no duplicate buttons ----
+  function dedupeUi(mm, tabs){
+    // Board + Overview: header keeps ONE button (Overview); the Board now lives inside the Attendance tab
+    const bt = $("brTop"); if(bt) bt.remove();
+    // roster already has Rabbeim / + Class / + Student; the global search box replaces the roster search
+    const rs = $("rosterSearch"); if(rs) rs.style.display = "none";
+    // old menu items that repeat something already on screen
+    const kill = [/Attendance board/, /Overview dashboard/, /Full school overview/, /School photo grid/, /Snap attendance sheet/, /^Rabbeim$/, /^Add a class$/, /^Add a student$/, /Printable overview/, /Daily sweep/];
+    mm.querySelectorAll("button").forEach(b=>{ const t = b.textContent.trim(); if(kill.some(r=>r.test(t))) b.remove(); });
+    // setup-type items go under Setup; Check-ins from the menu opens the student list
+    const su = mm.querySelector("details.menu-setup");
+    if(su) [...mm.children].filter(b=>b.tagName==="BUTTON" && /Add from a document|Edit shiurim/.test(b.textContent)).forEach(b=> su.appendChild(b));
+    const ck = [...mm.querySelectorAll("button")].find(b=>b.textContent.trim()==="Check-ins");
+    if(ck) ck.onclick = ()=>{ mm.classList.add("hidden"); state.activeInterviewStudent = null; document.querySelector('.tab[data-tab="interviews"]').click(); };
+    // three print buttons -> one "Print & reports" chooser
+    const printers = [/Printable attendance sheets/, /Whole-school report/];
+    const pr = [...mm.querySelectorAll("button")].filter(b=> printers.some(r=>r.test(b.textContent)));
+    if(pr.length && !mm.querySelector("#printHub")){
+      pr.forEach(b=> b.style.display = "none");
+      const hb = document.createElement("button"); hb.id = "printHub"; hb.style.fontWeight = "700"; hb.textContent = "\uD83D\uDDA8 Print & reports\u2026";
+      const items = [["Printable overview (1\u20132 pages)", ()=>window.__openPO && window.__openPO()]].concat(pr.map(b=>[b.textContent.trim().replace(/^[^A-Za-z]+/,""), ()=>b.click()]));
+      hb.onclick = ()=>{
+        mm.classList.add("hidden");
+        const ov = document.createElement("div"); ov.className = "overlay";
+        ov.innerHTML = `<div class="drawer"><div class="drawer-head"><b style="font-size:18px;">Print &amp; reports</b><button class="ghost" id="phX">Close</button></div>${items.map((x,i)=>`<button class="nm-btn main" data-i="${i}" style="width:100%;margin:6px 0;">${escapeHtml(x[0])}</button>`).join("")}</div>`;
+        showOverlay(ov);
+        ov.querySelector("#phX").onclick = ()=>closeOverlay(ov);
+        ov.addEventListener("click", e=>{ if(e.target===ov) closeOverlay(ov); });
+        ov.querySelectorAll("[data-i]").forEach(x=> x.onclick = ()=>{ closeOverlay(ov); items[+x.dataset.i][1](); });
+      };
+      mm.insertBefore(hb, mm.firstChild);
+    }
+    // Attendance tab: "By shiur" / "All-school board" switch (the board is no longer a separate full-screen section)
+    const at = $("tab-attendance");
+    if(at && !$("brdBar")){
+      const bar = document.createElement("div"); bar.id = "brdBar"; bar.className = "seg"; bar.style.margin = "0 0 10px";
+      bar.innerHTML = '<button class="active" id="abClass" style="flex:1;">By shiur</button><button id="abBoard" style="flex:1;">\uD83D\uDCCB All-school board</button>';
+      const host = document.createElement("div"); host.id = "brdHost"; window.__brdHost = host;
+      at.insertBefore(host, at.firstChild); at.insertBefore(bar, host);
+      const mode = board=>{
+        $("abClass").classList.toggle("active", !board); $("abBoard").classList.toggle("active", board);
+        [...at.children].forEach(c=>{ if(c!==bar && c!==host) c.style.display = board ? "none" : ""; });
+        if(board){ window.__board && window.__board(); } else { const b = document.getElementById("brd"); if(b) b.remove(); }
+      };
+      window.__brdOnClose = ()=> mode(false);
+      $("abClass").onclick = ()=> mode(false);
+      $("abBoard").onclick = ()=> mode(true);
+    }
+  }
   function tidyUi(){
     tidyMenu();
     const tabs = document.querySelector(".tabs"), L = {roster:"Talmidim", attendance:"Attendance", shiurim:"Shiurim", interviews:"Check-ins", home:"Overview"};
@@ -5622,6 +5713,8 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     [["Rabbeim","rabbeimBtn"],["Add a class","addClassBtn"],["Add a student","addStudentBtn"]].forEach(([l,id])=>{ const bt = document.createElement("button"); bt.textContent = l; bt.onclick = ()=>{ mm.classList.add("hidden"); $(id).click(); }; mm.insertBefore(bt, first); });
     { const pb = document.createElement("button"); pb.style.fontWeight = "700"; pb.textContent = "🖨 Printable overview (1–2 pages)"; pb.onclick = ()=>{ mm.classList.add("hidden"); window.__openPO(); }; mm.insertBefore(pb, mm.firstChild); }
     window.__tidyAdd(mm);
+    dedupeUi(mm, tabs);
+    { const nt = tabs.querySelector('[data-tab="needs"]'); if(nt && nt.firstChild && nt.firstChild.nodeType===3) nt.firstChild.textContent = "Today "; }
     if(!PFX && !window.__gsInit){ window.__gsInit = 1; state.gsAll = false; if(window.__lab) window.__lab(); }
     { const ot = $("ovTop"); if(ot){ ot.style.display = ""; ot.onclick = ()=>window.__openInsights(); } }
     let ui = {}; try{ ui = JSON.parse(localStorage.getItem(UIK)||"{}"); }catch(e){}
@@ -5891,8 +5984,12 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     const shift = n=>{ const d = new Date(date+"T12:00:00"); d.setDate(d.getDate()+n); date = localDateStr(d); };
     function open(){
       const el = document.createElement("div"); el.id = "brd";
-      el.style.cssText = "position:fixed;inset:0;z-index:70;overflow:auto;background:#eef0fb;font-family:-apple-system,system-ui,sans-serif;color:#1d1a3f;padding:calc(10px + env(safe-area-inset-top,0px)) 10px 80px";
-      document.body.appendChild(el);
+      const old = document.getElementById("brd"); if(old) old.remove();
+      const host = window.__brdHost && window.__brdHost.isConnected ? window.__brdHost : null;
+      el.style.cssText = host
+        ? "position:relative;background:#eef0fb;font-family:inherit;color:#1d1a3f;padding:10px 10px 24px;border-radius:14px;margin:0 0 12px"
+        : "position:fixed;inset:0;z-index:70;overflow:auto;background:#eef0fb;font-family:-apple-system,system-ui,sans-serif;color:#1d1a3f;padding:calc(10px + env(safe-area-inset-top,0px)) 10px 80px";
+      (host || document.body).appendChild(el);
       const css = `<style>#brd .bt{display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:sticky;top:0;background:#eef0fb;padding:4px 0 8px;z-index:2}#brd button,#brd input{font:inherit;border-radius:10px;border:1px solid #cfd0ee;background:#fff;color:#4b3fd1;padding:8px 11px;font-weight:600}#brd .on{background:#4b3fd1;color:#fff}
         #brd table{border-collapse:separate;border-spacing:0 3px;width:100%}#brd td,#brd th{padding:0 2px}#brd th{font-size:11px;color:#6b6f92;font-weight:700;position:sticky;top:46px;background:#eef0fb}#brd td.n{font-size:14px;padding:6px 8px;background:#fff;border-radius:10px 0 0 10px;white-space:nowrap;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
         #brd td.c button{width:100%;min-width:42px;height:38px;padding:0;border:0;border-radius:9px;background:#dfe1ee;color:#fff;font-weight:800;font-size:15px}#brd .sm{font-size:11px;padding:3px 6px;margin-top:2px}#brd .b{display:inline-block;width:100%;height:30px;border-radius:7px}</style>`;
@@ -5911,7 +6008,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
             ${L.map(s=>{ const p = PCT(stuVals(s.id, cols[0]||date, cols[cols.length-1]||date)); return `<tr><td class="n">${esc(s.name)}</td>${cols.map(d=>{ const v = avg(s,d); return `<td class="c"><button data-d="${d}" style="background:${v===null?"#dfe1ee":v>=0.9?"#1f9d57":v>=0.4?"#e0a100":"#d63c3c"}">${v===null?"":Math.round(v*100)}</button></td>`; }).join("")}<td style="font-weight:800;font-size:13px;color:${col(p)};padding-left:4px">${p===null?"—":p+"%"}</td></tr>`; }).join("")}</table>`;
         }
         const keep = el.scrollTop; el.innerHTML = css+head+body; el.scrollTop = keep;
-        el.querySelector("#bX").onclick = ()=>{ el.remove(); try{ renderRoster(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner(); renderKpis(); }catch(e){} };
+        el.querySelector("#bX").onclick = ()=>{ el.remove(); try{ window.__brdOnClose && window.__brdOnClose(); }catch(e){} try{ renderRoster(); renderAttClassStrip(); renderAttendanceTab(); updateAttentionBanner(); renderKpis(); }catch(e){} };
         el.querySelector("#bD").onclick = ()=>{ view = "day"; paint(); }; el.querySelector("#bW").onclick = ()=>{ view = "week"; paint(); };
         el.querySelector("#bQ").oninput = e=>{ q = e.target.value.toLowerCase(); const p = e.target.selectionStart; paint(); const i = el.querySelector("#bQ"); i.focus(); i.setSelectionRange(p,p); };
         if(view==="day"){
@@ -5929,6 +6026,35 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       if(!$("brTop")){ const t = document.createElement("button"); t.id = "brTop"; t.className = "ghost"; t.style.fontWeight = "700"; t.innerHTML = "&#128203; Board"; t.onclick = open; const ot = $("ovTop"); ot.parentNode.insertBefore(t, ot); } };
   })();
 
+  // ================= TODAY: who needs development (bad ratings by area) =================
+  let devArea = "all";
+  function renderDev(){
+    const body = $("needsBody"); if(!body || !state.data) return;
+    const old = $("devBox"); if(old) old.remove();
+    const stu = yearScope(), bad = [], up = [];
+    stu.forEach(s=>{
+      const la = latestAreas(s.id) || {}, ks = SECTIONS.filter(x=>la[x.k]==="n");
+      if(ks.length) bad.push({s, ks});
+      SECTIONS.forEach(x=>{ const p = areaSeries(s.id, x.k); if(p.length>=2 && RANKV[p[p.length-1].v] > RANKV[p[p.length-2].v]) up.push({s, x}); });
+    });
+    const cnt = k=> bad.filter(b=>b.ks.some(x=>x.k===k)).length;
+    const chips = [["all","Any area",bad.length]].concat(SECTIONS.map(x=>[x.k, x.l, cnt(x.k)]))
+      .map(([k,l,n])=>`<button class="nm-filter${devArea===k?" on":""}" data-dv="${k}">${escapeHtml(l)} <b>${n}</b></button>`).join("");
+    const list = (devArea==="all" ? bad : bad.filter(b=>b.ks.some(x=>x.k===devArea))).sort((a,b)=> b.ks.length-a.ks.length || byName(a.s,b.s));
+    const rows = list.map(b=>`<div class="nm-card" data-dvid="${escapeHtml(b.s.id)}" style="cursor:pointer;"><div class="nm-name">${escapeHtml(b.s.name)}</div><div class="nm-tags">${b.ks.map(x=>{ const p = areaSeries(b.s.id, x.k), a = areaArrow(p); return `<span class="nm-tag danger">${escapeHtml(x.l.split(/[ &]/)[0])}${a ? " " + a : ""}</span>`; }).join("")}</div></div>`).join("");
+    const ups = up.slice(0, 6).map(u=>`${escapeHtml(u.s.name)} (${escapeHtml(u.x.l.split(/[ &]/)[0])})`).join(", ");
+    const box = document.createElement("div"); box.id = "devBox"; box.style.marginBottom = "18px";
+    box.innerHTML = `<div class="nm-head"><b>Needs development</b><span>latest rating = Needs help</span></div>
+      <div class="nm-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${chips}</div>
+      ${rows || '<p class="hint">' + (bad.length ? "Nobody in this area." : "Nobody is rated Needs help yet. Rate the areas in check-ins and they show up here.") + '</p>'}
+      ${ups ? `<p class="hint" style="margin-top:8px;">\u2191 Moving up: ${ups}</p>` : ""}`;
+    body.insertBefore(box, body.firstChild);
+    box.querySelectorAll("[data-dv]").forEach(b=> b.onclick = ()=>{ devArea = b.dataset.dv; renderDev(); });
+    box.querySelectorAll("[data-dvid]").forEach(c=> c.onclick = ()=> openStudentQuick(c.dataset.dvid));
+  }
+  const _renderNeeds0 = renderNeeds;
+  renderNeeds = function(){ _renderNeeds0(); try{ renderDev(); }catch(e){} };
+
   const _showMainV3 = showMain;
   showMain = function(){ _showMainV3(); try{ tidyUi(); }catch(e){} };
 
@@ -5936,6 +6062,34 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
 })();
 </script>
 <script>
+// ---- back swipe / back button: close the open sheet first, then return to the home screen (all profiles) ----
+(function(){
+  const OV = []; let ignore = 0, tabPushed = false, popping = false;
+  const push = t=>{ try{ history.pushState({nav:t}, ""); }catch(e){} };
+  const back = ()=>{ ignore++; try{ history.back(); }catch(e){ ignore--; } };
+  new MutationObserver(ms=> ms.forEach(m=>{
+    m.addedNodes.forEach(n=>{ if(n.nodeType===1 && n.classList.contains("overlay") && !OV.includes(n)){ OV.push(n); push("ov"); } });
+    m.removedNodes.forEach(n=>{ const i = OV.indexOf(n); if(i>=0){ OV.splice(i,1); back(); } });
+  })).observe(document.body, {childList:true});
+  document.querySelectorAll(".tab").forEach(b=> b.addEventListener("click", ()=>{
+    const home = b.dataset.tab==="roster" || b.dataset.parent==="roster";
+    if(home){ if(tabPushed && !popping){ tabPushed = false; back(); } }
+    else if(!tabPushed){ tabPushed = true; push("tab"); }
+  }));
+  window.addEventListener("popstate", ()=>{
+    if(ignore>0){ ignore--; return; }
+    const no = document.querySelector(".confirm-overlay #confirmNo");
+    if(no){ no.click(); push("ov"); return; }
+    while(OV.length && !OV[OV.length-1].isConnected) OV.pop();
+    if(OV.length){
+      const el = OV.pop();
+      el.dispatchEvent(new MouseEvent("click", {bubbles:true}));      // same path as tapping outside the sheet
+      setTimeout(()=>{ if(el.isConnected){ el.classList.remove("in"); setTimeout(()=>el.remove(), 180); } }, 300);
+      return;
+    }
+    if(tabPushed){ tabPushed = false; popping = true; const r = document.querySelector('.tab[data-tab="roster"]'); if(r) r.click(); popping = false; }
+  });
+})();
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
 </script>
 </body>
