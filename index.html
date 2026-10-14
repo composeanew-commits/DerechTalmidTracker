@@ -510,7 +510,7 @@ input[type=search],input[type=text],input[type=date],input[type=tel],input[type=
 
 /* ===== v6: declutter ===== */
 #rosterSearch,#rabbeimBtn,#addClassBtn{display:none !important;}
-#addStudentBtn{position:fixed;right:20px;bottom:30px;width:58px;height:58px;padding:0;border-radius:50%;font-size:0;z-index:35;background:var(--brand);box-shadow:0 12px 24px -8px rgba(88,86,214,.75);}
+#addStudentBtn{display:none !important;position:fixed;right:20px;bottom:30px;width:58px;height:58px;padding:0;border-radius:50%;font-size:0;z-index:35;background:var(--brand);box-shadow:0 12px 24px -8px rgba(88,86,214,.75);}
 #addStudentBtn::before{content:"+";font-size:34px;line-height:58px;color:#fff;font-weight:300;}
 @media(max-width:700px){#addStudentBtn{bottom:96px;}}
 .topbar h1{font-size:26px;}
@@ -534,7 +534,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
 .sec .sec-n{flex:1;min-width:0;font-size:14px;font-weight:600;}
 .sec .sec-last{display:block;font-style:normal;font-size:11px;font-weight:400;color:var(--ink-soft);}
 .sec-body{padding:2px 10px 10px;border-top:1px solid var(--line);}
-.qa{margin-top:10px;} .qa-q{font-size:13px;margin-bottom:4px;}
+.qa.wr textarea{width:100%;min-height:64px;} .qa{margin-top:10px;} .qa-q{font-size:13px;margin-bottom:4px;}
 .qa-o{display:flex;gap:6px;flex-wrap:wrap;}
 .qa-c{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;}
 .qa-c.on{background:var(--brand);color:#fff;border-color:var(--brand);}
@@ -568,7 +568,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
 
 /* ---- simpler: hidden for now (delete these two lines to bring them back) ---- */
 .tab[data-tab="shiurim"]{display:none !important;}
-#ovTop{display:none !important;}
+#ovTop{display:inline-flex !important;font-weight:700;}
 </style>
 </head>
 <body>
@@ -754,10 +754,10 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
           </div>
           <div id="areaBox"></div>
           <div class="row" style="align-items:center;margin:14px 0 4px;">
-            <label for="entryNotes" style="margin:0;flex:1;">Other notes</label>
+            <label for="entryNotes" style="margin:0;flex:1;">Other notes (career goals, anything else)</label>
             <button class="ghost" id="tidyBtn" type="button" style="font-size:12px;">&#10024; Tidy</button>
           </div>
-          <textarea id="entryNotes" placeholder="Anything else? What did you talk about?"></textarea>
+          <textarea id="entryNotes" placeholder="Career goals, what you talked about, anything else"></textarea>
           <label for="entryFollow">Follow-up / next step</label>
           <input type="text" id="entryFollow" placeholder="e.g. Speak to Rabbi Dadush" />
           <div class="row row-end" style="margin-top:12px;">
@@ -2373,31 +2373,20 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
   }
 
   // ---- what we track for each talmid across the year ----
+  // Rated areas (tap Good / OK / Needs help) - the original four
   const SECTIONS = [
-    {k:"jud", l:"Yeshiva & Judaism", qs:[
-      {k:"happy", q:"Happy in yeshiva, likes his classes?", o:["Yes","Mostly","No"]},
-      {k:"shabbos", q:"Keeping Shabbos?", o:["Fully","Partly","Not yet"]},
-      {k:"motiv", q:"Motivation to grow in Judaism", o:["High","Some","Low"]},
-      {k:"why", q:"Wants to understand the reasons behind it?", o:["Yes","Somewhat","No"]},
-      {k:"vision", q:"Vision for his future family / lifestyle", t:1} ]},
-    {k:"bg", l:"Personal background", qs:[
-      {k:"fam", q:"Relationship with family", o:["Close","OK","Strained"]},
-      {k:"free", q:"Feels free to make his own choices?", o:["Yes","Sometimes","Feels pressured"]},
-      {k:"money", q:"Money situation", o:["Fine","Tight","Stressed"]},
-      {k:"clar", q:"Needs clarifying (mentioned but unclear)", t:1} ]},
-    {k:"hab", l:"Habits & relationships", qs:[
-      {k:"subs", q:"Weed / vaping / substances", o:["None","Cut back","Still using"]},
-      {k:"phone", q:"Phone", o:["Filtered","Unfiltered, OK","Unfiltered, concern"]},
-      {k:"gf", q:"Girlfriend / dating", o:["No","Yes, healthy","Yes, concern"]},
-      {k:"friends", q:"Close friends", t:1} ]},
-    {k:"emo", l:"Emotional well-being", qs:[
-      {k:"anger", q:"Anger / mood", o:["Calm","Some","Struggling"]},
-      {k:"tx", q:"Therapy / support", o:["In it","Open to it","Not interested"]} ]},
-    {k:"car", l:"Career goals", qs:[
-      {k:"dir", q:"Direction", o:["Clear","Exploring","None yet"]},
-      {k:"plans", q:"Interests / plans", t:1} ]}
+    {k:"lrn", l:"Learning", qs:[]},
+    {k:"spi", l:"Spiritual growth", qs:[]},
+    {k:"soc", l:"Socially", qs:[]},
+    {k:"emo", l:"Emotionally", qs:[]}
   ];
-  const LEGACY = {spi:"jud", lrn:"jud", soc:"hab"}, RANKV = {g:2,o:1,n:0};
+  // Written-out areas (no rating, he is described in words). Stored in qa["<k>.note"].
+  const WRITTEN = [
+    {k:"jud", l:"Yeshiva & Judaism", hint:"Happy in yeshiva? Shabbos, tefillin, motivation to grow, questions he's asking\u2026"},
+    {k:"hab", l:"Habits & relationships", hint:"Phone, vaping / weed, girlfriend / dating, close friends\u2026"},
+    {k:"bg",  l:"Personal background", hint:"Family, home situation, money, what he's shared about his past\u2026"}
+  ];
+  const LEGACY = {jud:"spi", hab:"soc"}, RANKV = {g:2,o:1,n:0};
   const shortD = d=>{ try{ return new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}); }catch(e){ return d; } };
   function entriesFor(sid){ return state.data.interviews.map((e,i)=>({e,i})).filter(x=>x.e.studentId===sid).sort((a,b)=> b.e.date.localeCompare(a.e.date) || b.i-a.i).map(x=>x.e); }
   function areasOf(e){ const o = {}, a = e.areas || {}; Object.keys(a).forEach(k=>{ const kk = LEGACY[k] || k, v = a[k]; if(!(kk in o) || RANKV[v] < RANKV[o[kk]]) o[kk] = v; }); return o; }
@@ -2454,7 +2443,12 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       return `<details class="pr"><summary><span class="pr-n">${escapeHtml(sec.l)}</span><span class="pr-d">${dots}</span><span class="pr-t ${tc}">${trend}</span></summary><div class="pr-b">${qh || '<div class="hint">No answers recorded yet.</div>'}</div></details>`;
     }).join("");
     const fu = entriesFor(student.id).find(e=>e.follow);
-    el.innerHTML = `<div class="pf-lbl" style="margin-top:14px;">Progress this year</div>${rows}
+    const wrRows = WRITTEN.map(w=>{
+      const items = es.slice().reverse().map(e=>({v:(e.qa||{})[w.k+".note"], d:e.date})).filter(x=>x.v && String(x.v).trim());
+      const body = items.length ? items.slice(0,6).map(x=>`<div class="ph"><span class="hint">${escapeHtml(shortD(x.d))}</span> \u2014 ${escapeHtml(x.v)}</div>`).join("") : '<div class="hint">Nothing written yet.</div>';
+      return `<details class="pr" ${items.length ? "open" : ""}><summary><span class="pr-n">${escapeHtml(w.l)}</span><span class="pr-t">${items.length ? items.length+" note"+(items.length===1?"":"s") : ""}</span></summary><div class="pr-b">${body}</div></details>`;
+    }).join("");
+    el.innerHTML = `<div class="pf-lbl" style="margin-top:14px;">Progress this year</div>${rows}<div class="pf-lbl" style="margin-top:14px;">In his own words</div>${wrRows}
       ${fu ? `<p class="hint">Last follow-up (${escapeHtml(shortD(fu.date))}): ${escapeHtml(fu.follow)}</p>` : ""}
       <label for="approachTa" style="margin-top:10px;">Approach with him</label>
       <textarea id="approachTa" rows="2" placeholder="e.g. Give him space to ask questions and make his own choices.">${escapeHtml(student.approach||"")}</textarea>`;
@@ -2477,7 +2471,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     const sid = state.activeInterviewStudent, skip = state.editingEntry || null;
     const lq = sid ? lastQa(sid, skip) : {}, la = sid ? lastAreaMap(sid, skip) : {};
     const qa = window.__qa, ar = window.__areas;
-    b.innerHTML = `<div class="row" style="align-items:center;margin:14px 0 4px;"><label style="margin:0;flex:1;">Areas to track</label>${Object.keys(lq).length ? '<button type="button" class="ghost" id="sameLast" style="font-size:12px;">\u21BA Same answers as last time</button>' : ""}</div>` +
+    b.innerHTML = `<div class="row" style="align-items:center;margin:14px 0 4px;"><label style="margin:0;flex:1;">Rate these</label>${Object.keys(lq).length ? '<button type="button" class="ghost" id="sameLast" style="font-size:12px;">\u21BA Same answers as last time</button>' : ""}</div>` +
       SECTIONS.map(sec=>{
         const cur = ar[sec.k], last = la[sec.k];
         return `<details class="sec" data-s="${sec.k}" ${window.__open.has(sec.k) ? "open" : ""}><summary><span class="sec-n">${escapeHtml(sec.l)}${last ? `<i class="sec-last">last: ${RT[last.v][0]} ${escapeHtml(shortD(last.d))}</i>` : ""}</span><span class="mx-b">${["g","o","n"].map(r=>`<button type="button" class="mx-c ${cur===r ? ({g:"p",o:"l",n:"a"})[r] : ""}" data-ak="${sec.k}" data-ar="${r}">${RT[r][0]}<i>${RT[r][1]}</i></button>`).join("")}</span></summary>
@@ -2488,6 +2482,11 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
               : `<div class="qa-o">${q.o.map(o=>`<button type="button" class="qa-c ${v===o ? "on" : ""}" data-qk="${key}" data-qv="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join("")}</div>${l ? `<div class="qa-last">Last: ${escapeHtml(l.v)} \u00b7 ${escapeHtml(shortD(l.d))}</div>` : ""}`}</div>`;
           }).join("")}
           <div class="qa"><input type="text" data-qt="${sec.k}.note" value="${escapeHtml(qa[sec.k+".note"] || "")}" placeholder="Details for ${escapeHtml(sec.l)} (optional)"></div></div></details>`;
+      }).join("") +
+      `<div class="row" style="align-items:center;margin:16px 0 2px;"><label style="margin:0;flex:1;">Write these out</label></div>` +
+      WRITTEN.map(w=>{
+        const key = w.k+".note", l = lq[key];
+        return `<div class="qa wr"><div class="qa-q"><b>${escapeHtml(w.l)}</b></div><textarea rows="3" data-qt="${key}" placeholder="${escapeHtml(w.hint)}">${escapeHtml(qa[key] || "")}</textarea>${l ? `<div class="qa-last">Last (${escapeHtml(shortD(l.d))}): ${escapeHtml(l.v.length>110 ? l.v.slice(0,110)+"\u2026" : l.v)}</div>` : ""}</div>`;
       }).join("");
     b.querySelectorAll("summary").forEach(x=> x.addEventListener("click", e=>{ if(e.target.closest("button")) e.preventDefault(); }));
     b.querySelectorAll("details.sec").forEach(d=> d.addEventListener("toggle", ()=>{ if(d.open) window.__open.add(d.dataset.s); else window.__open.delete(d.dataset.s); }));
@@ -3953,6 +3952,97 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     const badge = ()=>{ const n = getQ().length; fab.innerHTML = "&#128247; Snap attendance" + (n ? ` (${n} waiting)` : ""); }; badge();
     window.addEventListener("online", ()=>{ const n = getQ().length; if(n) toast(`Back online \u2014 ${n} photo(s) waiting. Tap Snap attendance.`, "success"); });
 
+    // ===== CHECK-IN DUMP: paste or dictate anything -> sorted per student, per area (runs on this device, nothing is sent anywhere) =====
+    const CK_CATS = [
+      {k:"lrn", l:"Learning", rate:1}, {k:"spi", l:"Spiritual growth", rate:1}, {k:"soc", l:"Socially", rate:1}, {k:"emo", l:"Emotionally", rate:1},
+      {k:"jud", l:"Yeshiva & Judaism"}, {k:"hab", l:"Habits & relationships"}, {k:"bg", l:"Personal background"}, {k:"other", l:"Other notes (career goals, etc.)"}
+    ];
+    const CK_RX = [
+      ["hab", /\b(phone|iphone|smartphone|vap\w*|weed|marijuana|smok\w*|cigar\w*|drink\w*|drunk|alcohol|beer|vodka|substances?|drugs?|girlfriend|boyfriend|dating|hook\w*up|porn\w*|gaming|netflix|instagram|tiktok|social media)\b/i],
+      ["bg",  /\b(parents?|mother|father|mom|dad|abba|ima|divorc\w*|separated|sibling\w*|brother|sister|grandparent\w*|grandfather|grandmother|family|home life|home situation|at home|grew up|raised|upbringing|background|money|financ\w*|broke|poor|tuition|childhood|passed away|died|death|hospital)\b/i],
+      ["jud", /\b(shabbos|shabbat|shabbes|tefillin|tfillin|kosher|kashrus|observ\w*|mitzv\w*|davening|davens?|tefilla\w*|minyan|kippah|tzitzis|tzitzit|judaism|jewish|religio\w*|frum|mikvah|yom tov|brachos|bracha)\b/i],
+      ["emo", /\b(sad|depress\w*|anxi\w*|anger|angry|mood\w*|stress\w*|therap\w*|counsel\w*|cry\w*|emotion\w*|mental|worr\w*|lonely|loneliness|upset|overwhelm\w*|hopeless|self.?esteem|confidence|panic|trauma|frustrat\w*|unhappy|rough time|down lately|seems down)\b/i],
+      ["soc", /\b(friend\w*|social\w*|fits? in|fitting in|alone|isolat\w*|group|roommate\w*|hang\w* out|bond\w*|popular|left out|bully\w*|clique|get along|gets along|the guys)\b/i],
+      ["other", /\b(career|job|work|working|business|profession|college|university|degree|plans?|future|goals?|wants? to (be|become|go)|dream\w*|electrician|doctor|lawyer|engineer|army|idf|aliyah)\b/i],
+      ["lrn", /\b(learn\w*|gemara|gemora|chavrusa|chavrusah|shiur|study\w*|focus\w*|attention span|seder|class|test|exam|bekius|iyun|understand\w*|reading|translat\w*|rebbi|rebbe|keeping up|falling behind|behind|engaged|participat\w*)\b/i],
+      ["spi", /\b(spiritual\w*|hashem|god|faith|belief\w*|inspir\w*|meaning\w*|growth|growing|grow|passion|ruach|spirit\w*|searching|emunah|kavana\w*)\b/i]
+    ];
+    const CK_NEG = /\b(struggl\w*|not (doing|good|well|keeping|coming|showing|engaged|focused)|worr\w*|concern\w*|bad|poor|failing|behind|skipp\w*|missing|doesn'?t|isn'?t|won'?t|refus\w*|angry|sad|depress\w*|anxi\w*|lonely|isolat\w*|slipp\w*|worse|rough|difficult|trouble|problem\w*|barely|hard time|checked out|disengaged|down)\b/i;
+    const CK_MID = /\b(ok|okay|fine|so-?so|average|up and down|mixed|alright|hit or miss|inconsistent)\b/i;
+    const CK_POS = /\b(great|excellent|amazing|awesome|strong|thriving|excited|improv\w*|better|good|well|happy|motivated|engaged|enjoy\w*|loves?|positive|progress\w*|consistent|growing|connected|focused|really into)\b/i;
+    const CK_ABS = /\b(absent|didn'?t come|did not come|not here|no[- ]?show|skipped|out sick|called out|wasn'?t (here|in)|missed|missing)\b/i;
+    const CK_LATE = /\b(late|tardy)\b/i;
+    const ckWords = t=> String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/['\u2019`]/g,"").split(/[^a-z\u0590-\u05FF]+/).filter(Boolean);
+    const ckRate = txt=>{ const t = String(txt).replace(/not bad/ig,"okay"); return CK_NEG.test(t) ? "n" : CK_MID.test(t) ? "o" : CK_POS.test(t) ? "g" : ""; };
+    // find which students a piece of text mentions -> [{sid, label, cands}]
+    function ckFind(text, R){
+      const words = ckWords(text), set = new Set(words), out = [], used = new Set();
+      const has = tok=> set.has(tok) || (tok.length>=5 && words.some(w=>w.length>=5 && near(w,tok)));
+      R.forEach(r=>{ if(r.last && has(r.first) && has(r.last)){ out.push({sid:r.s.id, label:r.s.name, cands:[r.s.id]}); used.add(r.first); used.add(r.last); } });
+      const seenW = new Set();
+      words.forEach(w=>{
+        if(w.length<3 || used.has(w) || seenW.has(w)) return; seenW.add(w);
+        const c = R.filter(r=> r.first===w || (r.last && r.last===w && w.length>=4));
+        if(!c.length) return;
+        if(out.some(o=>c.some(r=>r.s.id===o.sid))) return;
+        if(c.length===1) out.push({sid:c[0].s.id, label:c[0].s.name, cands:[c[0].s.id]});
+        else out.push({sid:null, label:w.charAt(0).toUpperCase()+w.slice(1), cands:c.map(r=>r.s.id)});
+      });
+      return out;
+    }
+    function ckParse(text){
+      const R = state.data.students.map(s=>{ const t = ckWords(s.name); return {s, first:t[0]||"", last:t.length>1?t[t.length-1]:""}; }).filter(r=>r.first);
+      const groups = [], byKey = {};
+      const grab = h=>{ const key = h.sid || ("?"+h.label.toLowerCase()); return byKey[key] || (byKey[key] = (groups.push({key, sid:h.sid, label:h.label, cands:h.cands, lines:[], att:"", cats:{}, rate:{}, show:{}}), groups[groups.length-1])); };
+      let cur = [];
+      String(text).replace(/\r/g,"\n").split(/\n+|(?<=[.!?])\s+|;\s+/).forEach(raw=>{
+        let sent = raw.trim(); if(!sent) return;
+        let content = sent, hits = [];
+        const lm = sent.match(/^([^:]{2,40}?)\s*(?::|\s[-\u2013\u2014]\s)\s*(.+)$/);
+        if(lm && lm[1].trim().split(/\s+/).length<=4){ const lh = ckFind(lm[1], R); if(lh.length){ hits = lh; content = lm[2].trim(); } }
+        if(!hits.length) hits = ckFind(sent, R);
+        if(hits.length) cur = hits.map(grab); else if(!cur.length) cur = [grab({sid:null, label:"Not matched to a student", cands:[]})];
+        cur.forEach(g=> g.lines.push(content));
+      });
+      const now = new Date(), DN = ["sun","mon","tue","wed","thu","fri","sat"];
+      let date = todayStr(); const dm = String(text).match(/\b(sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)[a-z]*day\b/i);
+      if(/\byesterday\b/i.test(text)){ const d = new Date(); d.setDate(d.getDate()-1); date = localDateStr(d); }
+      else if(dm){ const want = DN.indexOf(dm[1].toLowerCase().slice(0,3)), d = new Date(); d.setDate(d.getDate()-((d.getDay()-want+7)%7)); date = localDateStr(d); }
+      groups.forEach(g=>{
+        const own = ckWords(g.label);
+        g.lines.forEach(line=>{
+          const rest = ckWords(line).filter(w=>!own.includes(w) && !["absent","late","today","was","is","he","the","and","came","in","tardy","here","not","didnt","come","yesterday"].includes(w));
+          const isAtt = (CK_ABS.test(line) || CK_LATE.test(line)) && rest.length<=3;
+          const hit = CK_RX.find(x=>x[1].test(line) && x[0]!=="other") || CK_RX.find(x=>x[1].test(line)), c = hit ? hit[0] : "other";
+          if(isAtt){ g.att = CK_ABS.test(line) ? "absent" : "late"; if(!hit || hit[0]==="other") return; }
+          const t = /[.!?]$/.test(line) ? line : line+".";
+          g.cats[c] = g.cats[c] ? g.cats[c]+" "+t : t;
+        });
+        CK_CATS.filter(c=>c.rate).forEach(c=>{ if(g.cats[c.k]){ const r = ckRate(g.cats[c.k]); if(r) g.rate[c.k] = r; } });
+      });
+      return {groups: groups.filter(g=> g.att || Object.keys(g.cats).length), date};
+    }
+
+    async function ckAI(text){
+      let key = DEFAULT_GEM; try{ key = localStorage.getItem("gemKey")||DEFAULT_GEM; }catch(e){}
+      if(!key) throw new Error("no AI key");
+      const R = state.data.students.map(s=>{ const t = ckWords(s.name); return {s, first:t[0]||"", last:t.length>1?t[t.length-1]:""}; }).filter(r=>r.first);
+      const p = "You help a yeshiva rebbi file check-in notes. Today is "+todayStr()+". Split the message by student and sort what is said about each into these keys: lrn (learning), spi (spiritual growth), soc (social), emo (emotional), jud (yeshiva & Judaism practice: shabbos, tefillin, davening, motivation), hab (habits & relationships: phone, vaping, substances, girlfriend, friends), bg (personal background: family, money, past), other (career goals and anything else). Keep the speaker's own facts, lightly cleaned up, never invent anything. Also give ratings for lrn, spi, soc, emo ONLY when clearly implied: g (good), o (ok), n (needs help). If someone is said to be absent or late, set attendance to absent or late, else omit it. Return ONLY JSON: {\"date\": \"YYYY-MM-DD\" or null, \"students\": [{\"name\": <exact roster name if you can tell, else the name as spoken>, \"attendance\": \"absent\"|\"late\"|null, \"ratings\": {}, \"notes\": {}}]}. Roster:\n"+state.data.students.map(s=>s.name).join("\n")+"\n\nMESSAGE:\n"+text;
+      const r = await fetch(GEM+encodeURIComponent(key), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({contents:[{parts:[{text:p}]}], generationConfig:{responseMimeType:"application/json"}})});
+      const j = await r.json(), t = j.candidates && j.candidates[0].content.parts.map(x=>x.text).join("");
+      if(!t) throw new Error((j.error && j.error.message) || "no reply");
+      const res = JSON.parse(t.replace(/```json|```/g,"").trim()), groups = [], seen = {};
+      (res.students||[]).forEach(e=>{
+        if(!e || !e.name) return;
+        const h = ckFind(String(e.name), R)[0] || {sid:null, label:String(e.name), cands:[]};
+        const key2 = h.sid || ("?"+h.label.toLowerCase());
+        const g = seen[key2] || (seen[key2] = (groups.push({key:key2, sid:h.sid, label:h.label, cands:h.cands, lines:[], att:"", cats:{}, rate:{}, show:{}}), groups[groups.length-1]));
+        if(/abs/i.test(e.attendance||"")) g.att = "absent"; else if(/late/i.test(e.attendance||"")) g.att = "late";
+        CK_CATS.forEach(c=>{ const v = e.notes && e.notes[c.k]; if(v && String(v).trim()) g.cats[c.k] = g.cats[c.k] ? g.cats[c.k]+" "+String(v).trim() : String(v).trim(); const rt = e.ratings && e.ratings[c.k]; if(c.rate && /^[gon]$/.test(rt||"")) g.rate[c.k] = rt; });
+      });
+      const date = /^\d{4}-\d\d-\d\d$/.test(res.date||"") ? res.date : todayStr();
+      return {groups: groups.filter(g=> g.att || Object.keys(g.cats).length), date};
+    }
     async function askAI(img, note){
       const sdr = window.__snapSeder; window.__snapSeder = null; const talk = !!window.__snapTalk; window.__snapTalk = false;
       if(note){ let r = null; try{ r = await window.__aiRead({text:note, seder:sdr, talk}); }catch(e){} if(!r){ r = talk ? window.__parseAttText(note,true,true) : Object.assign(window.__parseAttText(note,true),{isNote:true}); if(sdr) r.seder = sdr; } if(talk){ r.spoken = true; r.said = note; } return r; }
@@ -3972,7 +4062,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     }
     function open(){
       const ov = document.createElement("div"); ov.className="overlay";
-      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128247; Snap attendance sheet</p><button class="ghost" id="snX">Close</button></div><div id="snBody"></div></div>`;
+      ov.innerHTML = `<div class="drawer"><div class="row" style="align-items:center;margin-bottom:6px;"><p class="setup-title" style="font-size:18px;margin:0;flex:1;">&#128247; Snap attendance &amp; check-ins</p><button class="ghost" id="snX">Close</button></div><div id="snBody"></div></div>`;
       showOverlay(ov); const body = ov.querySelector("#snBody");
       ov.querySelector("#snX").onclick = ()=>{ stopAllDictation(); closeOverlay(ov); }; ov.addEventListener("click", e=>{ if(e.target===ov){ stopAllDictation(); closeOverlay(ov); } });
       function spokenDone(eff, date, seder){
@@ -3982,13 +4072,95 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
         body.innerHTML = `<div class="nm-card" style="text-align:center;"><div style="font-size:32px;color:var(--green);">&#10003;</div><div class="nm-name">Logged for ${ids.length} talmid${ids.length===1?"":"im"}</div><p class="hint" style="margin:4px 0 0;">${escapeHtml(dl)} &middot; ${escapeHtml(sederLabel(seder))}</p></div>${ids.map(x=>`<div class="sn-row"><span class="n">${escapeHtml(x.name)}</span><b style="color:${CL[eff[x.id]]}">${LB[eff[x.id]]}</b></div>`).join("")}<p class="hint" style="margin-top:8px;">This is now on each talmid's profile. Made a mistake? Open the &#8942; menu &rarr; Upload history to undo it.</p><div class="row" style="gap:8px;margin-top:10px;"><button class="primary" id="sdMore" style="flex:1;">Add more</button><button id="sdOk" style="flex:1;">Done</button></div>`;
         body.querySelector("#sdMore").onclick = home; body.querySelector("#sdOk").onclick = ()=>closeOverlay(ov);
       }
+      function dumpReview(res){
+        const groups = res.groups; let date = res.date || todayStr(), seder = state.activeSeder;
+        const all = state.data.students.slice().sort(byName), sById = id=> state.data.students.find(s=>s.id===id);
+        const RL = {g:["\uD83D\uDC4D","Good"], o:["\uD83D\uDE10","OK"], n:["\u26A0\uFE0F","Needs help"]}, RC = {g:"p", o:"l", n:"a"};
+        const hasAny = g=> g.att || CK_CATS.some(c=> (g.cats[c.k]||"").trim() || g.rate[c.k]);
+        const paint = ()=>{
+          const dr = ov.querySelector(".drawer"), top = dr ? dr.scrollTop : 0;
+          const live = groups.filter(g=>!g.removed);
+          body.innerHTML = `<p class="hint" style="margin:0 0 8px;">Sorted ${live.length} talmid${live.length===1?"":"im"}. Fix anything that landed in the wrong box, tap a rating if you want one, then save &mdash; it goes onto each profile.</p>
+            <div class="row"><div style="flex:1"><label>Date</label><input type="date" id="ckD" value="${date}"></div><div style="flex:1"><label>Seder (for attendance)</label><select id="ckS">${SEDARIM.map(x=>`<option value="${x.id}" ${x.id===seder?"selected":""}>${x.label}</option>`).join("")}</select></div></div>
+            ${live.map(g=>{ const gi = groups.indexOf(g), s = g.sid ? sById(g.sid) : null;
+              const shown = CK_CATS.filter(c=> (g.cats[c.k]||"").trim() || g.rate[c.k] || g.show[c.k]), hidden = CK_CATS.filter(c=>!shown.includes(c));
+              const cl = s && s.classId ? classById(s.classId) : null;
+              return `<div class="nm-card" data-g="${gi}" style="margin-top:10px;">
+                <div class="row" style="align-items:center;gap:8px;">${s ? `<div style="flex:1;min-width:0;"><div class="nm-name">${escapeHtml(s.name)}</div><div class="nm-sub" style="margin:0;">${escapeHtml(cl?cl.name:"No shiur")}</div></div>`
+                  : `<select data-pick style="flex:1;"><option value="">Who is &ldquo;${escapeHtml(g.label)}&rdquo;?</option>${g.cands.length?`<optgroup label="Closest">${g.cands.map(id=>sById(id)).filter(Boolean).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join("")}</optgroup>`:""}<optgroup label="Everyone">${all.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join("")}</optgroup></select>`}
+                  <button class="ghost" data-rm style="padding:4px 10px;">&#10005;</button></div>
+                ${s && s.classId ? `<div class="row" style="align-items:center;margin-top:8px;"><span class="hint" style="margin:0;flex:1;">Attendance</span><div class="seg" data-att>${[["","&ndash;",""],["present","P","p"],["late","L","l"],["absent","A","a"]].map(([v,t,c])=>`<button data-v="${v}" class="${c} ${(g.att||"")===v?"active":""}">${t}</button>`).join("")}</div></div>` : ""}
+                ${shown.map(c=>`<div class="qa" data-c="${c.k}"><div class="row" style="align-items:center;gap:6px;"><b style="flex:1;font-size:13px;">${escapeHtml(c.l)}</b>${c.rate?`<span class="mx-b">${["g","o","n"].map(r=>`<button type="button" class="mx-c ${g.rate[c.k]===r?RC[r]:""}" data-r="${r}">${RL[r][0]}<i>${RL[r][1]}</i></button>`).join("")}</span>`:""}</div><textarea rows="2" data-t="${c.k}" style="width:100%;">${escapeHtml(g.cats[c.k]||"")}</textarea></div>`).join("")}
+                ${hidden.length ? `<select data-add style="margin-top:8px;"><option value="">+ Add another area&hellip;</option>${hidden.map(c=>`<option value="${c.k}">${escapeHtml(c.l)}</option>`).join("")}</select>` : ""}
+              </div>`; }).join("")}
+            ${live.length ? "" : '<p class="hint" style="margin-top:12px;">Nothing here yet. Go back and add some text.</p>'}
+            <div class="sn-save row row-end"><button id="ckBack">Back</button><button class="primary" id="ckSave" ${live.length?"":"disabled"}>Save to profiles</button></div>`;
+          if(dr) dr.scrollTop = top;
+          body.querySelector("#ckD").onchange = e=>{ date = e.target.value || todayStr(); };
+          body.querySelector("#ckS").onchange = e=>{ seder = e.target.value; };
+          body.querySelector("#ckBack").onclick = home;
+          body.querySelectorAll("[data-g]").forEach(card=>{
+            const g = groups[+card.dataset.g];
+            card.querySelectorAll("[data-t]").forEach(t=> t.oninput = ()=>{ g.cats[t.dataset.t] = t.value; });
+            card.querySelectorAll("[data-att] button").forEach(b=> b.onclick = ()=>{ g.att = b.dataset.v; card.querySelectorAll("[data-att] button").forEach(x=> x.classList.toggle("active", x===b)); });
+            card.querySelectorAll("[data-r]").forEach(b=> b.onclick = ()=>{ const k = b.closest("[data-c]").dataset.c, r = b.dataset.r; if(g.rate[k]===r) delete g.rate[k]; else g.rate[k] = r; b.closest(".mx-b").querySelectorAll("[data-r]").forEach(x=>{ x.classList.remove("p","l","a"); if(g.rate[k]===x.dataset.r) x.classList.add(RC[x.dataset.r]); }); });
+            const pk = card.querySelector("[data-pick]"); if(pk) pk.onchange = ()=>{ if(pk.value){ const ex = groups.find(x=>x!==g && x.sid===pk.value); g.sid = pk.value; if(ex){ CK_CATS.forEach(c=>{ if(g.cats[c.k]) ex.cats[c.k] = ((ex.cats[c.k]||"")+" "+g.cats[c.k]).trim(); }); Object.assign(ex.rate, g.rate); if(g.att && !ex.att) ex.att = g.att; g.removed = true; } paint(); } };
+            card.querySelector("[data-rm]").onclick = ()=>{ g.removed = true; paint(); };
+            const ad = card.querySelector("[data-add]"); if(ad) ad.onchange = ()=>{ if(ad.value){ g.show[ad.value] = true; paint(); } };
+          });
+          body.querySelector("#ckSave").onclick = async ()=>{
+            const live2 = groups.filter(g=>!g.removed && hasAny(g));
+            const loose = live2.filter(g=>!g.sid);
+            if(loose.length){ toast("Pick a student for \u201C"+loose[0].label+"\u201D, or tap \u2715 to drop it.", "error"); return; }
+            const done = [], attBy = {}, bid = uid();
+            live2.forEach(g=>{
+              const s = sById(g.sid); if(!s) return;
+              const qa = {}, areas = {};
+              CK_CATS.forEach(c=>{ const t = (g.cats[c.k]||"").trim(); if(t && c.k!=="other") qa[c.k+".note"] = t; if(c.rate && g.rate[c.k]) areas[c.k] = g.rate[c.k]; });
+              let notes = (g.cats.other||"").trim(); if(notes && !/^- /.test(notes)) notes = tidyNotes(notes);
+              const stOf = ar=>{ const v = Object.values(ar); return v.includes("n") ? "struggling" : v.length && v.every(x=>x==="g") ? "thriving" : v.length ? "steady" : ""; };
+              if(Object.keys(qa).length || Object.keys(areas).length || notes){
+                const ex = state.data.interviews.find(i=>i.studentId===s.id && i.date===date);
+                if(ex){
+                  ex.qa = Object.assign({}, ex.qa||{});
+                  Object.keys(qa).forEach(k=>{ ex.qa[k] = ex.qa[k] && ex.qa[k]!==qa[k] ? ex.qa[k]+"\n"+qa[k] : qa[k]; });
+                  ex.areas = Object.assign({}, areasOf(ex), areas);
+                  ex.notes = [ex.notes, notes].filter(Boolean).join("\n");
+                  if(!ex.manual){ const st = stOf(ex.areas); if(st) ex.status = st; }
+                } else state.data.interviews.push({id:uid(), studentId:s.id, date, notes, status:stOf(areas), areas, qa, follow:"", manual:false});
+                done.push({s, cats:CK_CATS.filter(c=> c.k==="other" ? notes : qa[c.k+".note"] || areas[c.k]).map(c=>c.l.split(" (")[0])});
+              }
+              if(g.att && s.classId){ (attBy[s.classId] = attBy[s.classId]||{})[s.id] = g.att; if(!done.find(d=>d.s.id===s.id)) done.push({s, cats:[]}); done.find(d=>d.s.id===s.id).att = g.att; }
+            });
+            if(!done.length){ toast("Nothing to save.", "error"); return; }
+            Object.keys(attBy).forEach(cid=>{
+              let rec = findAttendanceRecord(cid, date, seder); const created = !rec, prev = rec ? JSON.parse(JSON.stringify(rec.records||{})) : null;
+              if(!rec){ rec = {id:uid(), classId:cid, date, seder, records:{}, photo:""}; state.data.attendance.push(rec); }
+              rec.records = Object.assign(rec.records||{}, attBy[cid]);
+              try{ window.__logUpload({id:uid(), ts:Date.now(), kind:"attendance", recId:rec.id, classId:cid, date, seder, created, prev, entries:[], result:JSON.parse(JSON.stringify(attBy[cid])), batch:bid, nameOf:{}, read:{}, photo:""}); }catch(e){}
+            });
+            try{ await persist(); try{ renderInterviewPanel(); }catch(e){} renderRoster(); renderAttClassStrip(); renderAttendanceTab(); renderGlobalSearch(); updateAttentionBanner(); renderKpis(); }
+            catch(e){ if(!e.shown) toast("Couldn't save: "+e.message, "error"); return; }
+            const AL = {present:"Present", late:"Late", absent:"Absent"};
+            body.innerHTML = `<div class="nm-card" style="text-align:center;"><div style="font-size:32px;color:var(--green);">&#10003;</div><div class="nm-name">Added to ${done.length} profile${done.length===1?"":"s"}</div></div>
+              ${done.map(d=>`<div class="sn-row"><span class="n"><b>${escapeHtml(d.s.name)}</b><span class="hint" style="display:block;margin:0;">${escapeHtml(d.cats.concat(d.att?["Attendance: "+AL[d.att]]:[]).join(" \u00b7 "))}</span></span><button class="ghost" data-open="${d.s.id}">Open</button></div>`).join("")}
+              <p class="hint" style="margin-top:8px;">Made a mistake? Tap Undo on the toast, or edit it from his check-ins.</p>
+              <div class="row" style="gap:8px;margin-top:10px;"><button class="primary" id="ckMore" style="flex:1;">Add more</button><button id="ckOk" style="flex:1;">Done</button></div>`;
+            body.querySelector("#ckMore").onclick = home; body.querySelector("#ckOk").onclick = ()=>closeOverlay(ov);
+            body.querySelectorAll("[data-open]").forEach(b=> b.onclick = ()=>{ state.activeInterviewStudent = b.dataset.open; state.ciClass = null; closeOverlay(ov); document.querySelector('.tab[data-tab="interviews"]').click(); });
+          };
+        };
+        paint();
+      }
       const home = ()=>{
-        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
+        body.innerHTML = `${getQ().length?`<div class="nm-card" style="border-color:var(--amber);"><b>${getQ().length} photo(s) waiting</b><div class="nm-actions"><button class="nm-btn main" id="snQ">${navigator.onLine?"Read now":"Waiting for connection"}</button></div></div>`:""}<div class="nm-card" style="margin:0 0 12px;border-color:var(--brand);"><b>&#128221; Check-ins &amp; notes &mdash; paste or dictate anything</b><p class="hint" style="margin:4px 0 8px;">Write or speak (tap the mic on your keyboard) about one guy or many. It finds each name, sorts what you said into Learning, Spiritual growth, Socially, Emotionally, Yeshiva &amp; Judaism, Habits &amp; relationships, Personal background and notes, and picks up who was absent or late. You check it, then it lands on their profiles. &ldquo;Sort on this device&rdquo; keeps the text on your phone; &ldquo;Sort with AI&rdquo; sends it to the AI for smarter sorting.</p><textarea id="ckT" rows="5" placeholder="e.g. Moshe Cohen: learning is great, really into his chavrusa. Phone is unfiltered, mentioned a girlfriend. Parents divorced, money is tight. Wants to be an electrician. David Levi absent today, seems down lately."></textarea><div class="row row-end" style="margin-top:6px;gap:8px;"><button id="ckGoBtn">Sort on this device</button><button class="primary" id="ckAiBtn">&#10024; Sort with AI</button></div></div><button class="nm-btn main" id="snAft" style="width:100%;margin:0 0 10px;">\uD83C\uDF07 Paste afternoon attendance (1st / 2nd)</button><p class="hint">Take a photo of the attendance sheet &mdash; one day, or a whole week with Sunday, Monday&hellip; across the top and names down the side. It reads the sheet on your device, matches the names, and you check everything before it saves &mdash; date, shiur, seder and every student are editable.</p>
           ${getKey()?"":`<label>Your Anthropic API key (one-time, stays on this device)</label><input type="password" id="snKey" placeholder="sk-ant-..." /><p class="hint">Get one at console.anthropic.com. Each photo costs well under a cent.</p>`}
           <div class="sn-grid" style="margin-top:12px;"><label class="sn-big">&#128247; Take photo<input type="file" id="snCam" accept="image/*" capture="environment" multiple hidden></label><label class="sn-big">&#128444; Choose image<input type="file" id="snPick" accept="image/*" multiple hidden></label></div>
-          <label style="margin-top:14px;">Or paste attendance text (WhatsApp message, a list, anything)</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button class="primary" id="snTxt">Read text</button></div>
+          <label style="margin-top:14px;">Attendance only: paste a list or message (who is absent / late)</label><textarea id="snNote" rows="3" placeholder="Paste the message here, or: Rabbi Banin, Moshe and David absent, Yossi late"></textarea><div class="row row-end" style="margin-top:6px;"><button class="primary" id="snTxt">Read text</button></div>
           `;
         const go = f=>{ if(!f || !f.length) return; const k = body.querySelector("#snKey"); if(k&&k.value.trim()){ try{ localStorage.setItem(KEYK,k.value.trim()); }catch(e){} } if(!getKey()){ toast("Paste your API key first.","error"); return; } run(f); };
+        body.querySelector("#ckAiBtn").onclick = async ()=>{ const t = body.querySelector("#ckT").value.trim(); if(!t){ toast("Type or paste something first.","error"); return; } body.innerHTML = '<p class="hint"><span class="dot spin" style="display:inline-block"></span> Sorting with AI&hellip; a few seconds.</p>'; let r = null; try{ r = await ckAI(t); }catch(e){ try{ toast("AI unavailable \u2014 sorted on this device instead.","error"); }catch(_){} } if(!r || !r.groups.length) r = ckParse(t); if(!r.groups.length) r.groups.push({key:"?",sid:null,label:"Not matched to a student",cands:[],lines:[t],att:"",cats:{other:t},rate:{},show:{}}); dumpReview(r); };
+        body.querySelector("#ckGoBtn").onclick = ()=>{ const t = body.querySelector("#ckT").value.trim(); if(!t){ toast("Type or paste something first.","error"); return; } const r = ckParse(t); if(!r.groups.length) r.groups.push({key:"?",sid:null,label:"Not matched to a student",cands:[],lines:[t],att:"",cats:{other:t},rate:{},show:{}}); dumpReview(r); };
         body.querySelector("#snCam").onchange = e=>go([...e.target.files]); body.querySelector("#snPick").onchange = e=>go([...e.target.files]);
         body.querySelector("#snAft").onclick = ()=>{
           body.innerHTML = `<p class="hint">Paste the message from the afternoon attendance-taker (ChatGPT output, WhatsApp, anything). The AI matches every name to your roster.</p><textarea id="afT" rows="9" placeholder="Paste here\u2026"></textarea><div class="row" style="gap:8px;margin-top:8px;"><button class="primary" data-sd="a1" style="flex:1">1st afternoon</button><button class="primary" data-sd="a2" style="flex:1">2nd afternoon</button></div><div class="row" style="margin-top:8px;"><button id="afB">Back</button></div>`;
@@ -5662,7 +5834,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     // roster already has Rabbeim / + Class / + Student; the global search box replaces the roster search
     const rs = $("rosterSearch"); if(rs) rs.style.display = "none";
     // old menu items that repeat something already on screen
-    const kill = [/Attendance board/, /Overview dashboard/, /Full school overview/, /School photo grid/, /Snap attendance sheet/, /^Rabbeim$/, /^Add a class$/, /^Add a student$/, /Printable overview/, /Daily sweep/];
+    const kill = [/Attendance board/, /Overview dashboard/, /Full school overview/, /School photo grid/, /Snap attendance sheet/, /^Rabbeim$/, /^Add a class$/, /Printable overview/, /Daily sweep/];
     mm.querySelectorAll("button").forEach(b=>{ const t = b.textContent.trim(); if(kill.some(r=>r.test(t))) b.remove(); });
     // setup-type items go under Setup; Check-ins from the menu opens the student list
     const su = mm.querySelector("details.menu-setup");
