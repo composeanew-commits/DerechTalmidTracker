@@ -570,7 +570,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
 .tab[data-tab="shiurim"]{display:none !important;}
 #ovTop{display:inline-flex !important;font-weight:700;}
 </style>
-</head>
+<style>#snapFab{display:none!important}#app,#mainView{transform:none!important;animation:none!important;filter:none!important}.tab.oldtab{display:none!important}.tab.oldtab.active{display:flex!important}.tab[data-tab="home"]::before{content:"\1F465"}.tab[data-tab="att2"]::before{content:"\2705"}</style></head>
 <body>
 <div id="app">
 
@@ -657,18 +657,19 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
       <div class="attn-list" id="attnList"></div>
     </div>
     <div class="tabs">
-      <button class="tab active" data-tab="attendance">Attendance</button>
-      <button class="tab hidden" data-tab="year" data-parent="shiurim">Whole yeshiva</button>
-      <button class="tab" data-tab="needs">Needs me <span class="tab-badge hidden" id="needsBadge"></span></button>
-      <button class="tab" data-tab="shiurim">Shiurim</button>
-      <button class="tab" data-tab="interviews">Check-ins</button>
-      <button class="tab" data-tab="roster">Talmidim</button>
+      <button class="tab active" data-tab="home">Talmidim</button><button class="tab" data-tab="att2">Attendance</button><button class="tab oldtab" data-tab="attendance">Attendance+</button>
+      <button class="tab oldtab hidden" data-tab="year" data-parent="shiurim">Whole yeshiva</button>
+      <button class="tab oldtab" data-tab="needs">Needs me <span class="tab-badge hidden" id="needsBadge"></span></button>
+      <button class="tab oldtab" data-tab="shiurim">Shiurim</button>
+      <button class="tab oldtab" data-tab="interviews">Check-ins</button>
+      <button class="tab oldtab" data-tab="roster">Roster</button>
     </div>
 
     <div id="tab-year" class="hidden"><div id="yearBody"></div></div>
     <div id="tab-shiurim" class="hidden"><div id="shiurimBody"></div></div>
     <div id="tab-needs" class="hidden"><div id="needsBody"></div></div>
 
+    <div id="tab-x" class="hidden"><div id="xhost"></div></div>
     <!-- ROSTER TAB -->
     <div id="tab-roster" class="hidden">
       <div class="class-strip" id="classStrip"></div>
@@ -684,7 +685,7 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
     </div>
 
     <!-- ATTENDANCE TAB -->
-    <div id="tab-attendance">
+    <div id="tab-attendance" class="hidden">
       <div class="kpis" id="kpiStrip"></div>
       <div class="seder-bar" id="sederBar">
         <div class="seder-chips" id="sederChips"></div>
@@ -6229,6 +6230,210 @@ button.primary{background:linear-gradient(120deg,#4b3fd1,#2aa9d6)!important;bord
 
   const _showMainV3 = showMain;
   showMain = function(){ _showMainV3(); try{ tidyUi(); }catch(e){} };
+
+/* ===== Simple view: Talmidim + one-stop Attendance (lives in its own shadow DOM so it can't clash with the classic styles) ===== */
+(function(){
+const host=document.getElementById("xhost");if(!host)return;const root=host.attachShadow({mode:"open"});
+root.innerHTML=`<style>
+:host{--bg:#f4f5f7;--card:#fff;--tx:#1a1d21;--mu:#68717d;--bd:#e1e4e8;--red:#d93f3f;--yel:#e8a317;--grn:#2a9d5c;--gry:#b8bec6;--pri:#2456d6}
+
+*{box-sizing:border-box}:host{display:block;font:16px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--tx)}
+button{font:inherit;color:inherit;cursor:pointer}input,select,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;width:100%}
+textarea{resize:vertical;min-height:70px}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--bd);padding:calc(8px + env(safe-area-inset-top)) 12px 0}
+.top{display:flex;align-items:center;gap:8px}.top h1{font-size:18px;margin:0;flex:1}
+#st{font-size:12px;color:var(--mu)}#st.err{color:var(--red);font-weight:600}
+.ib{border:1px solid var(--bd);background:none;border-radius:10px;padding:6px 12px}
+.tabs{display:flex;margin-top:6px}.tabs button{flex:1;border:0;background:none;padding:10px;font-weight:600;color:var(--mu);border-bottom:3px solid transparent}
+.tabs button.on{color:var(--pri);border-color:var(--pri)}
+main{display:block;max-width:720px;margin:0 auto;padding:4px 4px 150px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:7px 13px;font-size:14px;white-space:nowrap}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}.chip small{opacity:.75;margin-left:4px}
+.sum{display:flex;gap:8px;margin:2px 0 10px}.sum div{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px;text-align:center;font-size:12px;color:var(--mu)}
+.sum b{display:block;font-size:20px;color:var(--tx)}
+.row{display:flex;gap:10px;margin-bottom:10px;align-items:center}.row label{white-space:nowrap;font-size:14px;color:var(--mu)}
+.card{display:flex;gap:10px;background:var(--card);border:1px solid var(--bd);border-left:6px solid var(--gry);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.card.red{border-left-color:var(--red)}.card.yellow{border-left-color:var(--yel)}.card.green{border-left-color:var(--grn)}
+.card .b{flex:1;min-width:0}.nm{font-weight:650}.sub{font-size:13px;color:var(--mu)}.need{font-size:14px;margin-top:3px;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.dot{width:30px;height:30px;border-radius:50%;border:0;background:var(--gry);flex:none;align-self:center}
+.dot.red{background:var(--red)}.dot.yellow{background:var(--yel)}.dot.green{background:var(--grn)}
+.tag{display:inline-block;font-size:12px;border-radius:6px;padding:1px 6px;background:#d93f3f22;color:var(--red);margin-right:4px}
+.gh{font-weight:700;margin:14px 2px 6px;font-size:14px;color:var(--mu)}
+.ar{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:6px 8px 6px 12px;margin-bottom:6px}
+.ar .nm{flex:1;min-width:0}.seg{display:flex;gap:4px}
+.seg button{width:46px;height:44px;border:1px solid var(--bd);background:none;border-radius:10px;font-weight:700}
+.seg .present.on{background:var(--grn);border-color:var(--grn);color:#fff}.seg .absent.on{background:var(--red);border-color:var(--red);color:#fff}.seg .late.on{background:var(--yel);border-color:var(--yel);color:#fff}
+.bar{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd);padding:10px 12px;display:flex;gap:8px;z-index:6}
+.bar>*{flex:1}.btn{border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:12px;font-weight:600}.btn.p{background:var(--pri);border-color:var(--pri);color:#fff}.btn.d{color:var(--red)}
+.ov{position:fixed;inset:0;background:#0008;z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.sh{background:var(--bg);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom))}
+.sh h2{margin:0 0 4px;font-size:20px}.sh label{display:block;font-size:13px;color:var(--mu);margin:12px 0 4px}
+.ug{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.ug button{border:2px solid var(--bd);background:var(--card);border-radius:10px;padding:10px 2px;font-size:13px;font-weight:600}
+.ug button.on{color:#fff}.ug .red.on{background:var(--red);border-color:var(--red)}.ug .yellow.on{background:var(--yel);border-color:var(--yel)}.ug .green.on{background:var(--grn);border-color:var(--grn)}.ug .none.on{background:var(--gry);border-color:var(--gry)}
+.h{border-top:1px solid var(--bd);padding:8px 0;font-size:14px;white-space:pre-wrap}.h i{color:var(--mu);font-style:normal;font-size:12px;display:block}
+.fg{display:inline-block;font-size:12px;border-radius:6px;padding:1px 6px;background:var(--bd);margin:3px 4px 0 0}.av{width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none;align-self:center}details summary{cursor:pointer;margin-top:12px;color:var(--pri);font-weight:600}.ta{min-height:64px}a{color:var(--pri)}#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#222;color:#fff;border-radius:10px;padding:10px 16px;z-index:30;display:none;max-width:90%}
+.empty{text-align:center;color:var(--mu);padding:40px 10px}
+</style><main id="main"></main><div id="bar"></div><div id="toast"></div><div id="ovr"></div>`;
+const $=id=>root.getElementById(id),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7),pad=n=>String(n).padStart(2,"0");
+const dstr=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),today=()=>dstr(new Date());
+const SED=[["m1","1st Morning"],["m2","2nd Morning"],["a1","1st Afternoon"],["a2","2nd Afternoon"],["n","Night Seder"]];
+const guess=()=>{const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h<10.5?"m1":h<13.5?"m2":h<16.25?"a1":h<19?"a2":"n"};
+const ui={year:"alef",flag:"",tab:"t",shiur:"all",ashiur:"all",q:"",only:false,date:today(),seder:guess(),marks:{}};
+const D=new Proxy({},{get:(_,k)=>state.data[k],set:(_,k,v)=>{state.data[k]=v;return true}});
+const status=()=>{};
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display="none",2800)}
+/* ---------- helpers ---------- */
+const cls=id=>D.classes.find(c=>c.id===id),yr=c=>c.year||(/bet|beis|bais/i.test(c.name||"")?"bet":"alef");
+const noS=c=>/^class_shana_(alef|bet)$/.test(c.id);
+const alefC=()=>D.classes.filter(c=>yr(c)===ui.year),isAlef=s=>{const c=cls(s.classId);return!!c&&yr(c)===ui.year},alef=()=>D.students.filter(isAlef);
+const sName=c=>noS(c)?"No shiur yet":c.name;
+const rebbiFor=c=>noS(c)?"":(ui.seder==="m1"?c.rebbi:(c.rabbeim&&c.rabbeim[ui.seder]))||"";
+const checks=s=>D.interviews.filter(i=>i.studentId===s.id).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+const FROM={struggling:"red",steady:"yellow",thriving:"green"},TO={red:"struggling",yellow:"steady",green:"thriving"},UL={red:"Urgent",yellow:"Watch",green:"Doing well",none:"No flag"};
+const urg=s=>s.urgency||(()=>{const c=checks(s).find(i=>i.status);return c&&FROM[c.status]||"none"})();
+const needTxt=s=>{if(s.need)return s.need;const c=checks(s)[0];return c?(c.follow||c.notes||""):""};
+const RANK={red:0,yellow:1,none:2,green:3};
+function stats(id,days){const cut=dstr(new Date(Date.now()-days*864e5));let a=0,l=0;D.attendance.forEach(r=>{if(r.date>=cut&&r.records){const v=r.records[id];if(v==="absent")a++;else if(v==="late")l++}});return{a,l}}
+const ago=d=>{if(!d)return"never";const n=Math.round((new Date(today())-new Date(d))/864e5);return n<=0?"today":n===1?"yesterday":n+" days ago"};
+/* ---------- render ---------- */
+function render(){if(!state.data)return;ui.tab==="t"?renderT():renderA()}
+function chips(cur,all){return `<div class="chips"><button class="chip ${cur==="all"?"on":""}" data-s="all">All<small>${all}</small></button>`+alefC().map(c=>{const n=D.students.filter(s=>s.classId===c.id).length;return `<button class="chip ${cur===c.id?"on":""}" data-s="${esc(c.id)}">${esc(sName(c))}${c.rebbi&&!noS(c)?" · "+esc(c.rebbi):""}<small>${n}</small></button>`}).join("")+"</div>"}
+const FLAGS=["Learning","Davening","Seder/late","Social","Emotional","Family","Health","Phone/tech","Behavior","Wants to switch","Doing great"];
+const needsMe=s=>{const u=urg(s);return u==="red"||u==="yellow"||stats(s.id,14).a>=3};
+function renderT(){
+ const all=alef(),cnt={red:0,yellow:0,green:0,none:0};all.forEach(s=>cnt[urg(s)]++);
+ let l=all.filter(s=>ui.shiur==="all"||s.classId===ui.shiur);
+ if(ui.q){const q=ui.q.toLowerCase();l=l.filter(s=>(s.name||"").toLowerCase().includes(q))}
+ if(ui.flag)l=l.filter(s=>(s.flags||[]).includes(ui.flag));
+ if(ui.only)l=l.filter(needsMe);
+ l.sort((a,b)=>RANK[urg(a)]-RANK[urg(b)]||(a.name||"").localeCompare(b.name||""));
+ const used=FLAGS.filter(f=>all.some(s=>(s.flags||[]).includes(f)));
+ $("main").innerHTML=chips(ui.shiur,all.length)+`<div class="sum"><div><b style="color:var(--red)">${cnt.red}</b>Urgent</div><div><b style="color:var(--yel)">${cnt.yellow}</b>Watch</div><div><b style="color:var(--grn)">${cnt.green}</b>Doing well</div><div><b>${cnt.none}</b>No flag</div></div>
+ <div class="row"><input id="q" placeholder="Search name" value="${esc(ui.q)}"><select id="fl" style="width:auto"><option value="">All flags</option>${used.map(f=>`<option ${ui.flag===f?"selected":""}>${f}</option>`).join("")}</select></div>
+ <div class="row"><label style="flex:1"><input type="checkbox" id="only" ${ui.only?"checked":""} style="width:auto"> Only guys who need me</label><select id="yr" style="width:auto"><option value="alef" ${ui.year==="alef"?"selected":""}>Alef</option><option value="bet" ${ui.year==="bet"?"selected":""}>Bet</option></select><button class="btn" id="aiB" style="flex:0 0 auto;padding:8px 12px">⚙ AI</button></div>`
+ +(l.length?l.map(s=>{const u=urg(s),c=cls(s.classId),st=stats(s.id,14),ck=checks(s)[0],ph=s.photo;return `<div class="card ${u}" data-id="${s.id}">${typeof ph==="string"&&ph.startsWith("data:")?`<img class="av" src="${ph}">`:""}<div class="b"><div class="nm">${esc(s.name)}</div><div class="sub">${esc(c?sName(c):"")}${c&&c.rebbi&&!noS(c)?" · "+esc(c.rebbi):""} · check-in ${ago(ck&&ck.date)}</div><div>${st.a?`<span class="tag">${st.a} absent</span>`:""}${st.l?`<span class="tag" style="background:#e8a31733;color:#a06f00">${st.l} late</span>`:""}${(s.flags||[]).map(f=>`<span class="fg">${esc(f)}</span>`).join("")}</div>${needTxt(s)?`<div class="need">${esc(needTxt(s))}</div>`:""}</div><button class="dot ${u}" data-dot="${s.id}" aria-label="Change urgency"></button></div>`}).join(""):'<div class="empty">No one matches.</div>');
+ $("bar").innerHTML=`<div class="bar"><button class="btn p" id="upd">✍️ Tell me about a talmid</button><button class="btn" id="addS" style="flex:0 0 auto">+ Add</button></div>`}
+function marksCount(list){const c={present:0,absent:0,late:0,un:0};list.forEach(s=>{const m=ui.marks[s.id];m?c[m]++:c.un++});return c}
+function renderA(){
+ const all=alef(),l=all.filter(s=>ui.ashiur==="all"||s.classId===ui.ashiur),c=marksCount(l);
+ let h=chips(ui.ashiur,all.length)+`<div class="row"><input type="date" id="ad" value="${ui.date}"></div><div class="chips">${SED.map(x=>`<button class="chip ${ui.seder===x[0]?"on":""}" data-sd="${x[0]}">${x[1]}</button>`).join("")}</div>
+ <div class="sum"><div><b style="color:var(--grn)">${c.present}</b>Present</div><div><b style="color:var(--red)">${c.absent}</b>Absent</div><div><b style="color:var(--yel)">${c.late}</b>Late</div><div><b>${c.un}</b>Not marked</div></div>
+ <div class="row"><button class="btn" id="allP" style="flex:1">✓ Everyone not marked is present</button><button class="btn" id="imp" style="flex:1">📋 Paste / photo</button></div>`;
+ alefC().forEach(k=>{const m=l.filter(s=>s.classId===k.id).sort((a,b)=>(a.name||"").localeCompare(b.name||""));if(!m.length)return;
+  h+=`<div class="gh">${esc(sName(k))}${rebbiFor(k)?" · "+esc(rebbiFor(k)):""} (${m.length})</div>`+m.map(s=>`<div class="ar"><div class="nm">${esc(s.name)}</div><div class="seg" data-id="${s.id}">${[["present","P"],["absent","A"],["late","L"]].map(x=>`<button class="${x[0]} ${ui.marks[s.id]===x[0]?"on":""}" data-m="${x[0]}">${x[1]}</button>`).join("")}</div></div>`).join("")});
+ h+=`<div class="gh">Recent absences</div>`+recent();
+ $("main").innerHTML=h;$("bar").innerHTML=`<div class="bar"><button class="btn p" id="saveA">Save attendance</button></div>`}
+function recent(){const g={};D.attendance.forEach(r=>{if(!r.records)return;const k=r.date+"|"+(r.seder||"m1");g[k]=g[k]||{a:[],l:0};for(const id in r.records){const s=D.students.find(x=>x.id===id);if(!s||!isAlef(s))continue;if(r.records[id]==="absent")g[k].a.push(s.name);else if(r.records[id]==="late")g[k].l++}});
+ const ks=Object.keys(g).sort().reverse().slice(0,8);return ks.length?ks.map(k=>{const[d,sd]=k.split("|");return `<div class="h"><i>${d} · ${(SED.find(x=>x[0]===sd)||SED[0])[1]}</i>${g[k].a.length?esc(g[k].a.join(", ")):"No absences"}${g[k].l?` · ${g[k].l} late`:""}</div>`}).join(""):'<div class="empty">No attendance saved yet.</div>'}
+function loadMarks(){const m={};D.attendance.forEach(r=>{if(r.date===ui.date&&(r.seder||"m1")===ui.seder&&r.records)Object.assign(m,r.records)});return m}
+function saveAtt(){const by={};alef().forEach(s=>(by[s.classId]=by[s.classId]||[]).push(s));
+ for(const cid in by){let rec=D.attendance.find(r=>r.classId===cid&&r.date===ui.date&&(r.seder||"m1")===ui.seder);const rs=rec&&rec.records?rec.records:{};
+  by[cid].forEach(s=>{const m=ui.marks[s.id];if(m)rs[s.id]=m;else delete rs[s.id]});
+  if(rec){rec.records=rs;if(!Object.keys(rs).length)D.attendance.splice(D.attendance.indexOf(rec),1)}else if(Object.keys(rs).length)D.attendance.push({id:uid(),classId:cid,date:ui.date,seder:ui.seder,records:rs,photo:""})}
+ persist();toast("Attendance saved");renderA()}
+/* ---------- sheets ---------- */
+function sheet(html){$("ovr").innerHTML=`<div class="ov" id="ov"><div class="sh">${html}</div></div>`;$("ov").onclick=e=>{if(e.target.id==="ov")closeS()}}
+const closeS=()=>{$("ovr").innerHTML="";$("ovr").oninput=null};
+function detail(id){const s=D.students.find(x=>x.id===id);if(!s)return;let u=urg(s);const fg=new Set(s.flags||[]),st=stats(id,30);
+ sheet(`<h2>${esc(s.name)}</h2><div class="sub">${st.a} absent · ${st.l} late in the last 30 days</div>
+ <div class="sub" style="margin-top:4px">${s.phone?`<a href="tel:${esc(s.phone)}">Call him</a> `:""}${s.parentPhone?`· <a href="tel:${esc(s.parentPhone)}">Call parent</a> `:""}${s.dorm?"· Dorm "+esc(s.dorm):""}</div>
+ <label>Tell me how he’s doing — paste anything and I’ll sort it into his profile</label><textarea id="note" placeholder="Spoke to him today. Quiet lately, missing Shacharis, says things are tense at home…"></textarea><button class="btn p" id="an2" style="width:100%;margin-top:6px">Sort it out</button>
+ <label>Urgency</label><div class="ug" id="ug">${["red","yellow","green","none"].map(k=>`<button class="${k} ${u===k?"on":""}" data-u="${k}">${UL[k]}</button>`).join("")}</div>
+ <label>Flags</label><div class="chips" id="fgs" style="flex-wrap:wrap">${FLAGS.map(f=>`<button class="chip ${fg.has(f)?"on":""}" data-f="${f}">${f}</button>`).join("")}</div>
+ <label>What he needs</label><textarea id="need">${esc(s.need||"")}</textarea>
+ <details><summary>Edit details</summary><label>Name</label><input id="dn" value="${esc(s.name)}"><label>Phone</label><input id="dp" type="tel" value="${esc(s.phone||"")}"><label>Parent phone</label><input id="dq" type="tel" value="${esc(s.parentPhone||"")}"><label>Dorm</label><input id="dd" value="${esc(s.dorm||"")}"><label>Shiur</label><select id="shiur">${alefC().map(c=>`<option value="${esc(c.id)}" ${c.id===s.classId?"selected":""}>${esc(sName(c))}${c.rebbi&&!noS(c)?" · "+esc(c.rebbi):""}</option>`).join("")}</select><button class="btn d" id="del" style="width:100%;margin-top:12px">Move to trash</button></details>
+ <button class="btn" id="fp" style="width:100%;margin-top:10px">Full profile (photo, files, more)</button><div class="row" style="margin-top:10px"><button class="btn" id="cx">Cancel</button><button class="btn p" id="sv">Save</button></div>
+ <label>History</label>${checks(s).slice(0,10).map(i=>`<div class="h"><i>${esc(i.date)}${FROM[i.status]?" · "+UL[FROM[i.status]]:""}${(i.flags||[]).length?" · "+esc(i.flags.join(", ")):""}</i>${esc(i.notes||i.follow||"")}${i.follow&&i.notes?`\nNeeds: ${esc(i.follow)}`:""}</div>`).join("")||'<div class="sub">None yet.</div>'}`);
+ $("ug").onclick=e=>{const b=e.target.closest("[data-u]");if(!b)return;u=b.dataset.u;$("ug").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))};
+ $("fgs").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;const f=b.dataset.f;fg.has(f)?fg.delete(f):fg.add(f);b.classList.toggle("on")};
+ $("cx").onclick=closeS;$("fp").onclick=()=>{closeS();openStudentDrawer(id)};
+ $("an2").onclick=()=>{const t=$("note").value.trim();if(!t)return toast("Write or paste something first");closeS();blurb(t,s)};
+ $("del").onclick=()=>{if(!confirm("Move "+s.name+" to the trash? You can restore him from the menu."))return;D.trash.push({id:uid(),student:s,interviews:D.interviews.filter(i=>i.studentId===id),date:today()});D.students=D.students.filter(x=>x!==s);D.interviews=D.interviews.filter(i=>i.studentId!==id);persist();closeS();render()};
+ $("sv").onclick=()=>{s.need=$("need").value.trim();s.urgency=u;s.flags=[...fg];s.name=$("dn").value.trim()||s.name;s.phone=$("dp").value.trim();s.parentPhone=$("dq").value.trim();s.dorm=$("dd").value.trim();s.classId=$("shiur").value;const n=$("note").value.trim();
+  if(n)D.interviews.push({id:uid(),studentId:id,date:today(),notes:n,status:TO[u]||"",follow:"",manual:true});persist();closeS();render()}}
+/* ---------- paste / photo import with review ---------- */
+const norm=t=>String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z\s]/g," ");const toks=t=>norm(t).split(/\s+/).filter(Boolean);
+function near(a,b){if(a===b)return 1;if(a.length<5||b.length<5||Math.abs(a.length-b.length)>1)return 0;let i=0;while(i<a.length&&a[i]===b[i])i++;const x=a.slice(i),y=b.slice(i);return(x.slice(1)===y.slice(1)||x.slice(1)===y||x===y.slice(1))?.8:0}
+const KA=new Set("absent abs ab a x out missing sick excused no".split(" ")),KL=new Set(["late","tardy","l"]),KP=new Set(["present","here","p","v","in"]);
+function kw(t){if(/[✗✘]/.test(t))return"absent";if(/[✓✔]/.test(t))return"present";let r=null;toks(t).forEach(w=>{if(KA.has(w))r="absent";else if(KL.has(w))r=r||"late";else if(KP.has(w))r=r||"present"});return r}
+function match(seg,pool){const t=toks(seg);let best=null,b=0,sec=0;
+ pool.forEach(s=>{const n=toks(s.name).filter(w=>w.length>2);let v=0;n.forEach(w=>{let m=0;t.forEach(x=>m=Math.max(m,near(w,x)));v+=m});if(v>b){sec=b;b=v;best=s}else if(v>sec)sec=v});
+ return best&&b>=1&&(b>=1.6||b>sec)?best:null}
+function parse(text,dflt){const pool=alef(),out=[],miss=[];let sec=null;
+ text.split(/\n+/).forEach(line=>{const L=line.trim();if(!L)return;const pre=L.includes(":")?kw(L.split(":")[0]):null;let any=false;
+  L.split(/[,;&+]|\band\b/i).map(x=>x.trim()).filter(Boolean).forEach(g=>{const s=match(g,pool);if(!s)return;any=true;const st=kw(g)||pre||sec||dflt,e=out.find(o=>o.s===s);e?e.st=st:out.push({s,st})});
+  if(!any){const k=kw(L);if(k&&toks(L).length<=3)sec=k;else miss.push(L)}});return{out,miss}}
+const aiKey=()=>localStorage.getItem("gemkey")||"";
+async function gem(parts){const m=localStorage.getItem("gemmodel")||"gemini-flash-latest";
+ const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":aiKey()},body:JSON.stringify({contents:[{parts}],generationConfig:{responseMimeType:"application/json",temperature:0}})});
+ if(!r.ok){const t=await r.text().catch(()=>"");throw new Error(r.status===429?"Free limit reached — wait a minute and retry":r.status===400||r.status===403?"The AI key or model was rejected (check AI settings)":r.status+" "+t.slice(0,80))}
+ const j=await r.json();const t=((j.candidates||[])[0]?.content?.parts||[]).map(p=>p.text||"").join("");return JSON.parse(t.replace(/```json|```/g,"").trim())}
+function img64(f){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,1800/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*sc;c.height=im.height*sc;c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",.85).split(",")[1])};im.onerror=()=>no(new Error("Can’t read that image"));im.src=URL.createObjectURL(f)})}
+async function ocr(file){status("Reading photo…");if(!window.Tesseract)await new Promise((r,j)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js";s.onload=r;s.onerror=()=>j(new Error("Couldn’t load the photo reader (check internet)"));document.head.appendChild(s)});
+ const w=await Tesseract.createWorker("eng");const r=await w.recognize(file);await w.terminate();status("");return r.data.text}
+function aiset(){sheet(`<h2>Free AI reader</h2><div class="sub">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (sign in with Google, no card). Paste it here; it stays on this device. Without it the app uses a basic built-in reader.</div><label>Gemini API key</label><input id="gk" type="password" value="${esc(aiKey())}"><label>Model</label><input id="gm" value="${esc(localStorage.getItem("gemmodel")||"gemini-flash-latest")}">
+ <div class="sub" style="margin-top:10px">Privacy: names and whatever text or photo you submit go to Google. On their free tier that content can be used to improve their products, so leave out phone numbers and sensitive family details.</div>
+ <div class="row" style="margin-top:14px"><button class="btn" id="ts">Test</button><button class="btn p" id="sv">Save</button></div>`);
+ const sv=()=>{localStorage.setItem("gemkey",$("gk").value.trim());localStorage.setItem("gemmodel",$("gm").value.trim()||"gemini-flash-latest")};
+ $("sv").onclick=()=>{sv();closeS();toast("Saved")};$("ts").onclick=async()=>{sv();$("ts").textContent="Testing…";try{await gem([{text:'Reply with exactly {"ok":true}'}]);toast("AI reader works ✓")}catch(e){toast(e.message)}$("ts").textContent="Test"}}
+/* ---------- blurb -> profile (AI, with built-in fallback) ---------- */
+const FR={Learning:/learn|gemara|chavrus|bekius|iyun|test|farher|behind|not understanding/i,Davening:/daven|tefil|minyan|shacharis|mincha|maariv/i,"Seder/late":/late|oversleep|skipp|cutting|missed|not in seder|wander|absent/i,Social:/friend|social|lonely|isolat|fight|bull|alone|left out/i,Emotional:/depress|anxi|sad|cry|stress|overwhelm|homesick|down|mood|angry|upset|worried/i,Family:/home|parent|mother|father|family|divorce|sibling|abba|ima/i,Health:/sick|ill|doctor|headache|sleep|insomnia|medic|hospital|injur/i,"Phone/tech":/phone|screen|internet|youtube|game|whatsapp/i,Behavior:/behavio|disrespect|attitude|rude|chutzpa|warning|inappropriate/i,"Wants to switch":/switch|transfer|change (shiur|rebbi|room)|wants to leave/i,"Doing great":/great|excellent|thriv|amazing|outstanding|really into|growing/i};
+const RED=/struggl|worr|concern|serious|urgent|depress|crisis|wants to leave|not coming|skipping|spiral|at risk|very (down|low)|badly/i,YEL=/quiet|slip|tired|inconsist|a bit|somewhat|needs? (a )?push|late|distract|unmotivat|keep an eye|off lately|not himself/i,GRN=/great|excellent|thriv|amazing|doing (really )?(well|good)|improv|strong|happy|positive|motivated|engaged|enjoy/i;
+function localAnalyze(text,pool,single){const ch=[];
+ if(single)ch.push({s:pool[0],t:text});else{let cur=null;text.replace(/([.!?])\s+/g,"$1\n").split("\n").forEach(sn=>{const m=match(sn,pool);if(m){cur=ch.find(c=>c.s===m);if(!cur){cur={s:m,t:""};ch.push(cur)}}if(cur)cur.t+=sn+" "})}
+ return{updates:ch.map(c=>{const t=c.t.trim();return{id:c.s.id,urgency:RED.test(t)?"red":YEL.test(t)?"yellow":GRN.test(t)?"green":"none",summary:t,need:t.replace(/([.!?])\s+/g,"$1\n").split("\n").filter(x=>/need|should|follow|talk|call|meet|push|work on|check/i.test(x)).join(" "),flags:FLAGS.filter(f=>FR[f].test(t))}}),unmatched:[]}}
+async function analyze(text,pool,single){
+ if(aiKey()){try{const p=`You help a yeshiva rebbi track talmidim. ROSTER (id | name):\n${pool.map(s=>s.id+" | "+s.name).join("\n")}\n\nBLURB:\n${text}\n\nWrite an update for EVERY talmid from the roster that the blurb discusses (match nicknames, first names, misspellings). If a name is ambiguous or not on the roster, put that text in "unmatched". Return ONLY JSON: {"updates":[{"id":"<roster id>","urgency":"red|yellow|green|none","summary":"1-3 sentences keeping every concrete detail","need":"short action items / what he needs, or empty","flags":[any of ${JSON.stringify(FLAGS)}]}],"unmatched":["..."]}. red = serious concern or needs action soon; yellow = keep an eye on him; green = doing well; none = no real information. Never invent facts.`;
+  const j=await gem([{text:p}]);return{updates:(j.updates||[]).filter(u=>pool.some(s=>s.id===u.id)).map(u=>({id:u.id,urgency:["red","yellow","green","none"].includes(u.urgency)?u.urgency:"none",summary:String(u.summary||""),need:String(u.need||""),flags:(u.flags||[]).filter(f=>FLAGS.includes(f))})),unmatched:j.unmatched||[]}}
+ catch(e){toast("AI unavailable: "+e.message+" — using the basic reader")}}
+ return localAnalyze(text,pool,single)}
+function blurb(text,single){const pool=single?[single]:alef();
+ sheet(`<h2>${single?esc(single.name):"Tell me about your talmidim"}</h2><div class="sub">${single?"":"Write or paste anything — one talmid or many. "}${aiKey()?"AI reader is on.":"Basic reader — add the free AI key in the menu for much better results."}</div><textarea id="bt" style="min-height:150px" placeholder="Moshe Katz is doing great in shiur, really into the sugya. Dovid Levy has been quiet, missed Shacharis twice, I want to talk to him Thursday…">${esc(text||"")}</textarea>
+ <div class="row" style="margin-top:12px"><button class="btn" id="cx">Cancel</button><button class="btn p" id="go">Sort it out</button></div><div id="rv"></div>`);
+ $("cx").onclick=closeS;let ups=[],src="";
+ $("go").onclick=async()=>{src=$("bt").value.trim();if(!src)return toast("Write something first");$("go").disabled=true;$("go").textContent="Reading…";const r=await analyze(src,pool,single);ups=r.updates;$("go").disabled=false;$("go").textContent="Sort it out";
+  $("rv").innerHTML=(ups.length?`<div class="gh">Review, then save to profiles</div>`:'<div class="empty">Couldn’t match any talmid by name.</div>')+ups.map((u,i)=>{const s=pool.find(x=>x.id===u.id);return `<div class="h" data-card="${i}"><b>${esc(s.name)}</b><div class="ug" style="margin:6px 0">${["red","yellow","green","none"].map(k=>`<button class="${k} ${u.urgency===k?"on":""}" data-u="${k}">${UL[k]}</button>`).join("")}</div><textarea class="ta" data-i="${i}" data-k="summary">${esc(u.summary)}</textarea><textarea class="ta" data-i="${i}" data-k="need" placeholder="What he needs" style="margin-top:6px">${esc(u.need)}</textarea><div class="chips" style="flex-wrap:wrap;margin-top:6px">${FLAGS.map(f=>`<button class="chip ${u.flags.includes(f)?"on":""}" data-f="${f}">${f}</button>`).join("")}</div></div>`}).join("")
+   +(r.unmatched.length?`<div class="gh">Couldn’t place</div>`+r.unmatched.map(m=>`<div class="h">${esc(m)}</div>`).join(""):"")+(ups.length?`<button class="btn p" id="apy" style="width:100%;margin-top:10px">Save to profiles</button>`:"")};
+ $("rv").oninput=e=>{const i=e.target.dataset.i;if(i!=null)ups[i][e.target.dataset.k]=e.target.value};
+ $("rv").onclick=e=>{const b=e.target.closest("[data-u],[data-f]");if(b){const u=ups[b.closest("[data-card]").dataset.card];if(b.dataset.u){u.urgency=b.dataset.u;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))}else{const k=u.flags.indexOf(b.dataset.f);k<0?u.flags.push(b.dataset.f):u.flags.splice(k,1);b.classList.toggle("on")}}
+  if(e.target.id==="apy"){ups.forEach(u=>{const s=D.students.find(x=>x.id===u.id);if(u.urgency!=="none")s.urgency=u.urgency;if(u.need.trim())s.need=u.need.trim();s.flags=[...new Set([...(s.flags||[]),...u.flags])];D.interviews.push({id:uid(),studentId:s.id,date:today(),notes:u.summary,status:TO[u.urgency]||"",follow:u.need.trim(),flags:u.flags,raw:ups.length===1?src:"",manual:true})});persist();closeS();render();toast("Added to "+ups.length+" profile"+(ups.length>1?"s":""))}}}
+/* ---------- attendance from message or photo ---------- */
+function importer(){const pool=alef();let file=null;
+ sheet(`<h2>Attendance from a message or photo</h2><div class="sub">Paste what came in (“Moshe and Dovid absent, Yossi late”) or photo a sheet. ${aiKey()?"AI reader is on.":"Basic reader — add the free AI key in the menu for better accuracy."}</div>
+ <label>Photo of an attendance sheet</label><input type="file" id="ph" accept="image/*"><div id="pn" class="sub"></div>
+ <label>Message text</label><textarea id="tx" style="min-height:110px" placeholder="Absent: Moshe Katz, Dovid Levy&#10;Late: Yossi Cohen"></textarea>
+ <label>Names with no status word are</label><select id="df"><option value="absent">Absent</option><option value="present">Present</option></select>
+ <div class="row" style="margin-top:14px"><button class="btn" id="cx">Cancel</button><button class="btn p" id="go">Read names</button></div><div id="rv"></div>`);
+ $("cx").onclick=closeS;
+ $("ph").onchange=async e=>{file=e.target.files[0];if(!file)return;if(aiKey()){$("pn").textContent="Photo ready ✓";return}try{$("tx").value=await ocr(file)}catch(x){status("");toast(x.message)}};
+ $("go").onclick=async()=>{const text=$("tx").value,dflt=$("df").value;$("go").disabled=true;$("go").textContent="Reading…";let r=null;
+  if(aiKey()){try{const p=`You read attendance for a yeshiva. Date ${ui.date}, ${(SED.find(x=>x[0]===ui.seder)||SED[0])[1]}.\nROSTER (id | name):\n${pool.map(s=>s.id+" | "+s.name).join("\n")}\n\nINPUT is a message and/or a photo of an attendance sheet. For each roster talmid that is explicitly mentioned or marked, give a status. Names listed with no status word are ${dflt}. On a photo read the mark beside each name (✓ or P = present, A or X or circled = absent, L = late). Match nicknames and misspellings; if unsure, put the text in "unmatched". Return ONLY JSON: {"entries":[{"id":"","status":"present|absent|late"}],"unmatched":[""]}\n\nMESSAGE:\n${text}`;
+   const parts=[{text:p}];if(file)parts.push({inline_data:{mime_type:"image/jpeg",data:await img64(file)}});const j=await gem(parts);
+   r={out:(j.entries||[]).map(e=>({s:pool.find(x=>x.id===e.id),st:e.status})).filter(x=>x.s&&["present","absent","late"].includes(x.st)),miss:j.unmatched||[]}}catch(x){toast("AI unavailable: "+x.message+" — using the basic reader");if(file&&!text.trim()){try{$("tx").value=await ocr(file)}catch(y){}}}}
+  if(!r)r=parse($("tx").value,dflt);
+  $("go").disabled=false;$("go").textContent="Read names";const o=r.out;
+  const draw=()=>{$("rv").innerHTML=`<div class="gh">Found ${o.length} — check each one</div>`+o.map((x,i)=>`<div class="ar"><div class="nm">${esc(x.s.name)}</div><div class="seg" data-i="${i}">${[["present","P"],["absent","A"],["late","L"]].map(k=>`<button class="${k[0]} ${x.st===k[0]?"on":""}" data-m="${k[0]}">${k[1]}</button>`).join("")}</div></div>`).join("")
+   +(r.miss.length?`<div class="gh">Couldn’t match these</div>`+r.miss.map(m=>`<div class="h">${esc(m)}</div>`).join(""):"")+(o.length?`<button class="btn p" id="ap" style="width:100%;margin-top:10px">Put these on the sheet</button>`:"");
+   $("rv").onclick=e=>{const b=e.target.closest("[data-m]");if(b){o[b.parentNode.dataset.i].st=b.dataset.m;draw()}};if($("ap"))$("ap").onclick=()=>{o.forEach(x=>ui.marks[x.s.id]=x.st);closeS();renderA();toast("Added — review, then Save attendance")}};draw()}}
+
+/* ---------- events ---------- */
+$("main").addEventListener("click",e=>{if(!state.data)return;const t=e.target;
+ const ch=t.closest("[data-s]");if(ch){ui[ui.tab==="t"?"shiur":"ashiur"]=ch.dataset.s;return render()}
+ const sd=t.closest("[data-sd]");if(sd){ui.seder=sd.dataset.sd;ui.marks=loadMarks();return renderA()}
+ const dot=t.closest("[data-dot]");if(dot){e.stopPropagation();const s=D.students.find(x=>x.id===dot.dataset.dot),o=["none","green","yellow","red"];s.urgency=o[(o.indexOf(urg(s))+1)%4];persist();return renderT()}
+ const m=t.closest("[data-m]");if(m&&ui.tab==="a"){const id=m.parentNode.dataset.id;ui.marks[id]=ui.marks[id]===m.dataset.m?undefined:m.dataset.m;if(!ui.marks[id])delete ui.marks[id];return renderA()}
+ const c=t.closest(".card");if(c)return detail(c.dataset.id)});
+$("main").addEventListener("input",e=>{if(e.target.id==="q"){ui.q=e.target.value;const p=e.target.selectionStart;renderT();const q=$("q");q.focus();q.setSelectionRange(p,p)}});
+$("main").addEventListener("change",e=>{const i=e.target.id;if(i==="fl"){ui.flag=e.target.value;renderT()}if(i==="only"){ui.only=e.target.checked;renderT()}if(i==="yr"){ui.year=e.target.value;ui.shiur=ui.ashiur="all";ui.marks=loadMarks();renderT()}if(i==="ad"&&e.target.value){ui.date=e.target.value;ui.marks=loadMarks();renderA()}});
+root.addEventListener("click",e=>{const t=e.target;if(t.id==="addS")openStudentDrawer(null);if(t.id==="saveA")saveAtt();if(t.id==="imp")importer();if(t.id==="upd")blurb("");if(t.id==="aiB")aiset();
+ if(t.id==="allP"){alef().filter(s=>ui.ashiur==="all"||s.classId===ui.ashiur).forEach(s=>{if(!ui.marks[s.id])ui.marks[s.id]="present"});renderA()}});
+/* ---------- wire into the classic app ---------- */
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{const n=b.dataset.tab,mine=n==="home"||n==="att2";document.getElementById("tab-x").classList.toggle("hidden",!mine);if(mine){ui.tab=n==="home"?"t":"a";ui.marks=loadMarks();render()}}));
+const mm=document.getElementById("moreMenu");[["Whole yeshiva","year"],["Shiurim","shiurim"],["Roster & classes (classic)","roster"],["Attendance (classic)","attendance"],["Check-ins (classic)","interviews"]].forEach(x=>{const b=document.createElement("button");b.textContent=x[0];b.onclick=()=>{mm.classList.add("hidden");document.querySelector('.tab[data-tab="'+x[1]+'"]').click()};mm.insertBefore(b,mm.firstChild)});
+const _sm=showMain;showMain=function(){_sm();try{document.querySelector('.tab[data-tab="home"]').click()}catch(e){console.error(e)}};
+})();
 
   if(window.__needWelcome()) window.__showWelcome(); else boot();
 })();
