@@ -11,58 +11,63 @@
 <style>
 :root{--paper:#F7F4EC;--card:#fff;--ink:#241D4A;--soft:#6B6558;--line:#E4DFCF;--brand:#342B71;--bs:#EDEBFA;--red:#A23B32;--rb:#F7E6E3;--amb:#8A5A00;--ab:#FBEFDD;--grn:#2F6B3A;--gb:#E7F0E6;--serif:Georgia,'Times New Roman',serif}
 *{box-sizing:border-box}[hidden]{display:none!important}
-body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
-#app,#login{max-width:760px;margin:0 auto;padding:14px 14px 80px}
-header{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:10px}
-h1{font:400 22px var(--serif);margin:0}
-.pill{font-size:11px;padding:4px 9px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--soft)}
-.tabs{display:flex;gap:6px;overflow-x:auto;position:sticky;top:0;background:var(--paper);padding:6px 0 10px;z-index:5}
-.tab{flex:none;padding:9px 15px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--soft);font-size:14px}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+#app,#login{max-width:720px;margin:0 auto;padding:14px 14px 80px}
+header{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:8px}
+h1{font:400 21px var(--serif);margin:0}
+.pill{font-size:11px;color:var(--soft)}
+.tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--paper);padding:6px 0 10px;z-index:5}
+.tab{padding:9px 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--soft);font-size:14px}
 .tab.on{background:var(--brand);border-color:var(--brand);color:#fff}
-button,input,select,textarea{font:inherit;color:inherit}
+button,input,textarea{font:inherit;color:inherit}
 .b{padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer}
 .b.p{background:var(--brand);border-color:var(--brand);color:#fff}.b.red{color:var(--red)}
-.c,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;padding:12px}
-.c{padding:0}.c>summary{list-style:none;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:12px;cursor:pointer}
-.c>summary::-webkit-details-marker{display:none}
-.body{padding:0 12px 12px}
-.sub{font-size:12px;color:var(--soft)}.pv{font-size:13px;color:var(--soft);margin-top:3px}
-.t{flex:none;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;padding:12px 14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.c>summary{list-style:none;display:flex;gap:10px;justify-content:space-between;padding:11px 13px;cursor:pointer}
+.c>summary::-webkit-details-marker{display:none}.body{padding:0 13px 12px}
+.sub{font-size:12px;color:var(--soft)}.pv{font-size:13px;color:var(--soft);margin-top:2px}
+.t{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap;display:inline-block}
 .t.needs{background:var(--rb);color:var(--red)}.t.steady{background:var(--ab);color:var(--amb)}.t.thriving{background:var(--gb);color:var(--grn)}
-.tx{white-space:pre-wrap;margin:4px 0 10px}
-h2{font:600 12px/1 sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:18px 2px 8px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.rt{text-align:right;flex:none}.rt .sub{margin-top:3px}
+.tx{white-space:pre-wrap}
+h2{font:600 12px/1 sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:20px 2px 8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 4px}
 .stats div{background:var(--bs);border-radius:12px;padding:10px 4px;text-align:center;font-size:11px;color:var(--soft)}
 .stats b{display:block;font-size:22px;color:var(--ink)}
+.big{font:400 20px var(--serif)}.ln{margin-top:6px;font-size:14px}
+.bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);margin-top:5px}
+.bar span:first-child{width:46px}.bar span:last-child{width:52px;text-align:right}
+.bar i{flex:1;height:8px;background:var(--line);border-radius:9px;overflow:hidden}.bar u{display:block;height:100%;background:var(--grn)}
+.row{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}.row:first-child{border-top:0}
 .chips{display:flex;gap:6px;overflow-x:auto;margin:8px 0 12px}
 .chip{flex:none;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--soft)}
 .chip.on{background:var(--bs);border-color:var(--brand);color:var(--brand)}
-input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-textarea{min-height:200px;resize:vertical}
-.h{border-top:1px solid var(--line);padding:6px 0;font-size:13px}.h i{color:var(--soft);font-style:normal;margin-right:6px}
-.log{font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}.log i{color:var(--soft);font-style:normal;margin-right:6px}
+input,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+textarea{min-height:200px;resize:vertical}select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}
+.h{border-top:1px solid var(--line);padding:5px 0;font-size:13px}i.d{color:var(--soft);font-style:normal;margin-right:6px}
 .empty{text-align:center;color:var(--soft);padding:30px 10px}
 .ov{position:fixed;inset:0;background:rgba(20,16,50,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .mb{background:var(--paper);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0))}
-.mb h3{margin:0 0 8px;font:400 19px var(--serif)}.mb label{display:block;font-size:12px;color:var(--soft);margin-top:10px}
-.mb label>*{margin-top:4px;color:var(--ink)}.r{display:flex;gap:8px;margin-top:14px;align-items:center}.r span{flex:1}
-.msg{background:var(--gb);color:var(--grn);border-radius:10px;padding:10px;margin-bottom:10px;white-space:pre-wrap;font-size:13px}
+.mb h3{margin:0 0 8px;font:400 19px var(--serif)}.mb label{display:block;font-size:12px;color:var(--soft);margin-top:10px}.mb label>*{margin-top:4px;color:var(--ink)}
+.r{display:flex;gap:8px;margin-top:14px;align-items:center}.r span{flex:1}
+.msg{background:var(--gb);color:var(--grn);border-radius:10px;padding:10px 12px;margin-bottom:10px;white-space:pre-wrap;font-size:13px}
+.msg.w{background:var(--ab);color:var(--amb)}
 p.hint{font-size:13px;color:var(--soft);margin:6px 2px}
 </style></head><body>
 
 <div id="login" hidden>
   <h1 style="margin:40px 0 8px">Derech Overview</h1>
-  <p class="hint">Enter your yeshiva code. Everyone who uses the same code sees the same overview. A new code starts a new, empty one.</p>
+  <p class="hint">Enter your yeshiva code. Everyone with the same code sees the same overview.</p>
   <input id="code" placeholder="Yeshiva code" autocapitalize="off" autocomplete="off">
   <div class="r"><button class="b p" id="go" style="flex:1">Enter</button></div>
 </div>
 
 <div id="app" hidden>
-  <header><h1>Derech Overview</h1><span><span class="pill" id="st"></span> <button class="b" id="out" style="padding:5px 10px;font-size:12px">Lock</button></span></header>
-  <div class="tabs">
-    <button class="tab" data-t="ov">Overview</button><button class="tab" data-t="sh">Shiurim</button><button class="tab" data-t="gu">Guys</button><button class="tab" data-t="ad">+ Add update</button>
-  </div>
+  <header><h1>Derech Overview</h1><span><span class="pill" id="st"></span> <button class="b p" data-a="up" style="padding:7px 12px">+ Update</button></span></header>
+  <div class="tabs"><button class="tab" data-t="yes">Yeshiva</button><button class="tab" data-t="gu">Guys</button></div>
   <div id="view"></div>
+  <p style="text-align:center;margin-top:30px"><button class="b" id="out" style="font-size:12px;padding:5px 10px">Lock</button></p>
 </div>
 
 <script>
@@ -76,38 +81,42 @@ const fmt=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
 function ls(k,v){try{if(v===undefined){const x=localStorage.getItem(k);return x?JSON.parse(x):null}localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
 const L={thriving:"Thriving",steady:"Steady",needs:"Needs attention"};
 const tag=s=>s?`<span class="t ${s}">${L[s]}</span>`:"";
-const blank=()=>({y:{t:"",d:""},s:{},g:{},log:[]});
-const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const blank=()=>({y:{t:"",d:""},g:{},a:{},log:[]});
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const today=()=>ymd(new Date());
+const ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)};
 const fd=d=>{try{return new Date(d+"T00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"})}catch(e){return d||""}};
-let code=ls("ov-code")||"",D=blank(),tab="ov",q="",filt="all",msg="";
+let code=ls("ov2-code")||"",D=blank(),tab="yes",q="",filt="all",msg="",warn="";
+const rid=()=>"ov2-"+code;
+const pill=t=>{$("st").textContent=t};
+const fix=d=>Object.assign(blank(),d||{});
 
-// ---------- storage (shared Supabase row, cached on the phone) ----------
-const rid=()=>"ov-"+code;
-function pill(t){$("st").textContent=t}
+// ---------- storage ----------
 async function load(){
   let got=false;
   try{
     const r=await fetch(`${SB.url}/rest/v1/derech_data?select=data&id=eq.${rid()}`,{headers:H});
     if(!r.ok)throw 0;const j=await r.json();
-    if(j[0]&&j[0].data){D=j[0].data;got=true}
+    if(j[0]&&j[0].data){D=fix(j[0].data);got=true}
     pill("Synced");
   }catch(e){pill("Offline")}
-  if(!got){const c=ls("ov-cache-"+code);if(c)D=c}
-  ls("ov-cache-"+code,D);
-  if(!(tab==="ad"&&$("paste")&&$("paste").value))render();
+  if(!got){const c=ls("ov2-cache-"+code);if(c)D=fix(c)}
+  ls("ov2-cache-"+code,D);
+  if(!$("paste"))render();
 }
 async function save(){
-  ls("ov-cache-"+code,D);pill("Saving…");
+  ls("ov2-cache-"+code,D);pill("Saving…");
   try{
     const r=await fetch(`${SB.url}/rest/v1/derech_data?on_conflict=id`,{method:"POST",headers:{...H,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({id:rid(),data:D,updated_at:new Date().toISOString()})});
     if(!r.ok)throw 0;pill("Synced");
-  }catch(e){pill("Not synced – saved on this phone")}
+  }catch(e){pill("Saved on this phone only")}
 }
+const done=()=>{save();render()};
 
-// ---------- merge logic (used by paste AND manual edits) ----------
-function setGuy(d,name,f,date,ch){
-  const k=name.toLowerCase(),old=d.g[k];
-  const g=old||(d.g[k]={name,shiur:"",room:"",st:"",t:"",d:date,h:[]});
+// ---------- merging ----------
+function setGuy(name,f,date,ch){
+  const k=name.toLowerCase(),old=D.g[k];
+  const g=old||(D.g[k]={name,shiur:"",room:"",st:"",t:"",d:date,h:[]});
   if(!old)ch.push(`New: ${name}${f.shiur?" ("+f.shiur+")":""}`);
   else{
     if(f.shiur&&g.shiur&&f.shiur!==g.shiur)ch.push(`${name} moved shiur: ${g.shiur} → ${f.shiur}`);
@@ -118,161 +127,179 @@ function setGuy(d,name,f,date,ch){
   if(f.body&&f.body!==g.t){g.t=f.body;g.h.unshift({d:date,t:f.body});g.h=g.h.slice(0,25)}
   g.d=date;
 }
-function setShiur(d,name,f,date){
-  const k=name.toLowerCase(),s=d.s[k]||(d.s[k]={name,rebbi:"",st:"",t:"",d:date});
-  if(f.rebbi)s.rebbi=f.rebbi;if(f.st)s.st=f.st;if(f.body)s.t=f.body;s.d=date;
-}
 const normSt=x=>{x=(x||"").toLowerCase().trim();if(!x)return"";if(/need|strug|concern|attent|red|worr/.test(x))return"needs";if(/thriv|great|excel|green|strong/.test(x))return"thriving";return"steady"};
+function resolve(n){
+  n=n.toLowerCase().replace(/\s+/g," ").trim();if(D.g[n])return n;
+  const t=n.split(" "),c=Object.keys(D.g).filter(k=>t.every(w=>k.includes(w)));
+  return c.length===1?c[0]:null;
+}
 function parse(txt){
-  const P={y:null,s:[],g:[]};let cur=null;
+  const P={y:null,a:[],g:[]};let cur=null;
   for(const raw of String(txt).split(/\r?\n/)){
-    const m=raw.match(/^\s*#{1,4}\s*(yeshiva|shiur|guy|talmid)\w*\s*[:\-]?\s*(.*)$/i);
-    if(m){
-      const k=m[1].toLowerCase()[0],f=m[2].split("|").map(x=>x.trim());
-      cur={f,b:[]};
-      if(k==="y")P.y=cur;else if(k==="s")P.s.push(cur);else P.g.push(cur);
-    }else if(cur)cur.b.push(raw.trimEnd());
+    const m=raw.match(/^\s*#{1,4}\s*(yeshiva|attendance|guy|talmid)\w*\s*[:\-]?\s*(.*)$/i);
+    if(m){let k=m[1][0].toLowerCase();if(k==="t")k="g";cur={k,f:m[2].split("|").map(x=>x.trim()),b:[]};if(k==="y")P.y=cur;else P[k].push(cur)}
+    else if(cur)cur.b.push(raw.trimEnd());
   }
   const body=x=>x.b.join("\n").trim();
   if(P.y)P.y=body(P.y);
-  P.s=P.s.filter(x=>x.f[0]).map(x=>({f:x.f,body:body(x)}));
+  P.a=P.a.map(x=>({f:x.f,body:body(x)}));
   P.g=P.g.filter(x=>x.f[0]).map(x=>({f:x.f,body:body(x)}));
   return P;
 }
 function apply(P){
-  const date=today(),ch=[];
+  const date=today(),ch=[],unm=[],ad=[];
   if(P.y)D.y={t:P.y,d:date};
-  P.s.forEach(x=>setShiur(D,x.f[0],{rebbi:x.f[1],st:normSt(x.f[2]),body:x.body},date));
-  P.g.forEach(x=>setGuy(D,x.f[0],{shiur:x.f[1],room:x.f[2],st:normSt(x.f[3]),body:x.body},date,ch));
+  P.g.forEach(x=>setGuy(x.f[0],{shiur:x.f[1],room:x.f[2],st:normSt(x.f[3]),body:x.body},date,ch));
+  P.a.forEach(x=>{
+    const dm=(x.f[0]||"").match(/\d{4}-\d{2}-\d{2}/),d=dm?dm[0]:date,rec={ab:[],lt:[],tot:Object.keys(D.g).length};
+    x.body.split("\n").forEach(line=>{
+      const m=line.match(/^\s*[-•*]?\s*(absent|out|missing|late)\b[^:\-–]*[:\-–]\s*(.*)$/i);if(!m)return;
+      const list=m[1].toLowerCase()==="late"?rec.lt:rec.ab;
+      m[2].split(/[,;]|\band\b/i).map(s=>s.replace(/\(.*?\)/g,"").trim()).filter(s=>s&&!/^(none|no one|nobody|n\/a)$/i.test(s)).forEach(n=>{const k=resolve(n);if(!k)unm.push(n);else if(!list.includes(k))list.push(k)});
+    });
+    D.a[d]=rec;ad.push(`${fd(d)}: ${rec.ab.length} absent, ${rec.lt.length} late`);
+  });
   D.log=ch.map(t=>({d:date,t})).concat(D.log||[]).slice(0,120);
-  return ch;
+  return {ch,unm,ad};
 }
+
+// ---------- numbers ----------
+function absn(k,n){
+  const c=ago(n),o={ab:[],lt:[]};
+  Object.entries(D.a).forEach(([d,r])=>{if(d>=c){if(r.ab.includes(k))o.ab.push(d);if(r.lt.includes(k))o.lt.push(d)}});
+  o.ab.sort();o.lt.sort();return o;
+}
+const key=g=>g.name.toLowerCase();
+const first=t=>{const l=(t||"").split("\n").find(x=>x.trim())||"";return esc(l.replace(/^[-•*]\s*/,"").slice(0,110))};
+const names=ks=>ks.map(k=>esc(D.g[k]?D.g[k].name:k)).join(", ");
+const empty=`<div class="empty">Nothing here yet.<br>Tap <b>+ Update</b> to paste your first overview.</div>`;
+const lastDate=()=>Object.keys(D.a).sort().pop();
 
 // ---------- views ----------
-function counts(){const c={needs:0,steady:0,thriving:0};Object.values(D.g).forEach(g=>{if(c[g.st]!=null)c[g.st]++});return c}
-const first=t=>{const l=(t||"").split("\n").find(x=>x.trim())||"";return esc(l.replace(/^[-•*]\s*/,"").slice(0,110))};
-const empty=`<div class="empty">Nothing here yet.<br>Go to <b>+ Add update</b> and paste an overview.</div>`;
-
-function rOv(){
-  const c=counts(),gs=Object.values(D.g);
-  if(!gs.length&&!D.y.t)return empty;
-  const need=gs.filter(g=>g.st==="needs").sort((a,b)=>a.name.localeCompare(b.name));
-  return `${D.y.t?`<div class="card"><div class="sub">The yeshiva overall · ${fd(D.y.d)}</div><div class="tx" style="margin-bottom:0">${fmt(D.y.t)}</div></div>`:""}
-  <div class="stats"><div><b>${c.thriving}</b>Thriving</div><div><b>${c.steady}</b>Steady</div><div><b style="color:var(--red)">${c.needs}</b>Need attention</div></div>
-  ${need.length?`<h2>Needs attention</h2>`+need.map(g=>`<div class="card" data-a="eg" data-k="${esc(g.name.toLowerCase())}" style="cursor:pointer"><b>${esc(g.name)}</b> <span class="sub">${esc(g.shiur||"")}</span><div class="pv">${first(g.t)}</div></div>`).join(""):""}
-  ${(D.log||[]).length?`<h2>Recent changes</h2><div class="card">`+D.log.slice(0,15).map(l=>`<div class="log"><i>${fd(l.d)}</i>${esc(l.t)}</div>`).join("")+`</div>`:""}`;
-}
-function rSh(){
-  const m={};
-  Object.values(D.s).forEach(s=>m[s.name.toLowerCase()]={n:s.name,s,gs:[]});
-  const none=[];
-  Object.values(D.g).forEach(g=>{if(!g.shiur){none.push(g);return}const k=g.shiur.toLowerCase();(m[k]||(m[k]={n:g.shiur,s:null,gs:[]})).gs.push(g)});
-  const list=Object.values(m).sort((a,b)=>a.n.localeCompare(b.n));
-  if(none.length)list.push({n:"No shiur yet",s:null,gs:none,x:1});
-  if(!list.length)return empty;
-  return list.map(x=>{
-    const s=x.s||{},n=x.gs.filter(g=>g.st==="needs").length;
-    return `<details class="c"><summary><div><b>${esc(x.n)}</b><div class="sub">${esc(s.rebbi||"")}${s.rebbi?" · ":""}${x.gs.length} guys${n?` · <span style="color:var(--red)">${n} need attention</span>`:""}</div>${s.t?`<div class="pv">${first(s.t)}</div>`:""}</div>${tag(s.st)}</summary>
-    <div class="body">${s.t?`<div class="tx">${fmt(s.t)}</div>`:""}
-    ${x.gs.sort((a,b)=>a.name.localeCompare(b.name)).map(g=>`<div class="h" data-a="eg" data-k="${esc(g.name.toLowerCase())}" style="cursor:pointer;display:flex;justify-content:space-between;gap:8px"><span>${esc(g.name)}${g.room?` <span class="sub">Room ${esc(g.room)}</span>`:""}</span>${tag(g.st)}</div>`).join("")}
-    ${x.x?"":`<button class="b" style="margin-top:10px" data-a="es" data-n="${esc(x.n)}">Edit shiur</button>`}</div></details>`}).join("");
+function rYes(){
+  let h="";
+  if(msg){h+=`<div class="msg">${esc(msg)}</div>`;msg=""}
+  if(warn){h+=`<div class="msg w">${esc(warn)}</div>`;warn=""}
+  const gs=Object.values(D.g);
+  if(!gs.length&&!D.y.t&&!lastDate())return h+empty;
+  if(D.y.t)h+=`<div class="card"><div class="sub">Yeshiva overall · ${fd(D.y.d)}</div><div class="tx">${fmt(D.y.t)}</div></div>`;
+  const c={needs:0,steady:0,thriving:0};gs.forEach(g=>{if(c[g.st]!=null)c[g.st]++});
+  if(gs.length)h+=`<div class="stats"><div><b>${c.thriving}</b>Thriving</div><div><b>${c.steady}</b>Steady</div><div><b style="color:var(--red)">${c.needs}</b>Need attention</div></div>`;
+  const ld=lastDate();
+  if(ld){
+    const r=D.a[ld],tot=r.tot||gs.length||1,here=tot-r.ab.length;
+    h+=`<h2>Attendance · ${fd(ld)}</h2><div class="card"><div class="big">${here} of ${tot} here <span class="sub">${Math.round(here/tot*100)}%</span></div>
+    ${r.ab.length?`<div class="ln"><b>Absent:</b> ${names(r.ab)}</div>`:`<div class="ln">Everyone is here.</div>`}
+    ${r.lt.length?`<div class="ln"><b>Late:</b> ${names(r.lt)}</div>`:""}
+    <div style="margin-top:10px">${Object.keys(D.a).sort().slice(-7).map(d=>{const x=D.a[d],t=x.tot||gs.length||1;return `<div class="bar"><span>${fd(d)}</span><i><u style="width:${Math.round((t-x.ab.length)/t*100)}%"></u></i><span>${t-x.ab.length}/${t}</span></div>`}).join("")}</div></div>`;
+  }
+  const watch=gs.map(g=>({g,n:absn(key(g),14).ab.length})).filter(x=>x.g.st==="needs"||x.n>=3).sort((a,b)=>a.g.name.localeCompare(b.g.name));
+  if(watch.length)h+=`<h2>Needs attention</h2><div class="card">`+watch.map(({g,n})=>`<div class="row" data-a="eg" data-k="${esc(key(g))}"><div><b>${esc(g.name)}</b> <span class="sub">${esc(g.shiur)}</span><div class="pv">${n>=3?`Absent ${n}× in 2 weeks. `:""}${first(g.t)}</div></div>${tag(g.st)}</div>`).join("")+`</div>`;
+  const sh={};gs.forEach(g=>{const s=g.shiur||"No shiur yet";(sh[s]||(sh[s]=[])).push(g)});
+  const sn=Object.keys(sh).sort();
+  if(sn.length>1||(sn[0]&&sn[0]!=="No shiur yet"))h+=`<h2>By shiur</h2><div class="card">`+sn.map(s=>{
+    const a=sh[s],nd=a.filter(g=>g.st==="needs").length,out=ld?a.filter(g=>D.a[ld].ab.includes(key(g))).length:0;
+    return `<div class="row" data-a="fs" data-k="${esc(s.toLowerCase())}"><div><b>${esc(s)}</b><div class="pv">${a.length} guys${ld?` · ${out} absent`:""}</div></div>${nd?`<span class="t needs">${nd} need attention</span>`:`<span class="sub">›</span>`}</div>`}).join("")+`</div>`;
+  if((D.log||[]).length)h+=`<h2>Recent changes</h2><div class="card">`+D.log.slice(0,12).map(l=>`<div class="h"><i class="d">${fd(l.d)}</i>${esc(l.t)}</div>`).join("")+`</div>`;
+  return h;
 }
 function gList(){
-  const gs=Object.values(D.g).filter(g=>(filt==="all"||g.st===filt)&&(!q||(g.name+" "+g.shiur+" "+g.room).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));
-  if(!gs.length)return `<div class="empty">${Object.keys(D.g).length?"No matches.":"No guys yet. Go to <b>+ Add update</b>."}</div>`;
-  return gs.map(g=>`<details class="c"><summary><div><b>${esc(g.name)}</b><div class="sub">${[g.shiur,g.room&&"Room "+g.room].filter(Boolean).map(esc).join(" · ")||"No shiur or room yet"}</div>${g.t?`<div class="pv">${first(g.t)}</div>`:""}</div>${tag(g.st)}</summary>
-  <div class="body">${g.t?`<div class="tx">${fmt(g.t)}</div>`:""}
-  ${g.h.slice(1,8).map(h=>`<div class="h"><i>${fd(h.d)}</i>${esc(h.t.split("\n")[0])}</div>`).join("")}
-  <button class="b" style="margin-top:10px" data-a="eg" data-k="${esc(g.name.toLowerCase())}">Edit / add note</button></div></details>`).join("");
+  const gs=Object.values(D.g).filter(g=>(filt==="all"||(filt==="needs"?g.st==="needs":(g.shiur||"No shiur yet").toLowerCase()===filt))&&(!q||(g.name+" "+g.shiur+" "+g.room).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!gs.length)return `<div class="empty">${Object.keys(D.g).length?"No matches.":"No guys yet. Tap <b>+ Update</b>."}</div>`;
+  return gs.map(g=>{
+    const a=absn(key(g),30);
+    return `<details class="c"><summary><div><b>${esc(g.name)}</b><div class="sub">${[g.shiur,g.room&&"Room "+g.room].filter(Boolean).map(esc).join(" · ")||"No shiur or room yet"}</div>${g.t?`<div class="pv">${first(g.t)}</div>`:""}</div>
+    <div class="rt">${tag(g.st)}${a.ab.length||a.lt.length?`<div class="sub">${a.ab.length} absent · ${a.lt.length} late</div>`:""}</div></summary>
+    <div class="body">${g.t?`<div class="tx">${fmt(g.t)}</div>`:""}
+    ${a.ab.length?`<div class="ln"><b>Absent (30 days):</b> ${a.ab.map(fd).join(", ")}</div>`:""}${a.lt.length?`<div class="ln"><b>Late:</b> ${a.lt.map(fd).join(", ")}</div>`:""}
+    ${g.h.slice(1,6).map(x=>`<div class="h"><i class="d">${fd(x.d)}</i>${esc(x.t.split("\n")[0])}</div>`).join("")}
+    <button class="b" style="margin-top:10px" data-a="eg" data-k="${esc(key(g))}">Edit / add note</button></div></details>`}).join("");
 }
 function rGu(){
-  return `<input id="q" type="search" placeholder="Search by name, shiur or room" value="${esc(q)}">
-  <div class="chips">${[["all","All"],["needs","Needs attention"],["steady","Steady"],["thriving","Thriving"]].map(([k,l])=>`<button class="chip${filt===k?" on":""}" data-a="f" data-k="${k}">${l}</button>`).join("")}</div><div id="gl">${gList()}</div>`;
-}
-const PROMPT=`Turn the updates below into this exact format, with no other text. One header line per item, fields separated by |. Status is thriving, steady, or needs attention. Under each header, write short bullet lines. Include every guy mentioned. Only fill in Shiur or Room if I said it (that is how I move a guy). Leave a field empty if unknown.
-
-# YESHIVA
-how the yeshiva is doing overall
-
-# SHIUR Shiur name | Rebbi | status
-how this shiur is doing
-
-# GUY Full name | Shiur | Room | status
-- how he is doing
-
-Updates:
-[paste what the Rebbi told you here]`;
-function rAd(){
-  const m=msg;msg="";
-  return `${m?`<div class="msg">${esc(m)}</div>`:""}
-  <p class="hint"><b>1.</b> Copy the prompt, give it to Claude with the Rebbi’s updates. <b>2.</b> Paste Claude’s answer here.</p>
-  <button class="b" data-a="cp">Copy prompt for Claude</button>
-  <h2>Paste the overview</h2>
-  <textarea id="paste" placeholder="# YESHIVA&#10;...&#10;# SHIUR ...&#10;# GUY ..."></textarea>
-  <p class="hint" id="pv">Paste to begin. New info is merged in; nothing else is erased.</p>
-  <div class="r"><button class="b" data-a="undo">Undo last add</button><span></span><button class="b p" data-a="add">Add to app</button></div>
-  <h2>Or add one note by hand</h2><button class="b" data-a="newg">+ Guy</button> <button class="b" data-a="news">+ Shiur</button>`;
+  const sn=[...new Set(Object.values(D.g).map(g=>g.shiur).filter(Boolean))].sort();
+  return `<input id="q" type="search" placeholder="Search name, shiur or room" value="${esc(q)}">
+  <div class="chips">${[["all","All"],["needs","Needs attention"]].concat(sn.map(s=>[s.toLowerCase(),s])).map(([k,l])=>`<button class="chip${filt===k?" on":""}" data-a="f" data-k="${esc(k)}">${esc(l)}</button>`).join("")}</div><div id="gl">${gList()}</div>`;
 }
 function render(){
   $("login").hidden=!!code;$("app").hidden=!code;if(!code)return;
   document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
-  $("view").innerHTML=({ov:rOv,sh:rSh,gu:rGu,ad:rAd})[tab]();
+  $("view").innerHTML=tab==="gu"?rGu():rYes();
 }
 
-// ---------- edit sheets ----------
-function modal(title,fields,ok,del){
-  const o=document.createElement("div");o.className="ov";
-  o.innerHTML=`<form class="mb"><h3>${esc(title)}</h3>${fields.map(f=>`<label>${esc(f.l)}${f.a?`<textarea name="${f.k}" style="min-height:90px">${esc(f.v||"")}</textarea>`:f.o?`<select name="${f.k}">${f.o.map(x=>`<option value="${x[0]}"${x[0]===f.v?" selected":""}>${x[1]}</option>`).join("")}</select>`:`<input name="${f.k}" value="${esc(f.v||"")}">`}</label>`).join("")}
-  <div class="r">${del?`<button type="button" class="b red" data-x="d">Delete</button>`:""}<span></span><button type="button" class="b" data-x="c">Cancel</button><button class="b p">Save</button></div></form>`;
-  document.body.appendChild(o);
-  const close=()=>o.remove();
-  o.onclick=e=>{if(e.target===o||e.target.dataset.x==="c")close();if(e.target.dataset.x==="d"&&confirm("Delete this permanently?")){del();close()}};
-  o.querySelector("form").onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));f&&ok(f);close()};
+// ---------- sheets ----------
+function sheet(html,onclick){
+  const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="mb">${html}</div>`;
+  o.onclick=e=>{if(e.target===o||e.target.dataset.x==="c")o.remove();else if(onclick)onclick(e,o)};
+  document.body.appendChild(o);return o;
 }
 const STO=[["","—"],["thriving","Thriving"],["steady","Steady"],["needs","Needs attention"]];
-function done(){ls("ov-cache-"+code,D);save();render()}
 function editGuy(k){
   const g=D.g[k];if(!g)return;
-  modal(g.name,[{k:"shiur",l:"Shiur",v:g.shiur},{k:"room",l:"Room",v:g.room},{k:"st",l:"How he’s doing",v:g.st,o:STO},{k:"body",l:"New note (replaces the current one; old ones stay in history)",a:1}],
-    f=>{const ch=[];setGuy(D,g.name,{shiur:f.shiur.trim(),room:f.room.trim(),st:f.st,body:f.body.trim()},today(),ch);D.log=ch.map(t=>({d:today(),t})).concat(D.log||[]).slice(0,120);done()},
-    ()=>{delete D.g[k];done()});
+  const o=sheet(`<form><h3>${esc(g.name)}</h3>
+  <label>Shiur<input name="shiur" value="${esc(g.shiur)}"></label><label>Room<input name="room" value="${esc(g.room)}"></label>
+  <label>How he’s doing<select name="st">${STO.map(x=>`<option value="${x[0]}"${x[0]===g.st?" selected":""}>${x[1]}</option>`).join("")}</select></label>
+  <label>New note (old ones stay in history)<textarea name="body" style="min-height:90px"></textarea></label>
+  <div class="r"><button type="button" class="b red" data-x="d">Delete</button><span></span><button type="button" class="b" data-x="c">Cancel</button><button class="b p">Save</button></div></form>`,
+  (e,o)=>{if(e.target.dataset.x==="d"&&confirm("Delete "+g.name+" permanently?")){delete D.g[k];o.remove();done()}});
+  o.querySelector("form").onsubmit=e=>{
+    e.preventDefault();const f=Object.fromEntries(new FormData(e.target)),ch=[];
+    setGuy(g.name,{shiur:f.shiur.trim(),room:f.room.trim(),st:f.st,body:f.body.trim()},today(),ch);
+    D.log=ch.map(t=>({d:today(),t})).concat(D.log||[]).slice(0,120);o.remove();done();
+  };
 }
-function editShiur(name){
-  const s=D.s[name.toLowerCase()]||{};
-  modal(name,[{k:"rebbi",l:"Rebbi",v:s.rebbi},{k:"st",l:"How the shiur is doing",v:s.st,o:STO},{k:"body",l:"Note",v:s.t,a:1}],
-    f=>{setShiur(D,name,{rebbi:f.rebbi.trim(),st:f.st,body:f.body.trim()},today());done()},
-    D.s[name.toLowerCase()]?()=>{delete D.s[name.toLowerCase()];done()}:null);
+function promptText(){return `Turn the updates below into this exact format and nothing else. Use full names, spelled the same way each time. Leave out any section I gave no info on.
+
+# YESHIVA
+2–4 lines on how the yeshiva is doing overall
+
+# ATTENDANCE ${today()}
+Absent: Full Name, Full Name
+Late: Full Name
+
+# GUY Full name | Shiur | Room | thriving, steady, or needs attention
+- short line on how he is doing
+
+One # GUY block for each guy I mention. Only fill in Shiur or Room if I said it (that is how I move a guy). Leave a field empty if unknown.
+
+Updates:
+[paste what the Rebbi told you here]`}
+function openUpdate(){
+  sheet(`<h3>Add update</h3><p class="hint"><b>1.</b> Copy the prompt, give it to Claude with what the Rebbi said.<br><b>2.</b> Paste Claude’s answer below.</p>
+  <button class="b" data-a="cp">Copy prompt for Claude</button>
+  <textarea id="paste" style="margin-top:10px" placeholder="# YESHIVA&#10;...&#10;# ATTENDANCE&#10;Absent: ...&#10;# GUY ..."></textarea>
+  <p class="hint" id="pv">Paste to begin. Nothing existing gets erased.</p>
+  <div class="r"><button class="b" data-a="undo">Undo last add</button><span></span><button class="b" data-x="c">Cancel</button><button class="b p" data-a="add">Add</button></div>`);
 }
 
 // ---------- events ----------
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-t]");if(t&&t.classList.contains("tab")){tab=t.dataset.t;render();return}
-  const a=e.target.closest("[data-a]");if(!a)return;const k=a.dataset.k;
+  const t=e.target.closest(".tab");if(t){tab=t.dataset.t;render();return}
+  const a=e.target.closest("[data-a]");if(!a)return;const k=a.dataset.k,ov=document.querySelector(".ov");
   switch(a.dataset.a){
+    case"up":openUpdate();break;
     case"f":filt=k;render();break;
+    case"fs":filt=k;tab="gu";render();window.scrollTo(0,0);break;
     case"eg":editGuy(k);break;
-    case"es":editShiur(a.dataset.n);break;
-    case"newg":modal("New guy",[{k:"name",l:"Full name"},{k:"shiur",l:"Shiur"},{k:"room",l:"Room"},{k:"st",l:"How he’s doing",o:STO,v:"steady"},{k:"body",l:"Note",a:1}],f=>{if(!f.name.trim())return;const ch=[];setGuy(D,f.name.trim(),{shiur:f.shiur.trim(),room:f.room.trim(),st:f.st,body:f.body.trim()},today(),ch);D.log=ch.map(t=>({d:today(),t})).concat(D.log||[]);done()});break;
-    case"news":modal("New shiur",[{k:"name",l:"Shiur name"},{k:"rebbi",l:"Rebbi"},{k:"st",l:"How it’s doing",o:STO},{k:"body",l:"Note",a:1}],f=>{if(!f.name.trim())return;setShiur(D,f.name.trim(),{rebbi:f.rebbi.trim(),st:f.st,body:f.body.trim()},today());done()});break;
-    case"cp":(navigator.clipboard?navigator.clipboard.writeText(PROMPT):Promise.reject()).then(()=>{a.textContent="Copied ✓"}).catch(()=>{const t=document.createElement("textarea");t.value=PROMPT;document.body.appendChild(t);t.select();try{document.execCommand("copy");a.textContent="Copied ✓"}catch(x){}t.remove()});break;
+    case"cp":{const P=promptText();(navigator.clipboard?navigator.clipboard.writeText(P):Promise.reject()).then(()=>{a.textContent="Copied ✓"}).catch(()=>{const x=document.createElement("textarea");x.value=P;document.body.appendChild(x);x.select();try{document.execCommand("copy");a.textContent="Copied ✓"}catch(_){}x.remove()});break}
     case"add":{
-      const P=parse($("paste").value),n=(P.y?1:0)+P.s.length+P.g.length;
-      if(!n){$("pv").innerHTML="<span style='color:var(--red)'>Couldn’t find any # YESHIVA, # SHIUR or # GUY lines. Paste Claude’s answer exactly as given.</span>";break}
-      ls("ov-prev-"+code,D);const ch=apply(P);
-      msg=`Added: ${P.y?"yeshiva overview, ":""}${P.s.length} shiurim, ${P.g.length} guys.`+(ch.length?`\n\nChanges:\n`+ch.slice(0,12).map(x=>"• "+x).join("\n"):"");
-      done();break}
-    case"undo":{const p=ls("ov-prev-"+code);if(p&&confirm("Undo the last paste?")){D=p;msg="Undid the last add.";done()}break}
+      const P=parse($("paste").value),n=(P.y?1:0)+P.a.length+P.g.length;
+      if(!n){$("pv").innerHTML="<span style='color:var(--red)'>Couldn’t find any # YESHIVA, # ATTENDANCE or # GUY lines. Paste Claude’s answer exactly as given.</span>";break}
+      ls("ov2-prev-"+code,D);const r=apply(P);
+      msg="Added: "+[P.y?"yeshiva overview":"",P.g.length?P.g.length+" guys":"",...r.ad.map(x=>"attendance "+x)].filter(Boolean).join(" · ")+(r.ch.length?"\n\nChanges:\n"+r.ch.slice(0,12).map(x=>"• "+x).join("\n"):"");
+      if(r.unm.length)warn="Couldn’t match these names, so they weren’t marked: "+[...new Set(r.unm)].join(", ")+". Make sure they’re in the guys list with the same spelling.";
+      if(ov)ov.remove();tab="yes";done();window.scrollTo(0,0);break}
+    case"undo":{const p=ls("ov2-prev-"+code);if(p&&confirm("Undo the last add?")){D=fix(p);msg="Undid the last add.";if(ov)ov.remove();tab="yes";done()}break}
   }
 });
 document.addEventListener("input",e=>{
   if(e.target.id==="q"){q=e.target.value.toLowerCase().trim();$("gl").innerHTML=gList()}
-  if(e.target.id==="paste"){const P=parse(e.target.value);$("pv").textContent=`Found: ${P.y?"overview, ":""}${P.s.length} shiurim, ${P.g.length} guys`}
+  if(e.target.id==="paste"){const P=parse(e.target.value);$("pv").textContent=`Found: ${P.y?"overview, ":""}${P.a.length?"attendance, ":""}${P.g.length} guys`}
 });
-$("go").onclick=()=>{const c=$("code").value.toLowerCase().replace(/[^a-z0-9]/g,"");if(!c)return;code=c;ls("ov-code",c);D=blank();load()};
+$("go").onclick=()=>{const c=$("code").value.toLowerCase().replace(/[^a-z0-9]/g,"");if(!c)return;code=c;ls("ov2-code",c);D=blank();render();load()};
 $("code").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
-$("out").onclick=()=>{code="";ls("ov-code","");D=blank();render()};
+$("out").onclick=()=>{code="";ls("ov2-code","");D=blank();render()};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&code&&!document.querySelector(".ov"))load()});
-if(code){const c=ls("ov-cache-"+code);if(c)D=c;render();load()}else render();
+if(code){const c=ls("ov2-cache-"+code);if(c)D=fix(c);render();load()}else render();
 })();
 </script>
 </body></html>
