@@ -12,41 +12,45 @@
 :root{--paper:#F7F4EC;--card:#fff;--ink:#241D4A;--soft:#6B6558;--line:#E4DFCF;--brand:#342B71;--bs:#EDEBFA;--red:#A23B32;--rb:#F7E6E3;--amb:#8A5A00;--ab:#FBEFDD;--grn:#2F6B3A;--gb:#E7F0E6;--serif:Georgia,'Times New Roman',serif}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
-#app,#login{max-width:720px;margin:0 auto;padding:14px 14px 80px}
+#app,#setup{max-width:720px;margin:0 auto;padding:14px 14px 80px}
 header{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:8px}
-h1{font:400 21px var(--serif);margin:0}
-.pill{font-size:11px;color:var(--soft)}
+h1{font:400 21px var(--serif);margin:0}.pill{font-size:11px;color:var(--soft)}
 .tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--paper);padding:6px 0 10px;z-index:5}
 .tab{padding:9px 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--soft);font-size:14px}
 .tab.on{background:var(--brand);border-color:var(--brand);color:#fff}
-button,input,textarea{font:inherit;color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
 .b{padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer}
 .b.p{background:var(--brand);border-color:var(--brand);color:#fff}.b.red{color:var(--red)}
+a.b{text-decoration:none;display:inline-block;font-size:13px;padding:7px 12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;padding:12px 14px}
 .c{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
-.c>summary{list-style:none;display:flex;gap:10px;justify-content:space-between;padding:11px 13px;cursor:pointer}
+.c>summary{list-style:none;display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:11px 13px;cursor:pointer}
 .c>summary::-webkit-details-marker{display:none}.body{padding:0 13px 12px}
 .sub{font-size:12px;color:var(--soft)}.pv{font-size:13px;color:var(--soft);margin-top:2px}
 .t{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap;display:inline-block}
-.t.needs{background:var(--rb);color:var(--red)}.t.steady{background:var(--ab);color:var(--amb)}.t.thriving{background:var(--gb);color:var(--grn)}
-.rt{text-align:right;flex:none}.rt .sub{margin-top:3px}
+.t.struggling{background:var(--rb);color:var(--red)}.t.steady{background:var(--ab);color:var(--amb)}.t.thriving{background:var(--gb);color:var(--grn)}
+.rt{text-align:right;flex:none}.rt .sub{margin-top:3px}.mn{flex:1;min-width:0}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--bs);color:var(--brand);font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
 .tx{white-space:pre-wrap}
 h2{font:600 12px/1 sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:20px 2px 8px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 4px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats div{background:var(--bs);border-radius:12px;padding:10px 4px;text-align:center;font-size:11px;color:var(--soft)}
 .stats b{display:block;font-size:22px;color:var(--ink)}
 .big{font:400 20px var(--serif)}.ln{margin-top:6px;font-size:14px}
 .bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);margin-top:5px}
-.bar span:first-child{width:46px}.bar span:last-child{width:52px;text-align:right}
+.bar span:first-child{width:46px}.bar span:last-child{width:58px;text-align:right}
 .bar i{flex:1;height:8px;background:var(--line);border-radius:9px;overflow:hidden}.bar u{display:block;height:100%;background:var(--grn)}
 .row{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}.row:first-child{border-top:0}
-.chips{display:flex;gap:6px;overflow-x:auto;margin:8px 0 12px}
-.chip{flex:none;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--soft)}
+.chips{display:flex;gap:6px;margin:8px 0}
+.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--soft)}
 .chip.on{background:var(--bs);border-color:var(--brand);color:var(--brand)}
-input,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-textarea{min-height:200px;resize:vertical}select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}
+.fl{display:flex;gap:8px;margin:8px 0 12px}.fl>*{min-width:0}
+input,textarea,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+textarea{min-height:200px;resize:vertical}
 .h{border-top:1px solid var(--line);padding:5px 0;font-size:13px}i.d{color:var(--soft);font-style:normal;margin-right:6px}
 .empty{text-align:center;color:var(--soft);padding:30px 10px}
+.str{display:inline-block;font-size:11px;background:var(--bs);color:var(--brand);border-radius:99px;padding:2px 8px;margin:2px 3px 2px 0}
 .ov{position:fixed;inset:0;background:rgba(20,16,50,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .mb{background:var(--paper);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0))}
 .mb h3{margin:0 0 8px;font:400 19px var(--serif)}.mb label{display:block;font-size:12px;color:var(--soft);margin-top:10px}.mb label>*{margin-top:4px;color:var(--ink)}
@@ -56,18 +60,18 @@ textarea{min-height:200px;resize:vertical}select{width:100%;padding:10px;border:
 p.hint{font-size:13px;color:var(--soft);margin:6px 2px}
 </style></head><body>
 
-<div id="login" hidden>
+<div id="setup" hidden>
   <h1 style="margin:40px 0 8px">Derech Overview</h1>
-  <p class="hint">Enter your yeshiva code. Everyone with the same code sees the same overview.</p>
-  <input id="code" placeholder="Yeshiva code" autocapitalize="off" autocomplete="off">
-  <div class="r"><button class="b p" id="go" style="flex:1">Enter</button></div>
+  <p class="hint" id="sm">I couldn’t find your data. If you use a workspace code in the old app, enter it here. Otherwise leave it empty.</p>
+  <input id="ws" placeholder="Workspace code (optional)" autocapitalize="off" autocomplete="off">
+  <div class="r"><button class="b p" id="go" style="flex:1">Connect</button></div>
 </div>
 
 <div id="app" hidden>
   <header><h1>Derech Overview</h1><span><span class="pill" id="st"></span> <button class="b p" data-a="up" style="padding:7px 12px">+ Update</button></span></header>
   <div class="tabs"><button class="tab" data-t="yes">Yeshiva</button><button class="tab" data-t="gu">Guys</button></div>
   <div id="view"></div>
-  <p style="text-align:center;margin-top:30px"><button class="b" id="out" style="font-size:12px;padding:5px 10px">Lock</button></p>
+  <p style="text-align:center;margin-top:30px"><button class="b" data-a="ws" style="font-size:12px;padding:5px 10px">Workspace code</button></p>
 </div>
 
 <script>
@@ -79,60 +83,195 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
 function ls(k,v){try{if(v===undefined){const x=localStorage.getItem(k);return x?JSON.parse(x):null}localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
-const L={thriving:"Thriving",steady:"Steady",needs:"Needs attention"};
+// same workspace prefix the old app uses, so it reads the very same data
+const PFX=(function(){try{const w=(localStorage.getItem("ws-code")||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,32);return w?"ws-"+w+"-":""}catch(e){return""}})();
+const L={struggling:"Needs attention",steady:"Steady",thriving:"Thriving"};
 const tag=s=>s?`<span class="t ${s}">${L[s]}</span>`:"";
-const blank=()=>({y:{t:"",d:""},g:{},a:{},log:[]});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const today=()=>ymd(new Date());
 const ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)};
-const fd=d=>{try{return new Date(d+"T00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"})}catch(e){return d||""}};
-let code=ls("ov2-code")||"",D=blank(),tab="yes",q="",filt="all",msg="",warn="";
-const rid=()=>"ov2-"+code;
+const fd=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"})}catch(e){return d||""}};
+let D=null,PH={},DAYS={},tab="yes",q="",filt="all",cls="",msg="",warn="";
 const pill=t=>{$("st").textContent=t};
-const fix=d=>Object.assign(blank(),d||{});
+function norm(){["classes","students","attendance","interviews"].forEach(k=>{if(!Array.isArray(D[k]))D[k]=[]});if(!Array.isArray(D.ovLog))D.ovLog=[]}
 
-// ---------- storage ----------
+// ---------- storage: same table & rows as the old app ----------
+async function getRow(id){
+  const r=await fetch(`${SB.url}/rest/v1/derech_data?select=data&id=eq.${id}`,{headers:H});
+  if(!r.ok)throw new Error(r.status);const j=await r.json();return j[0]&&j[0].data||null;
+}
+async function putRow(id,data){
+  const r=await fetch(`${SB.url}/rest/v1/derech_data?on_conflict=id`,{method:"POST",headers:{...H,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})});
+  if(!r.ok)throw new Error(r.status);
+}
 async function load(){
-  let got=false;
   try{
-    const r=await fetch(`${SB.url}/rest/v1/derech_data?select=data&id=eq.${rid()}`,{headers:H});
-    if(!r.ok)throw 0;const j=await r.json();
-    if(j[0]&&j[0].data){D=fix(j[0].data);got=true}
-    pill("Synced");
-  }catch(e){pill("Offline")}
-  if(!got){const c=ls("ov2-cache-"+code);if(c)D=fix(c)}
-  ls("ov2-cache-"+code,D);
-  if(!$("paste"))render();
+    const d=await getRow(PFX+"main");
+    if(d){D=d;norm();ls("sv-cache"+PFX,D);pill("Synced")}
+    else if(!D){$("sm").textContent="I couldn’t find any data for this code. If you use a workspace code in the old app, enter it here.";return show("setup")}
+  }catch(e){pill("Offline");if(!D)return show("setup")}
+  render();
+  if(!Object.keys(PH).length)loadPhotos();
 }
-async function save(){
-  ls("ov2-cache-"+code,D);pill("Saving…");
+async function loadPhotos(){
+  try{const p=await getRow(PFX+"photos");if(p){PH=p;if(!document.querySelector(".ov")&&tab==="gu"||tab==="yes")render()}}catch(e){}
+}
+// every change: re-read the newest data, back it up, apply the change, save
+async function mutate(fn){
+  pill("Saving…");
   try{
-    const r=await fetch(`${SB.url}/rest/v1/derech_data?on_conflict=id`,{method:"POST",headers:{...H,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({id:rid(),data:D,updated_at:new Date().toISOString()})});
-    if(!r.ok)throw 0;pill("Synced");
-  }catch(e){pill("Saved on this phone only")}
+    const fresh=await getRow(PFX+"main");if(!fresh)throw new Error("none");
+    await putRow(PFX+"bk-simple",fresh);
+    D=fresh;norm();const res=fn();
+    await putRow(PFX+"main",D);ls("sv-cache"+PFX,D);pill("Synced");render();return res||{};
+  }catch(e){pill("Not saved");alert("Couldn’t save. Check your internet and try again.");return null}
 }
-const done=()=>{save();render()};
 
-// ---------- merging ----------
-function setGuy(name,f,date,ch){
-  const k=name.toLowerCase(),old=D.g[k];
-  const g=old||(D.g[k]={name,shiur:"",room:"",st:"",t:"",d:date,h:[]});
-  if(!old)ch.push(`New: ${name}${f.shiur?" ("+f.shiur+")":""}`);
-  else{
-    if(f.shiur&&g.shiur&&f.shiur!==g.shiur)ch.push(`${name} moved shiur: ${g.shiur} → ${f.shiur}`);
-    if(f.room&&g.room&&f.room!==g.room)ch.push(`${name} changed room: ${g.room} → ${f.room}`);
-    if(f.st&&g.st&&f.st!==g.st)ch.push(`${name}: ${L[g.st]} → ${L[f.st]}`);
-  }
-  if(f.shiur)g.shiur=f.shiur;if(f.room)g.room=f.room;if(f.st)g.st=f.st;
-  if(f.body&&f.body!==g.t){g.t=f.body;g.h.unshift({d:date,t:f.body});g.h=g.h.slice(0,25)}
-  g.d=date;
-}
-const normSt=x=>{x=(x||"").toLowerCase().trim();if(!x)return"";if(/need|strug|concern|attent|red|worr/.test(x))return"needs";if(/thriv|great|excel|green|strong/.test(x))return"thriving";return"steady"};
-function resolve(n){
-  n=n.toLowerCase().replace(/\s+/g," ").trim();if(D.g[n])return n;
-  const t=n.split(" "),c=Object.keys(D.g).filter(k=>t.every(w=>k.includes(w)));
+// ---------- helpers on the existing data ----------
+const cname=id=>{const c=D.classes.find(x=>x.id===id);return c?c.name:""};
+const findS=n=>{
+  const nz=x=>String(x).toLowerCase().replace(/[-\s]+/g," ").trim();
+  n=nz(n);if(!n)return null;
+  const ex=D.students.filter(s=>nz(s.name)===n);if(ex.length)return ex[0];
+  const t=n.split(" "),c=D.students.filter(s=>t.every(w=>nz(s.name).includes(w)));
   return c.length===1?c[0]:null;
+};
+function ensureClass(name){
+  const k=name.toLowerCase().trim();let c=D.classes.find(x=>x.name.toLowerCase().trim()===k);
+  if(!c){c={id:"class_"+uid(),name:name.trim(),room:""};D.classes.push(c)}return c;
 }
+const byDate=(a,b)=>b.date.localeCompare(a.date);
+function standing(id){let b=null;D.interviews.forEach(i=>{if(i.studentId===id&&i.status&&(!b||i.date>=b.date))b=i});return b}
+function checkins(id){return D.interviews.map((e,i)=>({e,i})).filter(x=>x.e.studentId===id).sort((a,b)=>b.e.date.localeCompare(a.e.date)||b.i-a.i).map(x=>x.e)}
+const rank={absent:2,late:1,present:0};
+function buildDays(){
+  const m={},ids=new Set(D.students.map(s=>s.id));
+  D.attendance.forEach(a=>{const d=m[a.date]||(m[a.date]={});const r=a.records||{};for(const id in r){if(!ids.has(id))continue;const v=r[id];if(!(id in d)||(rank[v]||0)>(rank[d[id]]||0))d[id]=v}});
+  DAYS=m;
+}
+const dates=()=>Object.keys(DAYS).sort();
+function absn(id,n){const c=ago(n),o={ab:[],lt:[]};dates().forEach(d=>{if(d>=c){const v=DAYS[d][id];if(v==="absent")o.ab.push(d);else if(v==="late")o.lt.push(d)}});return o}
+function streak(id){let n=0;const ds=dates().reverse();for(const d of ds){const v=DAYS[d][id];if(v===undefined)continue;if(v==="absent")n++;else break}return n}
+const first=t=>{const l=String(t||"").split("\n").find(x=>x.trim())||"";return esc(l.replace(/^[-•*]\s*/,"").replace(/\*\*/g,"").slice(0,110))};
+const noteOf=id=>{const e=checkins(id).find(x=>x.notes&&x.notes.trim());return e||null};
+const names=ids=>ids.map(id=>{const s=D.students.find(x=>x.id===id);return esc(s?s.name:"?")}).join(", ");
+const inits=n=>n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
+const photo=s=>s.photo&&s.photo.startsWith("data:")?s.photo:(PH["s:"+s.id]||"");
+const av=s=>{const p=photo(s);return `<div class="av">${p?`<img src="${esc(p)}" alt="">`:esc(inits(s.name))}</div>`};
+const empty=`<div class="empty">Nothing to show yet.</div>`;
+
+// ---------- Yeshiva screen ----------
+function rYes(){
+  let h="";
+  if(msg){h+=`<div class="msg">${esc(msg)}</div>`;msg=""}
+  if(warn){h+=`<div class="msg w">${esc(warn)}</div>`;warn=""}
+  const gs=D.students;if(!gs.length)return h+empty;
+  const sum=D.ovSummary;
+  h+=sum&&sum.t?`<div class="card"><div class="sub">The yeshiva overall · ${fd(sum.d)}</div><div class="tx">${fmt(sum.t)}</div></div>`:
+    `<div class="card"><div class="sub">The yeshiva overall</div><div class="pv">Tap <b>+ Update</b> and paste an overview to put a summary here.</div></div>`;
+  const c={struggling:0,steady:0,thriving:0,none:0};
+  gs.forEach(s=>{const x=standing(s.id);c[x?x.status:"none"]++});
+  h+=`<div class="stats"><div><b>${c.thriving}</b>Thriving</div><div><b>${c.steady}</b>Steady</div><div><b style="color:var(--red)">${c.struggling}</b>Need attention</div></div>`;
+  const ds=dates();
+  if(ds.length){
+    const ld=ds[ds.length-1],day=DAYS[ld],ids=Object.keys(day),ab=ids.filter(i=>day[i]==="absent"),lt=ids.filter(i=>day[i]==="late");
+    h+=`<h2>Attendance · ${fd(ld)}</h2><div class="card"><div class="big">${ids.length-ab.length} of ${ids.length} here <span class="sub">${Math.round((ids.length-ab.length)/ids.length*100)}%</span></div>
+    ${ab.length?`<div class="ln"><b>Absent:</b> ${names(ab)}</div>`:`<div class="ln">Everyone is here.</div>`}${lt.length?`<div class="ln"><b>Late:</b> ${names(lt)}</div>`:""}
+    <div style="margin-top:10px">${ds.slice(-7).map(d=>{const v=DAYS[d],k=Object.keys(v),a=k.filter(i=>v[i]==="absent").length;return `<div class="bar"><span>${fd(d)}</span><i><u style="width:${Math.round((k.length-a)/k.length*100)}%"></u></i><span>${k.length-a}/${k.length}</span></div>`}).join("")}</div></div>`;
+  }
+  const watch=gs.map(s=>({s,st:standing(s.id),n:streak(s.id)})).filter(x=>(x.st&&x.st.status==="struggling")||x.n>=3).sort((a,b)=>a.s.name.localeCompare(b.s.name));
+  if(watch.length)h+=`<h2>Needs attention</h2><div class="card">`+watch.map(({s,st,n})=>{const nt=noteOf(s.id);return `<div class="row" data-a="eg" data-k="${esc(s.id)}"><div class="mn"><b>${esc(s.name)}</b> <span class="sub">${esc(cname(s.classId))}</span><div class="pv">${n>=3?`Absent ${n} sessions in a row. `:""}${nt?first(nt.notes):""}</div></div>${tag(st&&st.status)}</div>`}).join("")+`</div>`;
+  const by={};gs.forEach(s=>{(by[s.classId||""]||(by[s.classId||""]=[])).push(s)});
+  const rows=Object.keys(by).map(id=>({id,n:id?cname(id):"No shiur yet",a:by[id]})).sort((x,y)=>x.n.localeCompare(y.n));
+  if(rows.length>1||rows[0].id){
+    const ld=ds[ds.length-1];
+    h+=`<h2>By shiur</h2><div class="card">`+rows.map(r=>{
+      const nd=r.a.filter(s=>{const x=standing(s.id);return x&&x.status==="struggling"}).length,out=ld?r.a.filter(s=>DAYS[ld][s.id]==="absent").length:0;
+      return `<div class="row" data-a="fs" data-k="${esc(r.id||"none")}"><div><b>${esc(r.n)}</b><div class="pv">${r.a.length} guys${ld?` · ${out} absent`:""}</div></div>${nd?`<span class="t struggling">${nd} need attention</span>`:`<span class="sub">›</span>`}</div>`}).join("")+`</div>`;
+  }
+  if(D.ovLog.length)h+=`<h2>Recent changes</h2><div class="card">`+D.ovLog.slice(0,12).map(l=>`<div class="h"><i class="d">${fd(l.d)}</i>${esc(l.t)}</div>`).join("")+`</div>`;
+  return h;
+}
+
+// ---------- Guys screen ----------
+function gList(){
+  const ql=q.toLowerCase();
+  const gs=D.students.filter(s=>{
+    if(cls&&(cls==="none"?s.classId:s.classId!==cls))return false;
+    if(filt==="needs"){const x=standing(s.id);if(!(x&&x.status==="struggling")&&streak(s.id)<3)return false}
+    return !ql||(s.name+" "+cname(s.classId)+" "+(s.dorm||"")).toLowerCase().includes(ql);
+  }).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!gs.length)return `<div class="empty">No matches.</div>`;
+  return gs.map(s=>{
+    const x=standing(s.id),nt=noteOf(s.id),a=absn(s.id,30),fu=checkins(s.id).find(e=>e.follow);
+    const sub=[cname(s.classId),s.dorm&&"Room "+s.dorm].filter(Boolean).map(esc).join(" · ")||"No shiur or room yet";
+    return `<details class="c"><summary>${av(s)}<div class="mn"><b>${esc(s.name)}</b><div class="sub">${sub}</div>${nt?`<div class="pv">${first(nt.notes)}</div>`:""}</div>
+    <div class="rt">${tag(x&&x.status)}${a.ab.length||a.lt.length?`<div class="sub">${a.ab.length} absent · ${a.lt.length} late</div>`:""}</div></summary>
+    <div class="body">${(s.strengths||[]).map(t=>`<span class="str">${esc(t)}</span>`).join("")}
+    ${nt?`<div class="tx" style="margin-top:6px">${fmt(nt.notes)}</div><div class="sub">${fd(nt.date)}</div>`:`<div class="pv">No check-in notes yet.</div>`}
+    ${fu?`<div class="ln"><b>Follow-up:</b> ${esc(fu.follow)}</div>`:""}
+    ${a.ab.length?`<div class="ln"><b>Absent (30 days):</b> ${a.ab.map(fd).join(", ")}</div>`:""}${a.lt.length?`<div class="ln"><b>Late:</b> ${a.lt.map(fd).join(", ")}</div>`:""}
+    ${checkins(s.id).filter(e=>e.notes&&e!==(nt||{})).slice(0,4).map(e=>`<div class="h"><i class="d">${fd(e.date)}</i>${first(e.notes)}</div>`).join("")}
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="b" data-a="eg" data-k="${esc(s.id)}">Edit / add note</button>${s.phone?`<a class="b" href="tel:${esc(s.phone)}">Call him</a>`:""}${s.parentPhone?`<a class="b" href="tel:${esc(s.parentPhone)}">Call parent</a>`:""}</div></div></details>`}).join("");
+}
+function rGu(){
+  const cs=D.classes.filter(c=>D.students.some(s=>s.classId===c.id)).sort((a,b)=>a.name.localeCompare(b.name));
+  return `<input id="q" type="search" placeholder="Search name, shiur or room" value="${esc(q)}">
+  <div class="fl"><select id="cs"><option value="">All shiurim</option>${cs.map(c=>`<option value="${esc(c.id)}"${cls===c.id?" selected":""}>${esc(c.name)}</option>`).join("")}</select>
+  <button class="chip${filt==="needs"?" on":""}" data-a="nf" style="white-space:nowrap">Needs attention</button><button class="chip" data-a="newg" style="white-space:nowrap">+ Guy</button></div><div id="gl">${gList()}</div>`;
+}
+function render(){
+  if(!D)return;show("app");buildDays();
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  $("view").innerHTML=tab==="gu"?rGu():rYes();
+}
+function show(w){$("setup").hidden=w!=="setup";$("app").hidden=w!=="app"}
+
+// ---------- editing ----------
+function sheet(html,onclick){
+  const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="mb">${html}</div>`;
+  o.onclick=e=>{if(e.target===o||e.target.dataset.x==="c")o.remove();else if(onclick)onclick(e,o)};
+  document.body.appendChild(o);return o;
+}
+const STO=[["","—"],["thriving","Thriving"],["steady","Steady"],["struggling","Needs attention"]];
+const opts=(a,v)=>a.map(x=>`<option value="${esc(x[0])}"${x[0]===v?" selected":""}>${esc(x[1])}</option>`).join("");
+const bullets=t=>String(t||"").split("\n").map(l=>l.replace(/^\s*[-•*]\s*/,"").trim()).filter(Boolean).map(l=>"- "+l).join("\n");
+function editGuy(id){
+  const s=D.students.find(x=>x.id===id);if(!s)return;
+  const cl=D.classes.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>[c.id,c.name]);
+  const o=sheet(`<form><h3>${esc(s.name)}</h3>
+  <label>Shiur<select name="cls">${opts([["","No shiur"]].concat(cl),s.classId||"")}</select></label>
+  <label>Room<input name="room" value="${esc(s.dorm||"")}"></label>
+  <label>How he’s doing<select name="st">${opts(STO,(standing(s.id)||{}).status||"")}</select></label>
+  <label>New note<textarea name="note" style="min-height:90px"></textarea></label>
+  <label>Follow-up / next step<input name="fu"></label>
+  <label>His phone<input name="ph" value="${esc(s.phone||"")}"></label><label>Parent phone<input name="pp" value="${esc(s.parentPhone||"")}"></label>
+  <div class="r"><span></span><button type="button" class="b" data-x="c">Cancel</button><button class="b p">Save</button></div></form>`);
+  o.querySelector("form").onsubmit=async e=>{
+    e.preventDefault();const f=Object.fromEntries(new FormData(e.target));o.remove();
+    await mutate(()=>{
+      const st=D.students.find(x=>x.id===id);if(!st)return;const date=today(),ch=[];
+      if(f.cls!==(st.classId||"")){ch.push(`${st.name} moved shiur: ${cname(st.classId)||"none"} → ${cname(f.cls)||"none"}`);st.classId=f.cls}
+      if(f.room.trim()!==(st.dorm||"")){if(st.dorm)ch.push(`${st.name} changed room: ${st.dorm} → ${f.room.trim()||"none"}`);st.dorm=f.room.trim()}
+      st.phone=f.ph.trim();st.parentPhone=f.pp.trim();
+      const cur=(standing(id)||{}).status||"",note=bullets(f.note);
+      if(f.st&&cur&&f.st!==cur)ch.push(`${st.name}: ${L[cur]} → ${L[f.st]}`);
+      if(note||f.fu.trim()||(f.st&&f.st!==cur))D.interviews.push({id:uid(),studentId:id,date,notes:note,status:f.st||cur,areas:{},qa:{},follow:f.fu.trim(),manual:!!f.st});
+      D.ovLog=ch.map(t=>({d:date,t})).concat(D.ovLog).slice(0,120);
+    });
+  };
+}
+function newGuy(){
+  const cl=D.classes.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>[c.id,c.name]);
+  const o=sheet(`<form><h3>New guy</h3><label>Full name<input name="n" required></label><label>Shiur<select name="cls">${opts([["","No shiur"]].concat(cl),"")}</select></label><label>Room<input name="room"></label>
+  <div class="r"><span></span><button type="button" class="b" data-x="c">Cancel</button><button class="b p">Add</button></div></form>`);
+  o.querySelector("form").onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));o.remove();
+    await mutate(()=>{D.students.push({id:uid(),name:f.n.trim(),classId:f.cls,photo:"",phone:"",parentPhone:"",dorm:f.room.trim()});D.ovLog.unshift({d:today(),t:`New: ${f.n.trim()}`})})};
+}
+
+// ---------- paste-in updates ----------
+const normSt=x=>{x=(x||"").toLowerCase().trim();if(!x)return"";if(/need|strug|concern|attent|red|worr/.test(x))return"struggling";if(/thriv|great|excel|green|strong/.test(x))return"thriving";return"steady"};
 function parse(txt){
   const P={y:null,a:[],g:[]};let cur=null;
   for(const raw of String(txt).split(/\r?\n/)){
@@ -142,112 +281,39 @@ function parse(txt){
   }
   const body=x=>x.b.join("\n").trim();
   if(P.y)P.y=body(P.y);
-  P.a=P.a.map(x=>({f:x.f,body:body(x)}));
-  P.g=P.g.filter(x=>x.f[0]).map(x=>({f:x.f,body:body(x)}));
+  P.a=P.a.map(x=>({f:x.f,body:body(x)}));P.g=P.g.filter(x=>x.f[0]).map(x=>({f:x.f,body:body(x)}));
   return P;
 }
-function apply(P){
-  const date=today(),ch=[],unm=[],ad=[];
-  if(P.y)D.y={t:P.y,d:date};
-  P.g.forEach(x=>setGuy(x.f[0],{shiur:x.f[1],room:x.f[2],st:normSt(x.f[3]),body:x.body},date,ch));
-  P.a.forEach(x=>{
-    const dm=(x.f[0]||"").match(/\d{4}-\d{2}-\d{2}/),d=dm?dm[0]:date,rec={ab:[],lt:[],tot:Object.keys(D.g).length};
-    x.body.split("\n").forEach(line=>{
-      const m=line.match(/^\s*[-•*]?\s*(absent|out|missing|late)\b[^:\-–]*[:\-–]\s*(.*)$/i);if(!m)return;
-      const list=m[1].toLowerCase()==="late"?rec.lt:rec.ab;
-      m[2].split(/[,;]|\band\b/i).map(s=>s.replace(/\(.*?\)/g,"").trim()).filter(s=>s&&!/^(none|no one|nobody|n\/a)$/i.test(s)).forEach(n=>{const k=resolve(n);if(!k)unm.push(n);else if(!list.includes(k))list.push(k)});
-    });
-    D.a[d]=rec;ad.push(`${fd(d)}: ${rec.ab.length} absent, ${rec.lt.length} late`);
+function applyP(P){
+  const date=today(),ch=[],nf=[],unm=[],ad=[];
+  if(P.y)D.ovSummary={t:P.y,d:date};
+  P.g.forEach(x=>{
+    const s=findS(x.f[0]);if(!s){nf.push(x.f[0]);return}
+    const shiur=x.f[1],room=x.f[2],st=normSt(x.f[3]);
+    if(shiur){const c=ensureClass(shiur);if(c.id!==s.classId){ch.push(`${s.name} moved shiur: ${cname(s.classId)||"none"} → ${c.name}`);s.classId=c.id}}
+    if(room&&room!==(s.dorm||"")){if(s.dorm)ch.push(`${s.name} changed room: ${s.dorm} → ${room}`);s.dorm=room}
+    const cur=(standing(s.id)||{}).status||"",note=bullets(x.body),last=noteOf(s.id);
+    if(st&&cur&&st!==cur)ch.push(`${s.name}: ${L[cur]} → ${L[st]}`);
+    if((note&&(!last||last.notes!==note))||(st&&st!==cur))D.interviews.push({id:uid(),studentId:s.id,date,notes:note&&(!last||last.notes!==note)?note:"",status:st||cur,areas:{},qa:{},follow:"",manual:!!st});
   });
-  D.log=ch.map(t=>({d:date,t})).concat(D.log||[]).slice(0,120);
-  return {ch,unm,ad};
+  P.a.forEach(x=>{
+    const dm=(x.f[0]||"").match(/\d{4}-\d{2}-\d{2}/),d=dm?dm[0]:date,sev={};
+    x.body.split("\n").forEach(line=>{
+      const m=line.match(/^\s*[-•*]?\s*(absent|out|missing|late|away|excused)\b[^:\-–]*[:\-–]\s*(.*)$/i);if(!m)return;const kw=m[1].toLowerCase(),late=kw==="late",away=kw==="away"||kw==="excused";
+      m[2].split(/[,;]|\band\b/i).map(s=>s.replace(/\(.*?\)/g,"").trim()).filter(s=>s&&!/^(none|no one|nobody|n\/a)$/i.test(s)).forEach(n=>{const s=findS(n);if(!s)unm.push(n);else if(away)sev[s.id]="away";else if(late){if(!sev[s.id])sev[s.id]="late"}else sev[s.id]="absent"});
+    });
+    const by={};D.students.forEach(s=>{if(s.classId)(by[s.classId]||(by[s.classId]=[])).push(s)});
+    Object.keys(by).forEach(cid=>{
+      let rec=D.attendance.find(a=>a.classId===cid&&a.date===d&&(a.seder||"m1")==="m1");
+      if(!rec){rec={id:uid(),classId:cid,date:d,seder:"m1",records:{},photo:""};D.attendance.push(rec)}
+      rec.records=rec.records||{};by[cid].forEach(s=>{if(sev[s.id]==="away")delete rec.records[s.id];else rec.records[s.id]=sev[s.id]||"present"});
+    });
+    const v=Object.values(sev);ad.push(`${fd(d)}: ${v.filter(z=>z==="absent").length} absent, ${v.filter(z=>z==="late").length} late${v.some(z=>z==="away")?", "+v.filter(z=>z==="away").length+" away":""}`);
+  });
+  D.ovLog=ch.map(t=>({d:date,t})).concat(D.ovLog).slice(0,120);
+  return {ch,nf,unm,ad,ng:P.g.length-nf.length};
 }
-
-// ---------- numbers ----------
-function absn(k,n){
-  const c=ago(n),o={ab:[],lt:[]};
-  Object.entries(D.a).forEach(([d,r])=>{if(d>=c){if(r.ab.includes(k))o.ab.push(d);if(r.lt.includes(k))o.lt.push(d)}});
-  o.ab.sort();o.lt.sort();return o;
-}
-const key=g=>g.name.toLowerCase();
-const first=t=>{const l=(t||"").split("\n").find(x=>x.trim())||"";return esc(l.replace(/^[-•*]\s*/,"").slice(0,110))};
-const names=ks=>ks.map(k=>esc(D.g[k]?D.g[k].name:k)).join(", ");
-const empty=`<div class="empty">Nothing here yet.<br>Tap <b>+ Update</b> to paste your first overview.</div>`;
-const lastDate=()=>Object.keys(D.a).sort().pop();
-
-// ---------- views ----------
-function rYes(){
-  let h="";
-  if(msg){h+=`<div class="msg">${esc(msg)}</div>`;msg=""}
-  if(warn){h+=`<div class="msg w">${esc(warn)}</div>`;warn=""}
-  const gs=Object.values(D.g);
-  if(!gs.length&&!D.y.t&&!lastDate())return h+empty;
-  if(D.y.t)h+=`<div class="card"><div class="sub">Yeshiva overall · ${fd(D.y.d)}</div><div class="tx">${fmt(D.y.t)}</div></div>`;
-  const c={needs:0,steady:0,thriving:0};gs.forEach(g=>{if(c[g.st]!=null)c[g.st]++});
-  if(gs.length)h+=`<div class="stats"><div><b>${c.thriving}</b>Thriving</div><div><b>${c.steady}</b>Steady</div><div><b style="color:var(--red)">${c.needs}</b>Need attention</div></div>`;
-  const ld=lastDate();
-  if(ld){
-    const r=D.a[ld],tot=r.tot||gs.length||1,here=tot-r.ab.length;
-    h+=`<h2>Attendance · ${fd(ld)}</h2><div class="card"><div class="big">${here} of ${tot} here <span class="sub">${Math.round(here/tot*100)}%</span></div>
-    ${r.ab.length?`<div class="ln"><b>Absent:</b> ${names(r.ab)}</div>`:`<div class="ln">Everyone is here.</div>`}
-    ${r.lt.length?`<div class="ln"><b>Late:</b> ${names(r.lt)}</div>`:""}
-    <div style="margin-top:10px">${Object.keys(D.a).sort().slice(-7).map(d=>{const x=D.a[d],t=x.tot||gs.length||1;return `<div class="bar"><span>${fd(d)}</span><i><u style="width:${Math.round((t-x.ab.length)/t*100)}%"></u></i><span>${t-x.ab.length}/${t}</span></div>`}).join("")}</div></div>`;
-  }
-  const watch=gs.map(g=>({g,n:absn(key(g),14).ab.length})).filter(x=>x.g.st==="needs"||x.n>=3).sort((a,b)=>a.g.name.localeCompare(b.g.name));
-  if(watch.length)h+=`<h2>Needs attention</h2><div class="card">`+watch.map(({g,n})=>`<div class="row" data-a="eg" data-k="${esc(key(g))}"><div><b>${esc(g.name)}</b> <span class="sub">${esc(g.shiur)}</span><div class="pv">${n>=3?`Absent ${n}× in 2 weeks. `:""}${first(g.t)}</div></div>${tag(g.st)}</div>`).join("")+`</div>`;
-  const sh={};gs.forEach(g=>{const s=g.shiur||"No shiur yet";(sh[s]||(sh[s]=[])).push(g)});
-  const sn=Object.keys(sh).sort();
-  if(sn.length>1||(sn[0]&&sn[0]!=="No shiur yet"))h+=`<h2>By shiur</h2><div class="card">`+sn.map(s=>{
-    const a=sh[s],nd=a.filter(g=>g.st==="needs").length,out=ld?a.filter(g=>D.a[ld].ab.includes(key(g))).length:0;
-    return `<div class="row" data-a="fs" data-k="${esc(s.toLowerCase())}"><div><b>${esc(s)}</b><div class="pv">${a.length} guys${ld?` · ${out} absent`:""}</div></div>${nd?`<span class="t needs">${nd} need attention</span>`:`<span class="sub">›</span>`}</div>`}).join("")+`</div>`;
-  if((D.log||[]).length)h+=`<h2>Recent changes</h2><div class="card">`+D.log.slice(0,12).map(l=>`<div class="h"><i class="d">${fd(l.d)}</i>${esc(l.t)}</div>`).join("")+`</div>`;
-  return h;
-}
-function gList(){
-  const gs=Object.values(D.g).filter(g=>(filt==="all"||(filt==="needs"?g.st==="needs":(g.shiur||"No shiur yet").toLowerCase()===filt))&&(!q||(g.name+" "+g.shiur+" "+g.room).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));
-  if(!gs.length)return `<div class="empty">${Object.keys(D.g).length?"No matches.":"No guys yet. Tap <b>+ Update</b>."}</div>`;
-  return gs.map(g=>{
-    const a=absn(key(g),30);
-    return `<details class="c"><summary><div><b>${esc(g.name)}</b><div class="sub">${[g.shiur,g.room&&"Room "+g.room].filter(Boolean).map(esc).join(" · ")||"No shiur or room yet"}</div>${g.t?`<div class="pv">${first(g.t)}</div>`:""}</div>
-    <div class="rt">${tag(g.st)}${a.ab.length||a.lt.length?`<div class="sub">${a.ab.length} absent · ${a.lt.length} late</div>`:""}</div></summary>
-    <div class="body">${g.t?`<div class="tx">${fmt(g.t)}</div>`:""}
-    ${a.ab.length?`<div class="ln"><b>Absent (30 days):</b> ${a.ab.map(fd).join(", ")}</div>`:""}${a.lt.length?`<div class="ln"><b>Late:</b> ${a.lt.map(fd).join(", ")}</div>`:""}
-    ${g.h.slice(1,6).map(x=>`<div class="h"><i class="d">${fd(x.d)}</i>${esc(x.t.split("\n")[0])}</div>`).join("")}
-    <button class="b" style="margin-top:10px" data-a="eg" data-k="${esc(key(g))}">Edit / add note</button></div></details>`}).join("");
-}
-function rGu(){
-  const sn=[...new Set(Object.values(D.g).map(g=>g.shiur).filter(Boolean))].sort();
-  return `<input id="q" type="search" placeholder="Search name, shiur or room" value="${esc(q)}">
-  <div class="chips">${[["all","All"],["needs","Needs attention"]].concat(sn.map(s=>[s.toLowerCase(),s])).map(([k,l])=>`<button class="chip${filt===k?" on":""}" data-a="f" data-k="${esc(k)}">${esc(l)}</button>`).join("")}</div><div id="gl">${gList()}</div>`;
-}
-function render(){
-  $("login").hidden=!!code;$("app").hidden=!code;if(!code)return;
-  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
-  $("view").innerHTML=tab==="gu"?rGu():rYes();
-}
-
-// ---------- sheets ----------
-function sheet(html,onclick){
-  const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="mb">${html}</div>`;
-  o.onclick=e=>{if(e.target===o||e.target.dataset.x==="c")o.remove();else if(onclick)onclick(e,o)};
-  document.body.appendChild(o);return o;
-}
-const STO=[["","—"],["thriving","Thriving"],["steady","Steady"],["needs","Needs attention"]];
-function editGuy(k){
-  const g=D.g[k];if(!g)return;
-  const o=sheet(`<form><h3>${esc(g.name)}</h3>
-  <label>Shiur<input name="shiur" value="${esc(g.shiur)}"></label><label>Room<input name="room" value="${esc(g.room)}"></label>
-  <label>How he’s doing<select name="st">${STO.map(x=>`<option value="${x[0]}"${x[0]===g.st?" selected":""}>${x[1]}</option>`).join("")}</select></label>
-  <label>New note (old ones stay in history)<textarea name="body" style="min-height:90px"></textarea></label>
-  <div class="r"><button type="button" class="b red" data-x="d">Delete</button><span></span><button type="button" class="b" data-x="c">Cancel</button><button class="b p">Save</button></div></form>`,
-  (e,o)=>{if(e.target.dataset.x==="d"&&confirm("Delete "+g.name+" permanently?")){delete D.g[k];o.remove();done()}});
-  o.querySelector("form").onsubmit=e=>{
-    e.preventDefault();const f=Object.fromEntries(new FormData(e.target)),ch=[];
-    setGuy(g.name,{shiur:f.shiur.trim(),room:f.room.trim(),st:f.st,body:f.body.trim()},today(),ch);
-    D.log=ch.map(t=>({d:today(),t})).concat(D.log||[]).slice(0,120);o.remove();done();
-  };
-}
-function promptText(){return `Turn the updates below into this exact format and nothing else. Use full names, spelled the same way each time. Leave out any section I gave no info on.
+function promptText(){return `Turn the updates below into this exact format and nothing else. Use each guy’s name and shiur name exactly as in my guys list (Name | Shiur | Room). Leave out any section I gave no info on.
 
 # YESHIVA
 2–4 lines on how the yeshiva is doing overall
@@ -255,6 +321,7 @@ function promptText(){return `Turn the updates below into this exact format and 
 # ATTENDANCE ${today()}
 Absent: Full Name, Full Name
 Late: Full Name
+Away: Full Name (excused or not at yeshiva, so left out of the count)
 
 # GUY Full name | Shiur | Room | thriving, steady, or needs attention
 - short line on how he is doing
@@ -263,43 +330,55 @@ One # GUY block for each guy I mention. Only fill in Shiur or Room if I said it 
 
 Updates:
 [paste what the Rebbi told you here]`}
+function copy(t,btn,label){
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{btn.textContent="Copied ✓"}).catch(()=>{const x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();try{document.execCommand("copy");btn.textContent="Copied ✓"}catch(_){}x.remove()});
+}
 function openUpdate(){
-  sheet(`<h3>Add update</h3><p class="hint"><b>1.</b> Copy the prompt, give it to Claude with what the Rebbi said.<br><b>2.</b> Paste Claude’s answer below.</p>
-  <button class="b" data-a="cp">Copy prompt for Claude</button>
+  sheet(`<h3>Add update</h3><p class="hint"><b>1.</b> Copy the prompt (and your guys list), give them to Claude with what the Rebbi said.<br><b>2.</b> Paste Claude’s answer below.</p>
+  <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="b" data-a="cp">Copy prompt</button><button class="b" data-a="cr">Copy my guys list</button></div>
   <textarea id="paste" style="margin-top:10px" placeholder="# YESHIVA&#10;...&#10;# ATTENDANCE&#10;Absent: ...&#10;# GUY ..."></textarea>
-  <p class="hint" id="pv">Paste to begin. Nothing existing gets erased.</p>
+  <p class="hint" id="pv">Paste to begin. Nothing gets erased, and a backup is saved first.</p>
   <div class="r"><button class="b" data-a="undo">Undo last add</button><span></span><button class="b" data-x="c">Cancel</button><button class="b p" data-a="add">Add</button></div>`);
 }
 
 // ---------- events ----------
-document.addEventListener("click",e=>{
+document.addEventListener("click",async e=>{
   const t=e.target.closest(".tab");if(t){tab=t.dataset.t;render();return}
   const a=e.target.closest("[data-a]");if(!a)return;const k=a.dataset.k,ov=document.querySelector(".ov");
   switch(a.dataset.a){
     case"up":openUpdate();break;
-    case"f":filt=k;render();break;
-    case"fs":filt=k;tab="gu";render();window.scrollTo(0,0);break;
+    case"nf":filt=filt==="needs"?"all":"needs";render();break;
+    case"fs":cls=k;tab="gu";render();window.scrollTo(0,0);break;
     case"eg":editGuy(k);break;
-    case"cp":{const P=promptText();(navigator.clipboard?navigator.clipboard.writeText(P):Promise.reject()).then(()=>{a.textContent="Copied ✓"}).catch(()=>{const x=document.createElement("textarea");x.value=P;document.body.appendChild(x);x.select();try{document.execCommand("copy");a.textContent="Copied ✓"}catch(_){}x.remove()});break}
+    case"newg":newGuy();break;
+    case"cp":copy(promptText(),a);break;
+    case"cr":copy(D.students.slice().sort((x,y)=>x.name.localeCompare(y.name)).map(s=>[s.name,cname(s.classId),s.dorm||""].join(" | ")).join("\n"),a);break;
+    case"ws":{const w=prompt("Workspace code (leave empty if you don’t use one):",localStorage.getItem("ws-code")||"");if(w!==null){try{localStorage.setItem("ws-code",w.trim())}catch(_){}location.reload()}break}
     case"add":{
-      const P=parse($("paste").value),n=(P.y?1:0)+P.a.length+P.g.length;
-      if(!n){$("pv").innerHTML="<span style='color:var(--red)'>Couldn’t find any # YESHIVA, # ATTENDANCE or # GUY lines. Paste Claude’s answer exactly as given.</span>";break}
-      ls("ov2-prev-"+code,D);const r=apply(P);
-      msg="Added: "+[P.y?"yeshiva overview":"",P.g.length?P.g.length+" guys":"",...r.ad.map(x=>"attendance "+x)].filter(Boolean).join(" · ")+(r.ch.length?"\n\nChanges:\n"+r.ch.slice(0,12).map(x=>"• "+x).join("\n"):"");
-      if(r.unm.length)warn="Couldn’t match these names, so they weren’t marked: "+[...new Set(r.unm)].join(", ")+". Make sure they’re in the guys list with the same spelling.";
-      if(ov)ov.remove();tab="yes";done();window.scrollTo(0,0);break}
-    case"undo":{const p=ls("ov2-prev-"+code);if(p&&confirm("Undo the last add?")){D=fix(p);msg="Undid the last add.";if(ov)ov.remove();tab="yes";done()}break}
+      const P=parse($("paste").value);
+      if(!(P.y||P.a.length||P.g.length)){$("pv").innerHTML="<span style='color:var(--red)'>Couldn’t find any # YESHIVA, # ATTENDANCE or # GUY lines. Paste Claude’s answer exactly as given.</span>";break}
+      a.disabled=true;a.textContent="Adding…";
+      const r=await mutate(()=>applyP(P));
+      if(!r){a.disabled=false;a.textContent="Add";break}
+      msg="Added: "+[P.y?"yeshiva overview":"",r.ng?r.ng+" guys":"",...r.ad.map(x=>"attendance "+x)].filter(Boolean).join(" · ")+(r.ch.length?"\n\nChanges:\n"+r.ch.slice(0,12).map(x=>"• "+x).join("\n"):"");
+      const bad=[...new Set((r.nf||[]).concat(r.unm||[]))];if(bad.length)warn="Couldn’t match these names, so they were skipped: "+bad.join(", ")+". Check the spelling against your guys list.";
+      document.querySelectorAll(".ov").forEach(o=>o.remove());tab="yes";render();window.scrollTo(0,0);break}
+    case"undo":{
+      if(!confirm("Restore everything to just before the last add? Anything changed since then will be undone too."))break;
+      try{const b=await getRow(PFX+"bk-simple");if(!b)throw 0;await putRow(PFX+"main",b);D=b;norm();ls("sv-cache"+PFX,D);msg="Restored to before the last add.";document.querySelectorAll(".ov").forEach(o=>o.remove());tab="yes";render()}catch(_){alert("No backup found, or couldn’t reach the server.")}
+      break}
   }
 });
 document.addEventListener("input",e=>{
-  if(e.target.id==="q"){q=e.target.value.toLowerCase().trim();$("gl").innerHTML=gList()}
+  if(e.target.id==="q"){q=e.target.value;$("gl").innerHTML=gList()}
   if(e.target.id==="paste"){const P=parse(e.target.value);$("pv").textContent=`Found: ${P.y?"overview, ":""}${P.a.length?"attendance, ":""}${P.g.length} guys`}
 });
-$("go").onclick=()=>{const c=$("code").value.toLowerCase().replace(/[^a-z0-9]/g,"");if(!c)return;code=c;ls("ov2-code",c);D=blank();render();load()};
-$("code").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
-$("out").onclick=()=>{code="";ls("ov2-code","");D=blank();render()};
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&code&&!document.querySelector(".ov"))load()});
-if(code){const c=ls("ov2-cache-"+code);if(c)D=fix(c);render();load()}else render();
+document.addEventListener("change",e=>{if(e.target.id==="cs"){cls=e.target.value;$("gl").innerHTML=gList()}});
+$("go").onclick=()=>{try{localStorage.setItem("ws-code",$("ws").value.trim())}catch(_){}location.reload()};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&D&&!document.querySelector(".ov"))load()});
+const c0=ls("sv-cache"+PFX)||ls("derech-cache"+PFX);
+if(c0){D=c0;norm();render()}
+load();
 })();
 </script>
 </body></html>
